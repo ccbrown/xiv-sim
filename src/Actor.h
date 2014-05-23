@@ -2,6 +2,9 @@
 
 #include "Damage.h"
 
+#include <chrono>
+using namespace std::literals::chrono_literals;
+
 class Action;
 class Model;
 class Rotation;
@@ -31,7 +34,17 @@ class Actor {
 		Damage generatedDamage(const Action* action) const;
 		Damage acceptedDamage(const Damage& incoming) const;
 
+		void advanceTime(const std::chrono::microseconds& time);
+		void triggerGlobalCooldown();
+
+		std::chrono::microseconds globalCooldownRemaining() const;
+
+		bool isOnGlobalCooldown() const { return globalCooldownRemaining() > 0us; }
+
 	private:
 		const Configuration* const _configuration = nullptr;
 		Stats _stats;
+
+		std::chrono::microseconds _time = 0us;
+		std::chrono::microseconds _globalCooldownStartTime = -1min;
 };

@@ -7,8 +7,8 @@
 
 namespace models {
 
-Damage Monk::generatedDamage(const Action* action, const Actor* subject) const {
-	auto& stats = subject->stats();
+Damage Monk::generatedDamage(const Action* action, const Actor* actor) const {
+	auto& stats = actor->stats();
 	
 	Damage ret;
 	double criticalHitChance = action->criticalHitChance((stats.criticalHitRate * 0.0697 - 18.437) / 100.0);
@@ -30,8 +30,16 @@ Damage Monk::generatedDamage(const Action* action, const Actor* subject) const {
 	return ret;
 }
 
-Damage Monk::acceptedDamage(const Damage& incoming, const Actor* target) const {
+Damage Monk::acceptedDamage(const Damage& incoming, const Actor* actor) const {
 	return incoming;
+}
+
+std::chrono::microseconds Monk::globalCooldown(const Actor* actor) const {
+	auto& stats = actor->stats();
+
+	auto gcd = std::chrono::duration<double>(2.49 - (stats.skillSpeed - 344) * (0.01 / 10.5));
+
+	return std::chrono::duration_cast<std::chrono::microseconds>(gcd);
 }
 
 }

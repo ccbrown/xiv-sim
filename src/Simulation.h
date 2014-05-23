@@ -3,6 +3,11 @@
 #include "Actor.h"
 
 #include <chrono>
+#include <queue>
+#include <unordered_map>
+#include <string>
+
+using namespace std::literals::chrono_literals;
 
 class Simulation {
 	public:
@@ -12,18 +17,64 @@ class Simulation {
 			Actor::Configuration* targetConfiguration = nullptr;
 		};
 		
-		struct Results {
-			unsigned int totalDamageDealt = 0;
+		struct Stats {
+			int count = 1;
+			int totalDamageDealt = 0;
+			
+			Stats& operator+=(const Stats& other) {
+				count += other.count;
+				totalDamageDealt += other.totalDamageDealt;
+				return *this;
+			}
 		};
 	
-		Simulation(const Configuration* configuration) : _configuration(configuration) {}
+		Simulation(const Configuration* configuration)
+			: _configuration(configuration)
+			, _subject(configuration->subjectConfiguration)
+			, _target(configuration->targetConfiguration)
+		{}
 
 		void run();
 		
-		const Results& results() const { return _results; }
+		const Stats& stats() const { return _stats; }
+		const std::unordered_map<std::string, Stats>& statsByEffect() const { return _statsByEffect; }
 
 	private:
 		const Configuration* const _configuration = nullptr;
+		Actor _subject;
+		Actor _target;
+
+		std::chrono::microseconds _time = 0us;
+
+		struct ScheduledFunction {
+			ScheduledFunction(std::shared_ptr<std::function<void()>> function, std::chrono::microseconds time, uint64_t order)
+				: function(function), time(time), order(order) {}
+			
+			std::shared_ptr<std::function<void()>> function;
+			std::chrono::microseconds time;
+			uint64_t order;
+			
+			bool operator<(const ScheduledFunction& other) const {
+				if (time > other.time) {
+					return true;
+				} else if (time == other.time) {
+					return order > other.order;
+				}
+				return false;
+			}
+		};
+	
+		std::priority_queue<ScheduledFunction> _scheduledFunctions;	
+		uint64_t _nextOrder = 0;
+		bool _shouldStop = false;
+
+		void _advanceTime(std::chrono::microseconds time);
+
+		void _schedule(const std::function<void()>& function, std::chrono::microseconds delay = 0us);
+
+		void _checkActors();
+		void _resolveAction(const Action* action, Actor* subject, Actor* target);
 		
-		Results _results;
+		Stats _stats;
+		std::unordered_map<std::string, Stats> _statsByEffect;
 };

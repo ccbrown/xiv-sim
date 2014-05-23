@@ -4,6 +4,7 @@
 
 #include <chrono>
 #include <vector>
+#include <cassert>
 
 using namespace std::literals::chrono_literals;
 
@@ -18,6 +19,7 @@ class Action {
 		virtual const std::string& identifier() const { return _identifier; }
 
 		virtual std::chrono::milliseconds cooldown() const { return 0ms; }
+		virtual bool isAllowedDuringGlobalCooldown() const { return false; }
 		virtual bool triggersGlobalCooldown() const { return true; }
 
 		virtual int damage() const { return 0; }

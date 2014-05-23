@@ -29,7 +29,15 @@ int main(int argc, const char* argv[]) {
 	Simulation simulation(&simulationConfiguration);
 	simulation.run();
 	
-	printf("total damage dealt: %d\n", simulation.results().totalDamageDealt);
+	auto& overall = simulation.stats();
+	printf("OVERALL: %d damage done, %.3f dps\n\n", overall.totalDamageDealt, overall.totalDamageDealt / std::chrono::duration<double>(simulationConfiguration.length).count());
 	
+	printf("EFFECT                              DAMAGE         COUNT\n");
+	
+	auto& effects = simulation.statsByEffect();
+	for (auto& kv : effects) {
+		printf("%-28s  %12d  %12d\n", kv.first.c_str(), kv.second.totalDamageDealt, kv.second.count);
+	}
+
 	return 0;
 }
