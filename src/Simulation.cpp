@@ -3,15 +3,26 @@
 #include "Action.h"
 #include "Model.h"
 
+#include <random>
+
 void Simulation::run() {
+	std::random_device generator;
+	std::uniform_int_distribution<std::chrono::microseconds::rep> distribution(0, 3000000);
+	
+	std::chrono::microseconds dotTickOffset(distribution(generator));
+
 	_schedule([&] {
 		_shouldStop = true;
 	}, _configuration->length);
-	
+
+	_schedule([&] {
+		_tickDoTs();
+	}, dotTickOffset);
+
 	_schedule([&] {
 		_checkActors();
 	});
-	
+
 	while (!_shouldStop && !_scheduledFunctions.empty()) {
 		auto& top = _scheduledFunctions.top();
 		_advanceTime(top.time);
@@ -32,25 +43,89 @@ void Simulation::_schedule(const std::function<void()>& function, std::chrono::m
 }
 
 void Simulation::_checkActors() {
+	if (!_subject.autoAttackDelayRemaining().count()) {
+		auto damage = _target.acceptDamage(_subject.performAutoAttack());
+
+		auto stats = _damageStats(damage);
+		_stats += stats;
+		_statsByEffect["auto-attack"] += stats;
+
+		_schedule([&] {
+			_checkActors();
+		}, _subject.autoAttackDelayRemaining());
+	}
+	
 	if (auto action = _subject.act(&_target)) {
-		assert(!_subject.isOnGlobalCooldown() || action->isAllowedDuringGlobalCooldown());
 		_resolveAction(action, &_subject, &_target);
 	}
 }
 
+void Simulation::_tickDoTs() {
+	for (auto& kv : _target.auras()) {
+		if (!kv.second.aura->tickDamage()) { continue; }
+		
+		auto damage = _target.acceptDamage(_target.generateTickDamage(kv.first));
+
+		auto stats = _damageStats(damage);
+		_stats += stats;
+		_statsByEffect[kv.first] += stats;
+	}
+	
+	_checkActors();
+
+	_schedule([&] {
+		_tickDoTs();
+	}, 3s);	
+}
+
 void Simulation::_resolveAction(const Action* action, Actor* subject, Actor* target) {	
-	auto damage = target->acceptedDamage(subject->generatedDamage(action));
+	if (!action->isOffGlobalCooldown() && subject->isOnGlobalCooldown()) { return; }
 
-	Stats stats;
-	stats.totalDamageDealt = damage.amount;
+	if (action->cooldown().count()) {
+		if (subject->cooldownRemaining(action->identifier()).count()) { return; }
 
+		subject->triggerCooldown(action->identifier(), action->cooldown());
+	}
+
+	Damage damage;
+
+	if (action->damage()) {
+		damage = target->acceptDamage(subject->generateDamage(action));
+	}
+
+	for (auto& kv : subject->auras()) {
+		if (action->dispelsSubjectAura(kv.second.aura)) {
+			subject->dispelAura(kv.second.aura->identifier());
+			break;
+		}
+	}
+
+	for (auto& kv : target->auras()) {
+		if (action->dispelsTargetAura(kv.second.aura)) {
+			target->dispelAura(kv.second.aura->identifier());
+			break;
+		}
+	}
+
+	for (auto& aura : action->subjectAuras()) {
+		subject->applyAura(subject, aura);
+	}
+
+	for (auto& aura : action->targetAuras()) {
+		target->applyAura(subject, aura);
+	}
+
+	auto stats = _damageStats(damage);
 	if (subject == &_subject) {
 		_stats += stats;
 	}
 	_statsByEffect[action->identifier()] += stats;
 
-	if (action->triggersGlobalCooldown()) {
+	if (!action->isOffGlobalCooldown()) {
 		subject->triggerGlobalCooldown();
+		_schedule([&] {
+			_checkActors();
+		});
 		_schedule([&] {
 			_checkActors();
 		}, subject->globalCooldownRemaining());
@@ -59,4 +134,12 @@ void Simulation::_resolveAction(const Action* action, Actor* subject, Actor* tar
 			_checkActors();
 		});
 	}
+}
+
+Simulation::Stats Simulation::_damageStats(const Damage& damage) {
+	Stats ret;
+	ret.count = 1;
+	ret.criticalHits = damage.isCritical ? 1 : 0;
+	ret.totalDamageDealt = damage.amount;
+	return ret;
 }

@@ -4,7 +4,7 @@
 
 #include <chrono>
 #include <queue>
-#include <unordered_map>
+#include <map>
 #include <string>
 
 using namespace std::literals::chrono_literals;
@@ -12,20 +12,22 @@ using namespace std::literals::chrono_literals;
 class Simulation {
 	public:
 		struct Configuration {
-			std::chrono::milliseconds length;
+			std::chrono::microseconds length;
 			Actor::Configuration* subjectConfiguration = nullptr;
 			Actor::Configuration* targetConfiguration = nullptr;
 		};
 		
 		struct Stats {
-			int count = 1;
+			int count = 0;
+			int criticalHits = 0;
 			int totalDamageDealt = 0;
 			
 			Stats& operator+=(const Stats& other) {
 				count += other.count;
+				criticalHits += other.criticalHits;
 				totalDamageDealt += other.totalDamageDealt;
 				return *this;
-			}
+			}			
 		};
 	
 		Simulation(const Configuration* configuration)
@@ -37,7 +39,7 @@ class Simulation {
 		void run();
 		
 		const Stats& stats() const { return _stats; }
-		const std::unordered_map<std::string, Stats>& statsByEffect() const { return _statsByEffect; }
+		const std::map<std::string, Stats>& statsByEffect() const { return _statsByEffect; }
 
 	private:
 		const Configuration* const _configuration = nullptr;
@@ -73,8 +75,11 @@ class Simulation {
 		void _schedule(const std::function<void()>& function, std::chrono::microseconds delay = 0us);
 
 		void _checkActors();
+		void _tickDoTs();
 		void _resolveAction(const Action* action, Actor* subject, Actor* target);
 		
+		Stats _damageStats(const Damage& damage);
+		
 		Stats _stats;
-		std::unordered_map<std::string, Stats> _statsByEffect;
+		std::map<std::string, Stats> _statsByEffect;
 };

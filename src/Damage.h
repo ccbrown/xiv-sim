@@ -1,6 +1,12 @@
 #pragma once
 
+enum DamageType {
+	DamageTypeUnknown,
+	DamageTypeBlunt,
+};
+
 struct Damage {
-	int amount = 0;
+	double amount = 0;
+	DamageType type = DamageTypeUnknown;
 	bool isCritical = false;
 };

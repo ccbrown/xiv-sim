@@ -18,9 +18,8 @@ class Action {
 	
 		virtual const std::string& identifier() const { return _identifier; }
 
-		virtual std::chrono::milliseconds cooldown() const { return 0ms; }
-		virtual bool isAllowedDuringGlobalCooldown() const { return false; }
-		virtual bool triggersGlobalCooldown() const { return true; }
+		virtual std::chrono::microseconds cooldown() const { return 0ms; }
+		virtual bool isOffGlobalCooldown() const { return false; }
 
 		virtual int damage() const { return 0; }
 
@@ -28,7 +27,10 @@ class Action {
 
 		virtual const std::vector<Aura*>& subjectAuras() const { return _subjectAuras; }
 		virtual const std::vector<Aura*>& targetAuras() const { return _targetAuras; }
-			
+
+		virtual bool dispelsSubjectAura(Aura* aura) const { return false; }
+		virtual bool dispelsTargetAura(Aura* aura) const { return false; }
+
 	protected:
 		const std::string _identifier;
 	
