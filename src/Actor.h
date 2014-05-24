@@ -1,12 +1,11 @@
 #pragma once
 
+#include "common.h"
 #include "Damage.h"
 
 #include <chrono>
 #include <unordered_map>
 #include <string>
-
-using namespace std::literals::chrono_literals;
 
 class Action;
 class Aura;
@@ -52,7 +51,7 @@ class Actor {
 		int auraCount(const std::string& identifier) const;
 		std::chrono::microseconds auraTimeRemaining(const std::string& identifier) const;
 
-		bool isOnGlobalCooldown() const { return globalCooldownRemaining() > 0us; }
+		bool isOnGlobalCooldown() const { return globalCooldownRemaining() > 0_us; }
 
 		Damage generateTickDamage(const std::string& auraIdentifier) const;
 		
@@ -70,8 +69,8 @@ class Actor {
 		struct AppliedAura {
 			Aura* aura = nullptr;
 			int count = 0;
-			std::chrono::microseconds time = 0us;
-			std::chrono::microseconds duration = 0us;
+			std::chrono::microseconds time = 0_us;
+			std::chrono::microseconds duration = 0_us;
 			double baseTickDamage = 0.0;
 			double tickCriticalHitChance = 0.0;
 		};
@@ -82,13 +81,13 @@ class Actor {
 		const Configuration* const _configuration = nullptr;
 		Stats _stats;
 
-		std::chrono::microseconds _time = 0us;
-		std::chrono::microseconds _globalCooldownStartTime = -1min;
-		std::chrono::microseconds _lastAutoAttackTime = -1min;
+		std::chrono::microseconds _time = 0_us;
+		std::chrono::microseconds _globalCooldownStartTime = -1_min;
+		std::chrono::microseconds _lastAutoAttackTime = -1_min;
 		
 		struct Cooldown {
-			std::chrono::microseconds time = 0us;
-			std::chrono::microseconds duration = 0us;
+			std::chrono::microseconds time = 0_us;
+			std::chrono::microseconds duration = 0_us;
 		};
 		
 		int _tp = 1000;

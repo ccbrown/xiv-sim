@@ -1,12 +1,11 @@
 #pragma once
 
 #include "Aura.h"
+#include "common.h"
 
 #include <chrono>
 #include <vector>
 #include <cassert>
-
-using namespace std::literals::chrono_literals;
 
 class Action {
 	public:
@@ -18,7 +17,7 @@ class Action {
 	
 		virtual const std::string& identifier() const { return _identifier; }
 
-		virtual std::chrono::microseconds cooldown() const { return 0ms; }
+		virtual std::chrono::microseconds cooldown() const { return 0_ms; }
 		virtual bool isOffGlobalCooldown() const { return false; }
 
 		virtual int damage() const { return 0; }

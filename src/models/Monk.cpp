@@ -135,22 +135,22 @@ void Monk::InitializeActions() {
 
 	struct RaptorForm : Aura {
 		RaptorForm() : Aura("raptor-form") {}
-		virtual std::chrono::microseconds duration() const override { return 10s; }
+		virtual std::chrono::microseconds duration() const override { return 10_s; }
 	};
 
 	struct CoeurlForm : Aura {
 		CoeurlForm() : Aura("coeurl-form") {}
-		virtual std::chrono::microseconds duration() const override { return 10s; }
+		virtual std::chrono::microseconds duration() const override { return 10_s; }
 	};
 
 	struct OpoOpoForm : Aura {
 		OpoOpoForm() : Aura("opo-opo-form") {}
-		virtual std::chrono::microseconds duration() const override { return 10s; }
+		virtual std::chrono::microseconds duration() const override { return 10_s; }
 	};
 
 	struct GreasedLightning : Aura {
 		GreasedLightning() : Aura("greased-lightning") {}
-		virtual std::chrono::microseconds duration() const override { return 12s; }
+		virtual std::chrono::microseconds duration() const override { return 12_s; }
 		virtual int maximumCount() const override { return 3; }
 		virtual double increasedDamage() const override { return 0.09; }
 		virtual double increasedAutoAttackSpeed() const { return 0.05; }
@@ -160,7 +160,7 @@ void Monk::InitializeActions() {
 		static const struct Skill : Action {
 			struct Debuff : Aura {
 				Debuff() : Aura("dragon-kick") {}
-				virtual std::chrono::microseconds duration() const override { return 15s; }
+				virtual std::chrono::microseconds duration() const override { return 15_s; }
 				virtual void transformIncomingDamage(Damage* damage) const override {
 					if (damage->type == DamageTypeBlunt) {
 						damage->amount *= 1.0 / 0.9;
@@ -211,7 +211,7 @@ void Monk::InitializeActions() {
 		static const struct Skill : Action {
 			struct Buff : Aura {
 				Buff() : Aura("twin-snakes") {}
-				virtual std::chrono::microseconds duration() const override { return 15s; }
+				virtual std::chrono::microseconds duration() const override { return 15_s; }
 				virtual double increasedDamage() const override { return 0.10; }
 			};
 			
@@ -258,7 +258,7 @@ void Monk::InitializeActions() {
 		static const struct Skill : Action {
 			struct DoT : Aura {
 				DoT() : Aura("demolish-dot") {}
-				virtual std::chrono::microseconds duration() const override { return 18s; }
+				virtual std::chrono::microseconds duration() const override { return 18_s; }
 				virtual int tickDamage() const { return 40; }
 			};
 			
@@ -278,7 +278,7 @@ void Monk::InitializeActions() {
 	{
 		struct DoT : Aura {
 			DoT() : Aura("touch-of-death-dot") {}
-			virtual std::chrono::microseconds duration() const override { return 30s; }
+			virtual std::chrono::microseconds duration() const override { return 30_s; }
 			virtual int tickDamage() const { return 25; }
 		};
 		
@@ -298,7 +298,7 @@ void Monk::InitializeActions() {
 			Skill() : Action("steel-peak") {}
 			virtual int damage() const override { return 150; }
 			virtual bool isOffGlobalCooldown() const { return true; }
-			virtual std::chrono::microseconds cooldown() const { return 40s; }
+			virtual std::chrono::microseconds cooldown() const { return 40_s; }
 		} steelPeak;
 		
 		SteelPeak = &steelPeak;
@@ -309,7 +309,7 @@ void Monk::InitializeActions() {
 			Skill() : Action("howling-fist") {}
 			virtual int damage() const override { return 170; }
 			virtual bool isOffGlobalCooldown() const { return true; }
-			virtual std::chrono::microseconds cooldown() const { return 60s; }
+			virtual std::chrono::microseconds cooldown() const { return 60_s; }
 		} howlingFist;
 		
 		HowlingFist = &howlingFist;
@@ -319,7 +319,7 @@ void Monk::InitializeActions() {
 		static const struct Skill : Action {
 			struct Buff : Aura {
 				Buff() : Aura("internal-release") {}
-				virtual std::chrono::microseconds duration() const override { return 15s; }
+				virtual std::chrono::microseconds duration() const override { return 15_s; }
 				virtual double additionalCriticalHitChance() const override { return 0.30; }
 			};
 
@@ -327,7 +327,7 @@ void Monk::InitializeActions() {
 				_subjectAuras.push_back(new Buff());
 			}
 			virtual bool isOffGlobalCooldown() const { return true; }
-			virtual std::chrono::microseconds cooldown() const { return 60s; }
+			virtual std::chrono::microseconds cooldown() const { return 60_s; }
 		} internalRelease;
 		
 		InternalRelease = &internalRelease;
@@ -337,7 +337,7 @@ void Monk::InitializeActions() {
 		static const struct Skill : Action {
 			struct Buff : Aura {
 				Buff() : Aura("blood-for-blood") {}
-				virtual std::chrono::microseconds duration() const override { return 20s; }
+				virtual std::chrono::microseconds duration() const override { return 20_s; }
 				virtual double increasedDamage() const override { return 0.10; }
 			};
 			
@@ -345,7 +345,7 @@ void Monk::InitializeActions() {
 				_subjectAuras.push_back(new Buff());
 			}
 			virtual bool isOffGlobalCooldown() const { return true; }
-			virtual std::chrono::microseconds cooldown() const { return 80s; }
+			virtual std::chrono::microseconds cooldown() const { return 80_s; }
 		} bloodForBlood;
 		
 		BloodForBlood = &bloodForBlood;
@@ -355,7 +355,7 @@ void Monk::InitializeActions() {
 		static const struct Skill : Action {
 			Skill() : Action("invigorate") {}
 			virtual bool isOffGlobalCooldown() const { return true; }
-			virtual std::chrono::microseconds cooldown() const { return 120s; }
+			virtual std::chrono::microseconds cooldown() const { return 120_s; }
 			virtual int tpRestoration() const override { return 400; }
 		} invigorate;
 		
@@ -366,7 +366,7 @@ void Monk::InitializeActions() {
 		static const struct Skill : Action {
 			struct Buff : Aura {
 				Buff() : Aura("perfect-balance") {}
-				virtual std::chrono::microseconds duration() const override { return 10s; }
+				virtual std::chrono::microseconds duration() const override { return 10_s; }
 				virtual bool providesImmunity(Aura* aura) const override {
 					return aura->identifier() == "opo-opo-form" || aura->identifier() == "raptor-form" || aura->identifier() == "coeurl-form";
 				}
@@ -376,7 +376,7 @@ void Monk::InitializeActions() {
 				_subjectAuras.push_back(new Buff());
 			}
 			virtual bool isOffGlobalCooldown() const { return true; }
-			virtual std::chrono::microseconds cooldown() const { return 240s; }
+			virtual std::chrono::microseconds cooldown() const { return 240_s; }
 			virtual bool dispelsSubjectAura(Aura* aura) const override {
 				return aura->identifier() == "opo-opo-form" || aura->identifier() == "raptor-form" || aura->identifier() == "coeurl-form";
 			}
@@ -388,7 +388,7 @@ void Monk::InitializeActions() {
 	{
 		struct DoT : Aura {
 			DoT() : Aura("fracture-dot") {}
-			virtual std::chrono::microseconds duration() const override { return 18s; }
+			virtual std::chrono::microseconds duration() const override { return 18_s; }
 			virtual int tickDamage() const { return 20; }
 		};
 		

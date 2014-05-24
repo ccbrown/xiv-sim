@@ -6,8 +6,7 @@
 #include <queue>
 #include <map>
 #include <string>
-
-using namespace std::literals::chrono_literals;
+#include <memory>
 
 class Simulation {
 	public:
@@ -46,7 +45,7 @@ class Simulation {
 		Actor _subject;
 		Actor _target;
 
-		std::chrono::microseconds _time = 0us;
+		std::chrono::microseconds _time = 0_us;
 
 		struct ScheduledFunction {
 			ScheduledFunction(std::shared_ptr<std::function<void()>> function, std::chrono::microseconds time, uint64_t order)
@@ -72,7 +71,7 @@ class Simulation {
 
 		void _advanceTime(std::chrono::microseconds time);
 
-		void _schedule(const std::function<void()>& function, std::chrono::microseconds delay = 0us);
+		void _schedule(const std::function<void()>& function, std::chrono::microseconds delay = 0_us);
 
 		void _checkActors();
 		void _tick();

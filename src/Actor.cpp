@@ -51,14 +51,14 @@ std::chrono::microseconds Actor::autoAttackDelayRemaining() const {
 	// TODO: make sure this matches ffxiv for changes to greased lightning between auto-attacks
 	auto elapsed = _time - _lastAutoAttackTime;
 	auto interval = _configuration->model->autoAttackInterval(this);
-	return elapsed < interval ? interval - elapsed : 0us;
+	return elapsed < interval ? interval - elapsed : 0_us;
 }
 
 std::chrono::microseconds Actor::globalCooldownRemaining() const {
 	// TODO: make sure this matches ffxiv for changes to skill / spell speed mid-gcd
 	auto elapsed = _time - _globalCooldownStartTime;
 	auto gcd = _configuration->model->globalCooldown(this);
-	return elapsed < gcd ? gcd - elapsed : 0us;
+	return elapsed < gcd ? gcd - elapsed : 0_us;
 }
 
 void Actor::applyAura(Actor* source, Aura* aura) {
@@ -93,7 +93,7 @@ int Actor::auraCount(const std::string& identifier) const {
 
 std::chrono::microseconds Actor::auraTimeRemaining(const std::string& identifier) const {
 	auto it = _auras.find(identifier);
-	return it == _auras.end() ? 0us : (it->second.duration - (_time - it->second.time));
+	return it == _auras.end() ? 0_us : (it->second.duration - (_time - it->second.time));
 }
 
 Damage Actor::generateTickDamage(const std::string& auraIdentifier) const {
@@ -160,5 +160,5 @@ void Actor::triggerCooldown(const std::string& identifier, std::chrono::microsec
 
 std::chrono::microseconds Actor::cooldownRemaining(const std::string& identifier) const {
 	auto it = _cooldowns.find(identifier);
-	return it == _cooldowns.end() ? 0us : ((it->second.time + it->second.duration) - _time);
+	return it == _cooldowns.end() ? 0_us : ((it->second.time + it->second.duration) - _time);
 }

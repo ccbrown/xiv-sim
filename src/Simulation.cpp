@@ -77,7 +77,7 @@ void Simulation::_tick() {
 
 	_schedule([&] {
 		_tick();
-	}, 3s);	
+	}, 3_s);	
 }
 
 void Simulation::_resolveAction(const Action* action, Actor* subject, Actor* target) {	

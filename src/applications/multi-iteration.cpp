@@ -9,8 +9,6 @@
 
 namespace applications {
 
-using namespace std::literals::chrono_literals;
-
 struct TrialResults {
 	Simulation::Configuration configuration;
 	Simulation::Stats overallStats;
@@ -50,13 +48,13 @@ int MultiIteration(int argc, const char* argv[]) {
 
 	Simulation::Stats overallStats;
 	std::map<std::string, Simulation::Stats> statsByEffect;
-	auto totalSimulationTime = 0us;
+	auto totalSimulationTime = 0_us;
 	
 	std::vector<std::future<TrialResults>> futures;
 
 	for (int i = 0; i < iterations; ++i) {
 		Simulation::Configuration configuration;
-		configuration.length = std::chrono::duration_cast<std::chrono::microseconds>(7min + (i % 100) / 50.0 * 6min);
+		configuration.length = std::chrono::duration_cast<std::chrono::microseconds>(7_min + (i % 100) / 50.0 * 6_min);
 		configuration.subjectConfiguration = &subjectConfiguration;
 		configuration.targetConfiguration = &targetConfiguration;
 		
