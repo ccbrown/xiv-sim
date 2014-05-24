@@ -10,6 +10,10 @@ const Action* Monk::nextAction(const Actor* subject, const Actor* target) const 
 		return models::Monk::FistsOfFire;
 	}
 
+	if (subject->tp() <= 600 && !subject->cooldownRemaining("invigorate").count()) {
+		return models::Monk::Invigorate;
+	}
+
 	if (!subject->cooldownRemaining("blood-for-blood").count()) {
 		return models::Monk::BloodForBlood;
 	}
@@ -29,20 +33,44 @@ const Action* Monk::nextAction(const Actor* subject, const Actor* target) const 
 
 	if (subject->globalCooldownRemaining().count()) { return nullptr; }
 
+	if (!target->auraCount("demolish-dot") && !subject->auraCount("coeurl-form") && !subject->cooldownRemaining("perfect-balance").count()) {
+		return models::Monk::PerfectBalance;
+	}
+
+	if (target->auraTimeRemaining("demolish-dot") > 10s && target->auraTimeRemaining("touch-of-death-dot") > 10s) {
+		return models::Monk::PerfectBalance;
+	}
+
+	if (target->auraTimeRemaining("demolish-dot") < 4s && (subject->auraCount("coeurl-form") || subject->auraCount("perfect-balance"))) {
+		return models::Monk::DemolishRear;
+	}
+
 	if (!target->auraCount("touch-of-death-dot")) {
 		return models::Monk::TouchOfDeath;
-	} else if (subject->auraCount("raptor-form") && subject->auraTimeRemaining("twin-snakes") < 5s) {
+	}
+
+	if (subject->auraTimeRemaining("twin-snakes") < 4s && (subject->auraCount("raptor-form") || subject->auraCount("perfect-balance"))) {
 		return models::Monk::TwinSnakesFlank;
-	} else if (subject->auraCount("raptor-form")) {
-		return models::Monk::TrueStrikeRear;
-	} else if (subject->auraCount("coeurl-form") && target->auraTimeRemaining("demolish-dot") < 5s) {
-		return models::Monk::DemolishRear;
-	} else if (subject->auraCount("coeurl-form")) {
+	}
+	
+	if (subject->auraCount("coeurl-form") || (subject->auraCount("greased-lightning") < 3 && subject->auraCount("perfect-balance"))) {
 		return models::Monk::SnapPunchFlank;
-	} else if (subject->auraCount("opo-opo-form") && target->auraTimeRemaining("dragon-kick") < 5s) {
+	}
+	
+	if (subject->auraCount("perfect-balance")) {
+		return models::Monk::TrueStrikeRear;
+	}
+
+	if (subject->auraCount("opo-opo-form") && target->auraTimeRemaining("dragon-kick") < 5s) {
 		return models::Monk::DragonKickFlankOpoOpo;
-	} else if (subject->auraCount("opo-opo-form")) {
+	}
+	
+	if (subject->auraCount("opo-opo-form")) {
 		return models::Monk::BootshineRearOpoOpo;
+	}
+
+	if (subject->auraCount("raptor-form")) {
+		return models::Monk::TrueStrikeRear;
 	}
 
 	return models::Monk::BootshineRear;

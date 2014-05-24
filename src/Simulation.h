@@ -75,7 +75,7 @@ class Simulation {
 		void _schedule(const std::function<void()>& function, std::chrono::microseconds delay = 0us);
 
 		void _checkActors();
-		void _tickDoTs();
+		void _tick();
 		void _resolveAction(const Action* action, Actor* subject, Actor* target);
 		
 		Stats _damageStats(const Damage& damage);

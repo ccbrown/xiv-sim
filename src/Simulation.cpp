@@ -16,7 +16,7 @@ void Simulation::run() {
 	}, _configuration->length);
 
 	_schedule([&] {
-		_tickDoTs();
+		_tick();
 	}, dotTickOffset);
 
 	_schedule([&] {
@@ -60,7 +60,9 @@ void Simulation::_checkActors() {
 	}
 }
 
-void Simulation::_tickDoTs() {
+void Simulation::_tick() {
+	_subject.setTP(std::min(_subject.tp() + 60, 1000));
+	
 	for (auto& kv : _target.auras()) {
 		if (!kv.second.aura->tickDamage()) { continue; }
 		
@@ -74,18 +76,22 @@ void Simulation::_tickDoTs() {
 	_checkActors();
 
 	_schedule([&] {
-		_tickDoTs();
+		_tick();
 	}, 3s);	
 }
 
 void Simulation::_resolveAction(const Action* action, Actor* subject, Actor* target) {	
 	if (!action->isOffGlobalCooldown() && subject->isOnGlobalCooldown()) { return; }
 
+	if (subject->tp() < action->tpCost()) { return; }
+
 	if (action->cooldown().count()) {
 		if (subject->cooldownRemaining(action->identifier()).count()) { return; }
 
 		subject->triggerCooldown(action->identifier(), action->cooldown());
 	}
+	
+	subject->setTP(subject->tp() - action->tpCost() + action->tpRestoration());
 
 	Damage damage;
 

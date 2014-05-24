@@ -31,6 +31,9 @@ class Action {
 		virtual bool dispelsSubjectAura(Aura* aura) const { return false; }
 		virtual bool dispelsTargetAura(Aura* aura) const { return false; }
 
+		virtual int tpCost() const { return 0; }
+		virtual int tpRestoration() const { return 0; }
+
 	protected:
 		const std::string _identifier;
 	

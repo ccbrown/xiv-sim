@@ -111,6 +111,8 @@ const Action* Monk::SteelPeak = nullptr;
 const Action* Monk::HowlingFist = nullptr;
 const Action* Monk::InternalRelease = nullptr;
 const Action* Monk::BloodForBlood = nullptr;
+const Action* Monk::Invigorate = nullptr;
+const Action* Monk::PerfectBalance = nullptr;
 
 void Monk::InitializeActions() {
 	{
@@ -170,6 +172,7 @@ void Monk::InitializeActions() {
 				_subjectAuras.push_back(new RaptorForm());
 			}
 			virtual int damage() const override { return 150; }
+			virtual int tpCost() const override { return 60; }
 			virtual bool dispelsSubjectAura(Aura* aura) const override { return aura->identifier() == "opo-opo-form"; }
 		} dragonKickFlankOpoOpo;
 
@@ -182,6 +185,7 @@ void Monk::InitializeActions() {
 				_subjectAuras.push_back(new RaptorForm());
 			}
 			virtual int damage() const override { return 150; }
+			virtual int tpCost() const override { return 60; }
 			virtual bool dispelsSubjectAura(Aura* aura) const override { return aura->identifier() == "opo-opo-form"; }
 		} bootshineRear;
 		
@@ -194,6 +198,7 @@ void Monk::InitializeActions() {
 				_subjectAuras.push_back(new RaptorForm());
 			}
 			virtual int damage() const override { return 150; }
+			virtual int tpCost() const override { return 60; }
 			virtual double criticalHitChance(double base) const override { return 1.0; }
 			virtual bool dispelsSubjectAura(Aura* aura) const override { return aura->identifier() == "opo-opo-form"; }
 		} bootshineRearOpoOpo;
@@ -214,6 +219,7 @@ void Monk::InitializeActions() {
 				_subjectAuras.push_back(new CoeurlForm());
 			}
 			virtual int damage() const override { return 140; }
+			virtual int tpCost() const override { return 60; }
 			virtual bool dispelsSubjectAura(Aura* aura) const override { return aura->identifier() == "raptor-form"; }
 		} twinSnakesFlank;
 		
@@ -226,6 +232,7 @@ void Monk::InitializeActions() {
 				_subjectAuras.push_back(new CoeurlForm());
 			}
 			virtual int damage() const override { return 190; }
+			virtual int tpCost() const override { return 50; }
 			virtual bool dispelsSubjectAura(Aura* aura) const override { return aura->identifier() == "raptor-form"; }
 		} trueStrikeRear;
 		
@@ -239,6 +246,7 @@ void Monk::InitializeActions() {
 				_subjectAuras.push_back(new GreasedLightning());
 			}
 			virtual int damage() const override { return 180; }
+			virtual int tpCost() const override { return 50; }
 			virtual bool dispelsSubjectAura(Aura* aura) const override { return aura->identifier() == "coeurl-form"; }
 		} snapPunchFlank;
 		
@@ -259,6 +267,7 @@ void Monk::InitializeActions() {
 				_targetAuras.push_back(new DoT());
 			}
 			virtual int damage() const override { return 70; }
+			virtual int tpCost() const override { return 50; }
 			virtual bool dispelsSubjectAura(Aura* aura) const override { return aura->identifier() == "coeurl-form"; }
 		} demolishRear;
 	
@@ -277,6 +286,7 @@ void Monk::InitializeActions() {
 				_targetAuras.push_back(new DoT());
 			}
 			virtual int damage() const override { return 20; }
+			virtual int tpCost() const override { return 80; }
 		} touchOfDeath;
 		
 		TouchOfDeath = &touchOfDeath;
@@ -338,6 +348,34 @@ void Monk::InitializeActions() {
 		} bloodForBlood;
 		
 		BloodForBlood = &bloodForBlood;
+	}
+
+	{
+		static const struct Skill : Action {
+			Skill() : Action("invigorate") {}
+			virtual bool isOffGlobalCooldown() const { return true; }
+			virtual std::chrono::microseconds cooldown() const { return 120s; }
+			virtual int tpRestoration() const override { return 400; }
+		} invigorate;
+		
+		Invigorate = &invigorate;
+	}
+	
+	{
+		static const struct Skill : Action {
+			struct Buff : Aura {
+				Buff() : Aura("perfect-balance") {}
+				virtual std::chrono::microseconds duration() const override { return 10s; }
+			};
+			
+			Skill() : Action("perfect-balance") {
+				_subjectAuras.push_back(new Buff());
+			}
+			virtual bool isOffGlobalCooldown() const { return true; }
+			virtual std::chrono::microseconds cooldown() const { return 240s; }
+		} perfectBalance;
+		
+		PerfectBalance = &perfectBalance;
 	}
 }
 

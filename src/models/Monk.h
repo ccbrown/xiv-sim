@@ -37,6 +37,8 @@ class Monk : public Model {
 		static const Action* HowlingFist;
 		static const Action* InternalRelease;
 		static const Action* BloodForBlood;
+		static const Action* Invigorate;
+		static const Action* PerfectBalance;
 		
 	private:
 		static void InitializeActions();

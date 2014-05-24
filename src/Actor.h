@@ -64,6 +64,9 @@ class Actor {
 		void triggerCooldown(const std::string& identifier, std::chrono::microseconds duration);
 		std::chrono::microseconds cooldownRemaining(const std::string& identifier) const;
 
+		int tp() const { return _tp; }
+		void setTP(int tp) { _tp = tp; }
+
 		struct AppliedAura {
 			Aura* aura = nullptr;
 			int count = 0;
@@ -88,6 +91,7 @@ class Actor {
 			std::chrono::microseconds duration = 0us;
 		};
 		
+		int _tp = 1000;
 		std::unordered_map<std::string, Cooldown> _cooldowns;
 		std::unordered_map<std::string, AppliedAura> _auras;
 };
