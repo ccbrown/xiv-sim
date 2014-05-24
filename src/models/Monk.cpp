@@ -8,6 +8,10 @@
 
 namespace models {
 
+/**
+* Thanks to valk.dancing-mad.com for a lot of these formulae.
+*/
+
 Monk::Monk() {
 	static std::once_flag initializationFlag;
 	std::call_once(initializationFlag, InitializeActions);
