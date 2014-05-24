@@ -59,7 +59,7 @@ int SingleHTML(int argc, const char* argv[]) {
 	);
 
 	printf("<b>Simulation Length:</b> %d<br />\n", simulationSeconds);
-	printf("<b>Total Damage Done:</b> %d<br />\n", stats.totalDamageDealt);
+	printf("<b>Total Damage:</b> %d<br />\n", stats.totalDamageDealt);
 	printf("<b>Total DPS:</b> %.3f<br />\n", stats.totalDamageDealt / (double)simulationSeconds);
 
 	printf("<br /><br />\n");
