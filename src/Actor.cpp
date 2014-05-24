@@ -62,6 +62,12 @@ std::chrono::microseconds Actor::globalCooldownRemaining() const {
 }
 
 void Actor::applyAura(Actor* source, Aura* aura) {
+	for (auto& kv : _auras) {
+		if (kv.second.aura->providesImmunity(aura)) {
+			return;
+		}
+	}
+	
 	auto& application = _auras[aura->identifier()];
 
 	application.aura = aura;

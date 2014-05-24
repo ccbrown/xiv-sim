@@ -23,6 +23,8 @@ class Aura {
 		virtual double additionalCriticalHitChance() const { return 0.0; }
 
 		virtual void transformIncomingDamage(Damage* damage) const {}
+			
+		virtual bool providesImmunity(Aura* aura) const { return false; }
 
 	private:
 		const std::string _identifier;

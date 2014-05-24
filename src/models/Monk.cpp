@@ -113,6 +113,7 @@ const Action* Monk::InternalRelease = nullptr;
 const Action* Monk::BloodForBlood = nullptr;
 const Action* Monk::Invigorate = nullptr;
 const Action* Monk::PerfectBalance = nullptr;
+const Action* Monk::Fracture = nullptr;
 
 void Monk::InitializeActions() {
 	{
@@ -366,6 +367,9 @@ void Monk::InitializeActions() {
 			struct Buff : Aura {
 				Buff() : Aura("perfect-balance") {}
 				virtual std::chrono::microseconds duration() const override { return 10s; }
+				virtual bool providesImmunity(Aura* aura) const override {
+					return aura->identifier() == "opo-opo-form" || aura->identifier() == "raptor-form" || aura->identifier() == "coeurl-form";
+				}
 			};
 			
 			Skill() : Action("perfect-balance") {
@@ -373,9 +377,30 @@ void Monk::InitializeActions() {
 			}
 			virtual bool isOffGlobalCooldown() const { return true; }
 			virtual std::chrono::microseconds cooldown() const { return 240s; }
+			virtual bool dispelsSubjectAura(Aura* aura) const override {
+				return aura->identifier() == "opo-opo-form" || aura->identifier() == "raptor-form" || aura->identifier() == "coeurl-form";
+			}
 		} perfectBalance;
 		
 		PerfectBalance = &perfectBalance;
+	}
+
+	{
+		struct DoT : Aura {
+			DoT() : Aura("fracture-dot") {}
+			virtual std::chrono::microseconds duration() const override { return 18s; }
+			virtual int tickDamage() const { return 20; }
+		};
+		
+		static const struct Skill : Action {
+			Skill() : Action("fracture-dot") {
+				_targetAuras.push_back(new DoT());
+			}
+			virtual int damage() const override { return 100; }
+			virtual int tpCost() const override { return 80; }
+		} fracture;
+		
+		Fracture = &fracture;
 	}
 }
 
