@@ -6,7 +6,7 @@ SRCDIR = src
 OBJDIR = obj
 
 override CXXFLAGS += -g -Wall -O3 -std=c++1y
-override LDFLAGS +=
+override LDFLAGS += -lpthread
 
 SRCS := $(shell find $(SRCDIR) -name '*.cpp')
 OBJS := $(patsubst $(SRCDIR)/%.cpp,$(OBJDIR)/%.o,$(SRCS))
