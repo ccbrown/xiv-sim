@@ -1,8 +1,8 @@
 #include "../Actor.h"
+#include "../JITRotation.h"
 #include "../Simulation.h"
 
 #include "../models/Monk.h"
-#include "../rotations/Monk.h"
 
 #include <future>
 #include <vector>
@@ -28,8 +28,18 @@ static TrialResults Trial(const Simulation::Configuration&& configuration) {
 }
 
 int MultiIteration(int argc, const char* argv[]) {
+	if (argc < 1) {
+		printf("Rotation required.");
+		return 1;
+	}
+	
+	JITRotation subjectRotation;
+	if (!subjectRotation.initializeWithFile(argv[0])) {
+		printf("Unable to read rotation.\n");
+		return 1;
+	}
+	
 	models::Monk subjectModel;
-	rotations::Monk subjectRotation;
 	Actor::Configuration subjectConfiguration;
 	subjectConfiguration.stats.weaponDamage = 47;
 	subjectConfiguration.stats.weaponDelay = 2.72;

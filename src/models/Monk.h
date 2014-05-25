@@ -12,7 +12,10 @@ namespace models {
 class Monk : public Model {
 	public:
 		Monk();
+		~Monk();
 	
+		const Action* action(const char* identifier) const override;
+
 		virtual Damage generateDamage(const Action* action, const Actor* actor) const override;
 		virtual Damage generateAutoAttackDamage(const Actor* actor) const override;
 
@@ -24,25 +27,14 @@ class Monk : public Model {
 		virtual double baseTickDamage(const Actor* source, const Aura* aura) const override;
 		virtual double tickCriticalHitChance(const Actor* source) const override;
 
-		static const Action* FistsOfFire;
-		static const Action* DragonKickFlankOpoOpo;
-		static const Action* BootshineRear;
-		static const Action* BootshineRearOpoOpo;
-		static const Action* TwinSnakesFlank;
-		static const Action* TrueStrikeRear;
-		static const Action* SnapPunchFlank;
-		static const Action* DemolishRear;
-		static const Action* TouchOfDeath;
-		static const Action* SteelPeak;
-		static const Action* HowlingFist;
-		static const Action* InternalRelease;
-		static const Action* BloodForBlood;
-		static const Action* Invigorate;
-		static const Action* PerfectBalance;
-		static const Action* Fracture;
-
 	private:
-		static void InitializeActions();
+		std::unordered_map<std::string, Action*> _actions;
+		
+		template <typename T>
+		void _registerAction() {
+			auto a = new T();
+			_actions[a->identifier()] = a;
+		}
 };
 
 }

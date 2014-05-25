@@ -3,7 +3,6 @@
 #include "../Action.h"
 #include "../Actor.h"
 
-#include <mutex>
 #include <random>
 
 namespace models {
@@ -13,8 +12,303 @@ namespace models {
 */
 
 Monk::Monk() {
-	static std::once_flag initializationFlag;
-	std::call_once(initializationFlag, InitializeActions);
+	{
+		struct Skill : Action {			
+			struct Buff : Aura {
+				Buff() : Aura("fists-of-fire") {}
+				virtual std::chrono::microseconds duration() const override { return std::chrono::microseconds::max(); }
+				virtual double increasedDamage() const override { return 0.05; }
+			};
+	
+			Skill() : Action("fists-of-fire") {
+				_subjectAuras.push_back(new Buff());
+			}
+			virtual bool isOffGlobalCooldown() const { return true; }
+		};
+		
+		_registerAction<Skill>();
+	}
+
+	struct RaptorForm : Aura {
+		RaptorForm() : Aura("raptor-form") {}
+		virtual std::chrono::microseconds duration() const override { return 10_s; }
+	};
+
+	struct CoeurlForm : Aura {
+		CoeurlForm() : Aura("coeurl-form") {}
+		virtual std::chrono::microseconds duration() const override { return 10_s; }
+	};
+
+	struct OpoOpoForm : Aura {
+		OpoOpoForm() : Aura("opo-opo-form") {}
+		virtual std::chrono::microseconds duration() const override { return 10_s; }
+	};
+
+	struct GreasedLightning : Aura {
+		GreasedLightning() : Aura("greased-lightning") {}
+		virtual std::chrono::microseconds duration() const override { return 12_s; }
+		virtual int maximumCount() const override { return 3; }
+		virtual double increasedDamage() const override { return 0.09; }
+		virtual double increasedAutoAttackSpeed() const { return 0.05; }
+	};
+
+	{
+		struct Skill : Action {
+			struct Debuff : Aura {
+				Debuff() : Aura("dragon-kick") {}
+				virtual std::chrono::microseconds duration() const override { return 15_s; }
+				virtual void transformIncomingDamage(Damage* damage) const override {
+					if (damage->type == DamageTypeBlunt) {
+						damage->amount *= 1.0 / 0.9;
+					}
+				}
+			};
+			
+			Skill() : Action("dragon-kick-flank-opo-opo") {
+				_targetAuras.push_back(new Debuff());
+				_subjectAuras.push_back(new RaptorForm());
+			}
+			virtual int damage() const override { return 150; }
+			virtual int tpCost() const override { return 60; }
+			virtual bool dispelsSubjectAura(Aura* aura) const override { return aura->identifier() == "opo-opo-form"; }
+		};
+
+		_registerAction<Skill>();
+	}
+	
+	{
+		struct Skill : Action {
+			Skill() : Action("bootshine-rear") {
+				_subjectAuras.push_back(new RaptorForm());
+			}
+			virtual int damage() const override { return 150; }
+			virtual int tpCost() const override { return 60; }
+			virtual bool dispelsSubjectAura(Aura* aura) const override { return aura->identifier() == "opo-opo-form"; }
+		};
+		
+		_registerAction<Skill>();
+	}
+
+	{
+		struct Skill : Action {
+			Skill() : Action("bootshine-rear-opo-opo") {
+				_subjectAuras.push_back(new RaptorForm());
+			}
+			virtual int damage() const override { return 150; }
+			virtual int tpCost() const override { return 60; }
+			virtual double criticalHitChance(double base) const override { return 1.0; }
+			virtual bool dispelsSubjectAura(Aura* aura) const override { return aura->identifier() == "opo-opo-form"; }
+		};
+		
+		_registerAction<Skill>();
+	}
+
+	{
+		struct Skill : Action {
+			struct Buff : Aura {
+				Buff() : Aura("twin-snakes") {}
+				virtual std::chrono::microseconds duration() const override { return 15_s; }
+				virtual double increasedDamage() const override { return 0.10; }
+			};
+			
+			Skill() : Action("twin-snakes-flank") {
+				_subjectAuras.push_back(new Buff());
+				_subjectAuras.push_back(new CoeurlForm());
+			}
+			virtual int damage() const override { return 140; }
+			virtual int tpCost() const override { return 60; }
+			virtual bool dispelsSubjectAura(Aura* aura) const override { return aura->identifier() == "raptor-form"; }
+		};
+
+		_registerAction<Skill>();
+	}
+	
+	{
+		struct Skill : Action {
+			Skill() : Action("true-strike-rear") {
+				_subjectAuras.push_back(new CoeurlForm());
+			}
+			virtual int damage() const override { return 190; }
+			virtual int tpCost() const override { return 50; }
+			virtual bool dispelsSubjectAura(Aura* aura) const override { return aura->identifier() == "raptor-form"; }
+		};
+		
+		_registerAction<Skill>();
+	}
+
+	{
+		struct Skill : Action {
+			Skill() : Action("snap-punch-flank") {
+				_subjectAuras.push_back(new OpoOpoForm());
+				_subjectAuras.push_back(new GreasedLightning());
+			}
+			virtual int damage() const override { return 180; }
+			virtual int tpCost() const override { return 50; }
+			virtual bool dispelsSubjectAura(Aura* aura) const override { return aura->identifier() == "coeurl-form"; }
+		};
+		
+		_registerAction<Skill>();
+	}
+
+	{
+		struct Skill : Action {
+			struct DoT : Aura {
+				DoT() : Aura("demolish-dot") {}
+				virtual std::chrono::microseconds duration() const override { return 18_s; }
+				virtual int tickDamage() const { return 40; }
+			};
+			
+			Skill() : Action("demolish-rear") {
+				_subjectAuras.push_back(new OpoOpoForm());
+				_subjectAuras.push_back(new GreasedLightning());
+				_targetAuras.push_back(new DoT());
+			}
+			virtual int damage() const override { return 70; }
+			virtual int tpCost() const override { return 50; }
+			virtual bool dispelsSubjectAura(Aura* aura) const override { return aura->identifier() == "coeurl-form"; }
+		};
+	
+		_registerAction<Skill>();
+	}
+
+	{
+		struct DoT : Aura {
+			DoT() : Aura("touch-of-death-dot") {}
+			virtual std::chrono::microseconds duration() const override { return 30_s; }
+			virtual int tickDamage() const { return 25; }
+		};
+		
+		struct Skill : Action {
+			Skill() : Action("touch-of-death") {
+				_targetAuras.push_back(new DoT());
+			}
+			virtual int damage() const override { return 20; }
+			virtual int tpCost() const override { return 80; }
+		};
+		
+		_registerAction<Skill>();
+	}
+
+	{
+		struct Skill : Action {
+			Skill() : Action("steel-peak") {}
+			virtual int damage() const override { return 150; }
+			virtual bool isOffGlobalCooldown() const { return true; }
+			virtual std::chrono::microseconds cooldown() const { return 40_s; }
+		};
+		
+		_registerAction<Skill>();
+	}
+
+	{
+		struct Skill : Action {
+			Skill() : Action("howling-fist") {}
+			virtual int damage() const override { return 170; }
+			virtual bool isOffGlobalCooldown() const { return true; }
+			virtual std::chrono::microseconds cooldown() const { return 60_s; }
+		};
+		
+		_registerAction<Skill>();
+	}
+
+	{
+		struct Skill : Action {
+			struct Buff : Aura {
+				Buff() : Aura("internal-release") {}
+				virtual std::chrono::microseconds duration() const override { return 15_s; }
+				virtual double additionalCriticalHitChance() const override { return 0.30; }
+			};
+
+			Skill() : Action("internal-release") {
+				_subjectAuras.push_back(new Buff());
+			}
+			virtual bool isOffGlobalCooldown() const { return true; }
+			virtual std::chrono::microseconds cooldown() const { return 60_s; }
+		};
+		
+		_registerAction<Skill>();
+	}
+	
+	{
+		struct Skill : Action {
+			struct Buff : Aura {
+				Buff() : Aura("blood-for-blood") {}
+				virtual std::chrono::microseconds duration() const override { return 20_s; }
+				virtual double increasedDamage() const override { return 0.10; }
+			};
+			
+			Skill() : Action("blood-for-blood") {
+				_subjectAuras.push_back(new Buff());
+			}
+			virtual bool isOffGlobalCooldown() const { return true; }
+			virtual std::chrono::microseconds cooldown() const { return 80_s; }
+		};
+		
+		_registerAction<Skill>();
+	}
+
+	{
+		struct Skill : Action {
+			Skill() : Action("invigorate") {}
+			virtual bool isOffGlobalCooldown() const { return true; }
+			virtual std::chrono::microseconds cooldown() const { return 120_s; }
+			virtual int tpRestoration() const override { return 400; }
+		};
+		
+		_registerAction<Skill>();
+	}
+	
+	{
+		struct Skill : Action {
+			struct Buff : Aura {
+				Buff() : Aura("perfect-balance") {}
+				virtual std::chrono::microseconds duration() const override { return 10_s; }
+				virtual bool providesImmunity(Aura* aura) const override {
+					return aura->identifier() == "opo-opo-form" || aura->identifier() == "raptor-form" || aura->identifier() == "coeurl-form";
+				}
+			};
+			
+			Skill() : Action("perfect-balance") {
+				_subjectAuras.push_back(new Buff());
+			}
+			virtual bool isOffGlobalCooldown() const { return true; }
+			virtual std::chrono::microseconds cooldown() const { return 240_s; }
+			virtual bool dispelsSubjectAura(Aura* aura) const override {
+				return aura->identifier() == "opo-opo-form" || aura->identifier() == "raptor-form" || aura->identifier() == "coeurl-form";
+			}
+		};
+		
+		_registerAction<Skill>();
+	}
+
+	{		
+		struct Skill : Action {
+			struct DoT : Aura {
+				DoT() : Aura("fracture-dot") {}
+				virtual std::chrono::microseconds duration() const override { return 18_s; }
+				virtual int tickDamage() const { return 20; }
+			};
+
+			Skill() : Action("fracture-dot") {
+				_targetAuras.push_back(new DoT());
+			}
+			virtual int damage() const override { return 100; }
+			virtual int tpCost() const override { return 80; }
+		};
+		
+		_registerAction<Skill>();
+	}
+}
+
+Monk::~Monk() {
+	for (auto& kv : _actions) {
+		delete kv.second;
+	}
+}
+
+const Action* Monk::action(const char* identifier) const {
+	auto it = _actions.find(identifier);
+	return it == _actions.end() ? nullptr : it->second;
 }
 
 Damage Monk::generateDamage(const Action* action, const Actor* actor) const {
@@ -100,312 +394,6 @@ double Monk::baseTickDamage(const Actor* source, const Aura* aura) const {
 double Monk::tickCriticalHitChance(const Actor* source) const {
 	auto& stats = source->stats();
 	return (stats.criticalHitRate * 0.0697 - 18.437) / 100.0 + source->additionalCriticalHitChance();
-}
-
-const Action* Monk::FistsOfFire = nullptr;
-const Action* Monk::DragonKickFlankOpoOpo = nullptr;
-const Action* Monk::BootshineRear = nullptr;
-const Action* Monk::BootshineRearOpoOpo = nullptr;
-const Action* Monk::TwinSnakesFlank = nullptr;
-const Action* Monk::TrueStrikeRear = nullptr;
-const Action* Monk::SnapPunchFlank = nullptr;
-const Action* Monk::DemolishRear = nullptr;
-const Action* Monk::TouchOfDeath = nullptr;
-const Action* Monk::SteelPeak = nullptr;
-const Action* Monk::HowlingFist = nullptr;
-const Action* Monk::InternalRelease = nullptr;
-const Action* Monk::BloodForBlood = nullptr;
-const Action* Monk::Invigorate = nullptr;
-const Action* Monk::PerfectBalance = nullptr;
-const Action* Monk::Fracture = nullptr;
-
-void Monk::InitializeActions() {
-	{
-		static const struct Skill : Action {			
-			struct Buff : Aura {
-				Buff() : Aura("fists-of-fire") {}
-				virtual std::chrono::microseconds duration() const override { return std::chrono::microseconds::max(); }
-				virtual double increasedDamage() const override { return 0.05; }
-			};
-	
-			Skill() : Action("fists-of-fire") {
-				_subjectAuras.push_back(new Buff());
-			}
-			virtual bool isOffGlobalCooldown() const { return true; }
-		} fistsOfFire;
-		
-		FistsOfFire = &fistsOfFire;
-	}
-
-	struct RaptorForm : Aura {
-		RaptorForm() : Aura("raptor-form") {}
-		virtual std::chrono::microseconds duration() const override { return 10_s; }
-	};
-
-	struct CoeurlForm : Aura {
-		CoeurlForm() : Aura("coeurl-form") {}
-		virtual std::chrono::microseconds duration() const override { return 10_s; }
-	};
-
-	struct OpoOpoForm : Aura {
-		OpoOpoForm() : Aura("opo-opo-form") {}
-		virtual std::chrono::microseconds duration() const override { return 10_s; }
-	};
-
-	struct GreasedLightning : Aura {
-		GreasedLightning() : Aura("greased-lightning") {}
-		virtual std::chrono::microseconds duration() const override { return 12_s; }
-		virtual int maximumCount() const override { return 3; }
-		virtual double increasedDamage() const override { return 0.09; }
-		virtual double increasedAutoAttackSpeed() const { return 0.05; }
-	};
-
-	{
-		static const struct Skill : Action {
-			struct Debuff : Aura {
-				Debuff() : Aura("dragon-kick") {}
-				virtual std::chrono::microseconds duration() const override { return 15_s; }
-				virtual void transformIncomingDamage(Damage* damage) const override {
-					if (damage->type == DamageTypeBlunt) {
-						damage->amount *= 1.0 / 0.9;
-					}
-				}
-			};
-			
-			Skill() : Action("dragon-kick-flank-opo-opo") {
-				_targetAuras.push_back(new Debuff());
-				_subjectAuras.push_back(new RaptorForm());
-			}
-			virtual int damage() const override { return 150; }
-			virtual int tpCost() const override { return 60; }
-			virtual bool dispelsSubjectAura(Aura* aura) const override { return aura->identifier() == "opo-opo-form"; }
-		} dragonKickFlankOpoOpo;
-
-		DragonKickFlankOpoOpo = &dragonKickFlankOpoOpo;
-	}
-	
-	{
-		static const struct Skill : Action {
-			Skill() : Action("bootshine-rear") {
-				_subjectAuras.push_back(new RaptorForm());
-			}
-			virtual int damage() const override { return 150; }
-			virtual int tpCost() const override { return 60; }
-			virtual bool dispelsSubjectAura(Aura* aura) const override { return aura->identifier() == "opo-opo-form"; }
-		} bootshineRear;
-		
-		BootshineRear = &bootshineRear;
-	}
-
-	{
-		static const struct Skill : Action {
-			Skill() : Action("bootshine-rear-opo-opo") {
-				_subjectAuras.push_back(new RaptorForm());
-			}
-			virtual int damage() const override { return 150; }
-			virtual int tpCost() const override { return 60; }
-			virtual double criticalHitChance(double base) const override { return 1.0; }
-			virtual bool dispelsSubjectAura(Aura* aura) const override { return aura->identifier() == "opo-opo-form"; }
-		} bootshineRearOpoOpo;
-		
-		BootshineRearOpoOpo = &bootshineRearOpoOpo;
-	}
-
-	{
-		static const struct Skill : Action {
-			struct Buff : Aura {
-				Buff() : Aura("twin-snakes") {}
-				virtual std::chrono::microseconds duration() const override { return 15_s; }
-				virtual double increasedDamage() const override { return 0.10; }
-			};
-			
-			Skill() : Action("twin-snakes-flank") {
-				_subjectAuras.push_back(new Buff());
-				_subjectAuras.push_back(new CoeurlForm());
-			}
-			virtual int damage() const override { return 140; }
-			virtual int tpCost() const override { return 60; }
-			virtual bool dispelsSubjectAura(Aura* aura) const override { return aura->identifier() == "raptor-form"; }
-		} twinSnakesFlank;
-		
-		TwinSnakesFlank = &twinSnakesFlank;
-	}
-	
-	{
-		static const struct Skill : Action {
-			Skill() : Action("true-strike-rear") {
-				_subjectAuras.push_back(new CoeurlForm());
-			}
-			virtual int damage() const override { return 190; }
-			virtual int tpCost() const override { return 50; }
-			virtual bool dispelsSubjectAura(Aura* aura) const override { return aura->identifier() == "raptor-form"; }
-		} trueStrikeRear;
-		
-		TrueStrikeRear = &trueStrikeRear;
-	}
-
-	{
-		static const struct Skill : Action {
-			Skill() : Action("snap-punch-flank") {
-				_subjectAuras.push_back(new OpoOpoForm());
-				_subjectAuras.push_back(new GreasedLightning());
-			}
-			virtual int damage() const override { return 180; }
-			virtual int tpCost() const override { return 50; }
-			virtual bool dispelsSubjectAura(Aura* aura) const override { return aura->identifier() == "coeurl-form"; }
-		} snapPunchFlank;
-		
-		SnapPunchFlank = &snapPunchFlank;
-	}
-
-	{
-		static const struct Skill : Action {
-			struct DoT : Aura {
-				DoT() : Aura("demolish-dot") {}
-				virtual std::chrono::microseconds duration() const override { return 18_s; }
-				virtual int tickDamage() const { return 40; }
-			};
-			
-			Skill() : Action("demolish-rear") {
-				_subjectAuras.push_back(new OpoOpoForm());
-				_subjectAuras.push_back(new GreasedLightning());
-				_targetAuras.push_back(new DoT());
-			}
-			virtual int damage() const override { return 70; }
-			virtual int tpCost() const override { return 50; }
-			virtual bool dispelsSubjectAura(Aura* aura) const override { return aura->identifier() == "coeurl-form"; }
-		} demolishRear;
-	
-		DemolishRear = &demolishRear;
-	}
-
-	{
-		struct DoT : Aura {
-			DoT() : Aura("touch-of-death-dot") {}
-			virtual std::chrono::microseconds duration() const override { return 30_s; }
-			virtual int tickDamage() const { return 25; }
-		};
-		
-		static const struct Skill : Action {
-			Skill() : Action("touch-of-death") {
-				_targetAuras.push_back(new DoT());
-			}
-			virtual int damage() const override { return 20; }
-			virtual int tpCost() const override { return 80; }
-		} touchOfDeath;
-		
-		TouchOfDeath = &touchOfDeath;
-	}
-
-	{
-		static const struct Skill : Action {
-			Skill() : Action("steel-peak") {}
-			virtual int damage() const override { return 150; }
-			virtual bool isOffGlobalCooldown() const { return true; }
-			virtual std::chrono::microseconds cooldown() const { return 40_s; }
-		} steelPeak;
-		
-		SteelPeak = &steelPeak;
-	}
-
-	{
-		static const struct Skill : Action {
-			Skill() : Action("howling-fist") {}
-			virtual int damage() const override { return 170; }
-			virtual bool isOffGlobalCooldown() const { return true; }
-			virtual std::chrono::microseconds cooldown() const { return 60_s; }
-		} howlingFist;
-		
-		HowlingFist = &howlingFist;
-	}
-
-	{
-		static const struct Skill : Action {
-			struct Buff : Aura {
-				Buff() : Aura("internal-release") {}
-				virtual std::chrono::microseconds duration() const override { return 15_s; }
-				virtual double additionalCriticalHitChance() const override { return 0.30; }
-			};
-
-			Skill() : Action("internal-release") {
-				_subjectAuras.push_back(new Buff());
-			}
-			virtual bool isOffGlobalCooldown() const { return true; }
-			virtual std::chrono::microseconds cooldown() const { return 60_s; }
-		} internalRelease;
-		
-		InternalRelease = &internalRelease;
-	}
-	
-	{
-		static const struct Skill : Action {
-			struct Buff : Aura {
-				Buff() : Aura("blood-for-blood") {}
-				virtual std::chrono::microseconds duration() const override { return 20_s; }
-				virtual double increasedDamage() const override { return 0.10; }
-			};
-			
-			Skill() : Action("blood-for-blood") {
-				_subjectAuras.push_back(new Buff());
-			}
-			virtual bool isOffGlobalCooldown() const { return true; }
-			virtual std::chrono::microseconds cooldown() const { return 80_s; }
-		} bloodForBlood;
-		
-		BloodForBlood = &bloodForBlood;
-	}
-
-	{
-		static const struct Skill : Action {
-			Skill() : Action("invigorate") {}
-			virtual bool isOffGlobalCooldown() const { return true; }
-			virtual std::chrono::microseconds cooldown() const { return 120_s; }
-			virtual int tpRestoration() const override { return 400; }
-		} invigorate;
-		
-		Invigorate = &invigorate;
-	}
-	
-	{
-		static const struct Skill : Action {
-			struct Buff : Aura {
-				Buff() : Aura("perfect-balance") {}
-				virtual std::chrono::microseconds duration() const override { return 10_s; }
-				virtual bool providesImmunity(Aura* aura) const override {
-					return aura->identifier() == "opo-opo-form" || aura->identifier() == "raptor-form" || aura->identifier() == "coeurl-form";
-				}
-			};
-			
-			Skill() : Action("perfect-balance") {
-				_subjectAuras.push_back(new Buff());
-			}
-			virtual bool isOffGlobalCooldown() const { return true; }
-			virtual std::chrono::microseconds cooldown() const { return 240_s; }
-			virtual bool dispelsSubjectAura(Aura* aura) const override {
-				return aura->identifier() == "opo-opo-form" || aura->identifier() == "raptor-form" || aura->identifier() == "coeurl-form";
-			}
-		} perfectBalance;
-		
-		PerfectBalance = &perfectBalance;
-	}
-
-	{
-		struct DoT : Aura {
-			DoT() : Aura("fracture-dot") {}
-			virtual std::chrono::microseconds duration() const override { return 18_s; }
-			virtual int tickDamage() const { return 20; }
-		};
-		
-		static const struct Skill : Action {
-			Skill() : Action("fracture-dot") {
-				_targetAuras.push_back(new DoT());
-			}
-			virtual int damage() const override { return 100; }
-			virtual int tpCost() const override { return 80; }
-		} fracture;
-		
-		Fracture = &fracture;
-	}
 }
 
 }

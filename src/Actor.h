@@ -33,6 +33,8 @@ class Actor {
 
 		const Action* act(const Actor* target) const;
 
+		const Model* model() const { return _configuration->model; }
+
 		const Stats& stats() const { return _stats; }
 
 		Damage generateDamage(const Action* action) const;

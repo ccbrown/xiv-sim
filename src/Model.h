@@ -12,6 +12,8 @@ class Model {
 	public:
 		virtual ~Model() = default;
 
+		virtual const Action* action(const char* identifier) const = 0;
+
 		virtual Damage generateDamage(const Action* action, const Actor* actor) const = 0;
 		virtual Damage generateAutoAttackDamage(const Actor* actor) const = 0;
 
