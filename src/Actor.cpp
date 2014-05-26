@@ -4,13 +4,11 @@
 #include "Model.h"
 #include "Rotation.h"
 
-#include <random>
-
 const Action* Actor::act(const Actor* target) const {
 	return _configuration->rotation ? _configuration->rotation->nextAction(this, target) : nullptr;
 }
 
-Damage Actor::generateDamage(const Action* action) const {
+Damage Actor::generateDamage(const Action* action) {
 	return _configuration->model->generateDamage(action, this);
 }
 
@@ -102,15 +100,14 @@ Damage Actor::generateTickDamage(const std::string& auraIdentifier) const {
 	if (it != _auras.end()) {
 		auto& application = it->second;
 
-		std::random_device generator;
 		std::uniform_real_distribution<double> distribution(0.0, 1.0);
 
-		ret.isCritical = (distribution(generator) < application.tickCriticalHitChance);
+		ret.isCritical = (distribution(*_rng) < application.tickCriticalHitChance);
 
 		double amount = application.baseTickDamage;
 
 		// TODO: this sway is a complete guess off the top of my head and should be researched
-		amount *= 1.0 + (0.5 - distribution(generator)) * 0.1;
+		amount *= 1.0 + (0.5 - distribution(*_rng)) * 0.1;
 
 		if (ret.isCritical) {
 			amount *= 1.5;

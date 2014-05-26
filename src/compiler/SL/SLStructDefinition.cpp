@@ -1,8 +1,8 @@
-#include "C3StructDefinition.h"
+#include "SLStructDefinition.h"
 
-#include "C3Type.h"
+#include "SLType.h"
 
-size_t C3StructDefinition::size() const {
+size_t SLStructDefinition::size() const {
 	size_t total = 0;
 	for (auto& var : _member_vars) { total += var.type->size(); }
 	return total;

@@ -9,7 +9,5 @@ class JITRotation : public Rotation {
 		virtual const Action* nextAction(const Actor* subject, const Actor* target) const override;
 
 	private:
-		const Actor** _jitSubject = nullptr;
-		const Actor** _jitTarget = nullptr;
-		const char*(*_jitNextAction)() = nullptr;
+		const char*(*_jitNextAction)(const Actor* subject, const Actor* target) = nullptr;
 };

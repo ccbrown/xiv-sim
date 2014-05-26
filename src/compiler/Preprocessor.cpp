@@ -12,6 +12,12 @@ bool Preprocessor::process_file(const char* filename) {
 	return file->lex(file) && _process_tokens(file->tokens());
 }
 
+bool Preprocessor::process_file(const char* filename, const char* contents, size_t size) {
+	auto file = std::make_shared<LexedFile>(filename, contents, size);
+	
+	return file->lex(file) && _process_tokens(file->tokens());
+}
+
 const std::list<TokenPtr>& Preprocessor::tokens() {
 	return _tokens;
 }
@@ -37,25 +43,10 @@ bool Preprocessor::_process_tokens(T& tokens) {
 				return false;
 			}
 		
-			if (directive[0]->value() == "include") {
-				// include directive
-				if (directive.size() < 2 || directive[1]->type() != TokenTypeStringLiteral) {
-					printf("Preprocessing error: expected string literal after include\n");
-					directive[0]->print_pointer();
-					return false;
-				}
-				
-				std::string filename = directive[1]->value().substr(1, directive[1]->value().size() - 2);
-				std::shared_ptr<LexedFile> file(new LexedFile(filename.c_str()));
-				
-				if (!file->lex(file) || !_process_tokens(file->tokens())) {
-					return false;
-				}
-			} else {
-				printf("Preprocessing error: unknown directive\n");
-				directive[0]->print_pointer();
-				return false;
-			}
+			// no directives supported at the moment
+			printf("Preprocessing error: unknown directive\n");
+			directive[0]->print_pointer();
+			return false;
 		} else if (tok->type() == TokenTypeStringLiteral) {
 			// transform / merge string literals
 			std::string value = "";

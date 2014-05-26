@@ -10,6 +10,20 @@ LexedFile::LexedFile(const char* filename) {
 	_filename = filename;
 }
 
+LexedFile::LexedFile(const char* filename, const char* contents, size_t size) {
+	_filename = filename;
+
+	_contents = (char*)malloc(size);
+	if (!_contents) {
+		printf("Unable to allocate memory for file %s\n", _filename.c_str());
+		_contents = reinterpret_cast<char*>(1);
+		_size = 0;
+		return;
+	}
+	memcpy(_contents, contents, size);
+	_size = size;
+}
+
 LexedFile::~LexedFile() {
 	free(_contents);
 }
@@ -19,31 +33,33 @@ bool LexedFile::lex(std::shared_ptr<LexedFile> self) {
 		return false;
 	}
 	
-	FILE* f = fopen(_filename.c_str(), "r");
-
-	if (!f) {
-		printf("Unable to open file %s\n", _filename.c_str());
-		return false;
-	}
-
-	fseek(f, 0, SEEK_END);
-	_size = ftell(f);
-	rewind(f);
- 
-	_contents = (char*)malloc(_size);
 	if (!_contents) {
-		fclose(f);
-		printf("Unable to allocate memory for file %s\n", _filename.c_str());
-		return false;
-	}
+		FILE* f = fopen(_filename.c_str(), "r");
 	
-	if (fread(_contents, _size, 1, f) != 1) {
+		if (!f) {
+			printf("Unable to open file %s\n", _filename.c_str());
+			return false;
+		}
+	
+		fseek(f, 0, SEEK_END);
+		_size = ftell(f);
+		rewind(f);
+	 
+		_contents = (char*)malloc(_size);
+		if (!_contents) {
+			fclose(f);
+			printf("Unable to allocate memory for file %s\n", _filename.c_str());
+			return false;
+		}
+		
+		if (fread(_contents, _size, 1, f) != 1) {
+			fclose(f);
+			printf("Unable to read file %s\n", _filename.c_str());
+			return false;
+		}
+	
 		fclose(f);
-		printf("Unable to read file %s\n", _filename.c_str());
-		return false;
 	}
-
-	fclose(f);
 	
 	Lexer l;
 

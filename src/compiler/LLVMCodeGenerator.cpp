@@ -82,7 +82,7 @@ const void* LLVMCodeGenerator::visit(ASTFunctionRef* node) {
 
 const void* LLVMCodeGenerator::visit(ASTFunctionProto* node) {
 	std::vector<llvm::Type*> arg_types;
-	for (C3TypePtr type : node->func->arg_types()) {
+	for (SLTypePtr type : node->func->arg_types()) {
 		arg_types.push_back(_llvm_type(type));
 	}
 
@@ -129,7 +129,7 @@ const void* LLVMCodeGenerator::visit(ASTFunctionDef* node) {
 	// build the body
 
 	llvm::AllocaInst* return_alloca = nullptr;
-	if (node->proto->func->return_type()->type() != C3TypeTypeVoid) {
+	if (node->proto->func->return_type()->type() != SLTypeTypeVoid) {
 		return_alloca = _builder.CreateAlloca(_llvm_type(node->proto->func->return_type()), nullptr, "ret");
 	}
 
@@ -173,7 +173,7 @@ const void* LLVMCodeGenerator::visit(ASTConstantArray* node) {
 
 	assert(node->type->pointed_to_type());
 	switch (node->type->pointed_to_type()->type()) {
-		case C3TypeTypeInt8:
+		case SLTypeTypeInt8:
 			v = llvm::ConstantDataArray::get(_context, llvm::ArrayRef<uint8_t>((uint8_t*)node->data, node->size));
 			break;
 		default:
@@ -193,7 +193,7 @@ const void* LLVMCodeGenerator::visit(ASTUnaryOp* node) {
 		assert(node->right->type->referenced_type());
 		return _value(node->right);
 	} else if (node->op == "*") {
-		assert(C3Type::RemoveReference(node->right->type)->pointed_to_type());
+		assert(SLType::RemoveReference(node->right->type)->pointed_to_type());
 		return _dereferenced_value(node->right);
 	} else if (node->op == "!") {
 		return _builder.CreateNot(_dereferenced_value(node->right));
@@ -222,12 +222,8 @@ const void* LLVMCodeGenerator::visit(ASTBinaryOp* node) {
 			return left->getType()->isFPOrFPVectorTy() ? _builder.CreateFDiv(left, right) : (signed_op ? _builder.CreateSDiv(left, right) : _builder.CreateUDiv(left, right));
 		} else if (node->op == "%") {
 			return left->getType()->isFPOrFPVectorTy() ? _builder.CreateFRem(left, right) : (signed_op ? _builder.CreateSRem(left, right) : _builder.CreateURem(left, right));
-		} else if (node->op == "+" && left->getType()->isPointerTy()) {
-			return _builder.CreateGEP(left, right);
 		} else if (node->op == "+") {
 			return left->getType()->isFPOrFPVectorTy() ? _builder.CreateFAdd(left, right) : _builder.CreateAdd(left, right);
-		} else if (node->op == "-" && left->getType()->isPointerTy()) {
-			return _builder.CreateGEP(left, _builder.CreateNeg(right));
 		} else if (node->op == "-") {
 			return left->getType()->isFPOrFPVectorTy() ? _builder.CreateFSub(left, right) : _builder.CreateSub(left, right);
 		} else if (node->op == "==") {
@@ -242,9 +238,9 @@ const void* LLVMCodeGenerator::visit(ASTBinaryOp* node) {
 			return left->getType()->isFPOrFPVectorTy() ? _builder.CreateFCmpOGT(left, right) : (signed_op ? _builder.CreateICmpSGT(left, right) : _builder.CreateICmpUGT(left, right));
 		} else if (node->op == ">=") {
 			return left->getType()->isFPOrFPVectorTy() ? _builder.CreateFCmpOGE(left, right) : (signed_op ? _builder.CreateICmpSGE(left, right) : _builder.CreateICmpUGE(left, right));
-		} else if (node->op == "&&") {
+		} else if (node->op == "&&" || node->op == "and") {
 			return _builder.CreateAnd(left, right);
-		} else if (node->op == "||") {
+		} else if (node->op == "||" || node->op == "or") {
 			return _builder.CreateOr(left, right);
 		}
 	}
@@ -326,27 +322,27 @@ const void* LLVMCodeGenerator::visit(ASTFunctionCall* node) {
 const void* LLVMCodeGenerator::visit(ASTCast* node) {
 	if (node->original->is_constant) {
 		// constant expression
-		if (node->type->type() == C3TypeTypePointer) {
+		if (node->type->type() == SLTypeTypePointer) {
 			return llvm::ConstantExpr::getPointerCast(static_cast<llvm::Constant*>(_value(node->original)), _llvm_type(node->type));
 		}
 		return llvm::ConstantExpr::getIntegerCast(static_cast<llvm::Constant*>(_value(node->original)), _llvm_type(node->type), node->original->type->is_signed());
 	}
 	
-	auto rr_type = C3Type::RemoveReference(node->original->type);
+	auto rr_type = SLType::RemoveReference(node->original->type);
 	
-	if (node->type->type() == C3TypeTypePointer) {
+	if (node->type->type() == SLTypeTypePointer) {
 		return _builder.CreatePointerCast(_dereferenced_value(node->original), _llvm_type(node->type));
 	}
 
-	if (node->type->type() == C3TypeTypeBool && rr_type->type() == C3TypeTypePointer) {
+	if (node->type->type() == SLTypeTypeBool && rr_type->type() == SLTypeTypePointer) {
 		return _builder.CreateIsNotNull(_dereferenced_value(node->original));
 	}
 
-	if (node->type->type() == C3TypeTypeBool && rr_type->is_integer()) {
+	if (node->type->type() == SLTypeTypeBool && rr_type->is_integer()) {
 		return _builder.CreateICmpNE(_dereferenced_value(node->original), llvm::ConstantInt::get(_llvm_type(rr_type), 0));
 	}
 
-	if (node->type->type() == C3TypeTypeBool && rr_type->is_floating_point()) {
+	if (node->type->type() == SLTypeTypeBool && rr_type->is_floating_point()) {
 		return _builder.CreateFCmpONE(_dereferenced_value(node->original), llvm::ConstantFP::get(_llvm_type(rr_type), 0.0));
 	}
 
@@ -409,31 +405,31 @@ llvm::Value* LLVMCodeGenerator::_dereferenced_value(ASTExpression* exp) {
 	return v;
 }
 
-llvm::Type* LLVMCodeGenerator::_llvm_type(C3TypePtr type) {
+llvm::Type* LLVMCodeGenerator::_llvm_type(SLTypePtr type) {
 	switch (type->type()) {
-		case C3TypeTypeNullPointer:
+		case SLTypeTypeNullPointer:
 			return llvm::Type::getInt8Ty(_context)->getPointerTo();
-		case C3TypeTypePointer:
-		case C3TypeTypeReference:
+		case SLTypeTypePointer:
+		case SLTypeTypeReference:
 			// llvm doesn't do void pointers
-			return type->pointed_to_type()->type() == C3TypeTypeVoid ? llvm::Type::getInt8Ty(_context)->getPointerTo() : _llvm_type(type->pointed_to_type())->getPointerTo();
-		case C3TypeTypeAuto:
+			return type->pointed_to_type()->type() == SLTypeTypeVoid ? llvm::Type::getInt8Ty(_context)->getPointerTo() : _llvm_type(type->pointed_to_type())->getPointerTo();
+		case SLTypeTypeAuto:
 			assert(false);
-		case C3TypeTypeVoid:
+		case SLTypeTypeVoid:
 			return llvm::Type::getVoidTy(_context);
-		case C3TypeTypeBool:
+		case SLTypeTypeBool:
 			return llvm::Type::getInt1Ty(_context);
-		case C3TypeTypeInt8:
+		case SLTypeTypeInt8:
 			return llvm::Type::getInt8Ty(_context);
-		case C3TypeTypeInt32:
+		case SLTypeTypeInt32:
 			return llvm::Type::getInt32Ty(_context);
-		case C3TypeTypeInt64:
+		case SLTypeTypeInt64:
 			return llvm::Type::getInt64Ty(_context);
-		case C3TypeTypeDouble:
+		case SLTypeTypeDouble:
 			return llvm::Type::getDoubleTy(_context);
-		case C3TypeTypeFunction:
+		case SLTypeTypeFunction:
 			assert(false); // TODO: ???
-		case C3TypeTypeStruct: {
+		case SLTypeTypeStruct: {
 			llvm::StructType* ret = nullptr;
 			
 			if (!_named_types.count(type->global_name())) {

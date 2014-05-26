@@ -1,6 +1,6 @@
 #pragma once
 
-#include "C3/C3.h"
+#include "SL/SL.h"
 
 #include <string>
 #include <list>
@@ -22,10 +22,10 @@ struct ASTNop : ASTNode {
 };
 
 struct ASTExpression : ASTNode {
-	C3TypePtr type;
+	SLTypePtr type;
 	bool is_constant = false;
 
-	ASTExpression(C3TypePtr type, bool is_constant = false) : type(type), is_constant(is_constant) {}
+	ASTExpression(SLTypePtr type, bool is_constant = false) : type(type), is_constant(is_constant) {}
 	virtual void print(int indentation = 0);
 	virtual const void* accept(ASTNodeVisitor* visitor);
 	virtual ~ASTExpression() {}
@@ -41,38 +41,38 @@ struct ASTSequence : ASTNode {
 };
 
 struct ASTVariableRef : ASTExpression {
-	C3VariablePtr var;
+	SLVariablePtr var;
 
-	ASTVariableRef(C3VariablePtr var) : ASTExpression(C3Type::ReferenceType(var->type())), var(var) {}
+	ASTVariableRef(SLVariablePtr var) : ASTExpression(SLType::ReferenceType(var->type())), var(var) {}
 	virtual void print(int indentation = 0);
 	virtual const void* accept(ASTNodeVisitor* visitor);
 	virtual ~ASTVariableRef() {}
 };
 
 struct ASTVariableDec : ASTNode {
-	C3VariablePtr var;
+	SLVariablePtr var;
 	ASTExpression* init;
 
-	ASTVariableDec(C3VariablePtr var, ASTExpression* init = nullptr) : var(var), init(init) {}
+	ASTVariableDec(SLVariablePtr var, ASTExpression* init = nullptr) : var(var), init(init) {}
 	virtual void print(int indentation = 0);
 	virtual const void* accept(ASTNodeVisitor* visitor);
 	virtual ~ASTVariableDec() { delete init; }
 };
 
 struct ASTFunctionRef : ASTExpression {
-	C3FunctionPtr func;
+	SLFunctionPtr func;
 
-	ASTFunctionRef(C3FunctionPtr func) : ASTExpression(func->type()), func(func) {}
+	ASTFunctionRef(SLFunctionPtr func) : ASTExpression(func->type()), func(func) {}
 	virtual void print(int indentation = 0);
 	virtual const void* accept(ASTNodeVisitor* visitor);
 	virtual ~ASTFunctionRef() {}
 };
 
 struct ASTFunctionProto : ASTNode {
-	C3FunctionPtr func;
+	SLFunctionPtr func;
 	std::vector<std::string> arg_names;
 
-	ASTFunctionProto(C3FunctionPtr func, const std::vector<std::string>& arg_names) : func(func), arg_names(arg_names) {}
+	ASTFunctionProto(SLFunctionPtr func, const std::vector<std::string>& arg_names) : func(func), arg_names(arg_names) {}
 	virtual void print(int indentation = 0);
 	virtual const void* accept(ASTNodeVisitor* visitor);
 	virtual ~ASTFunctionProto() {}
@@ -102,7 +102,7 @@ struct ASTStructMemberRef : ASTExpression {
 struct ASTFloatingPoint : ASTExpression {
 	double value;
 
-	ASTFloatingPoint(double value, C3TypePtr type) : ASTExpression(type, true), value(value) {}
+	ASTFloatingPoint(double value, SLTypePtr type) : ASTExpression(type, true), value(value) {}
 	virtual void print(int indentation = 0);
 	virtual const void* accept(ASTNodeVisitor* visitor);
 	virtual ~ASTFloatingPoint() {}
@@ -111,7 +111,7 @@ struct ASTFloatingPoint : ASTExpression {
 struct ASTInteger : ASTExpression {
 	uint64_t value;
 
-	ASTInteger(uint64_t value, C3TypePtr type) : ASTExpression(type, true), value(value) {}
+	ASTInteger(uint64_t value, SLTypePtr type) : ASTExpression(type, true), value(value) {}
 	virtual void print(int indentation = 0);
 	virtual const void* accept(ASTNodeVisitor* visitor);
 	virtual ~ASTInteger() {}
@@ -121,7 +121,7 @@ struct ASTConstantArray : ASTExpression {
 	void* data;
 	size_t size;
 	
-	ASTConstantArray(const void* data, size_t size, C3TypePtr type) : ASTExpression(C3Type::PointerType(type), true) {
+	ASTConstantArray(const void* data, size_t size, SLTypePtr type) : ASTExpression(SLType::PointerType(type), true) {
 		this->data = malloc(size);
 		memcpy(this->data, data, size);
 		this->size = size;
@@ -136,9 +136,9 @@ struct ASTConstantArray : ASTExpression {
 struct ASTUnaryOp : ASTExpression {
 	std::string op;
 	ASTExpression* right;
-	C3TypePtr type;
+	SLTypePtr type;
 
-	ASTUnaryOp(const std::string& op, ASTExpression* right, C3TypePtr type) : ASTExpression(type), op(op), right(right) {}
+	ASTUnaryOp(const std::string& op, ASTExpression* right, SLTypePtr type) : ASTExpression(type), op(op), right(right) {}
 	virtual void print(int indentation = 0);
 	virtual const void* accept(ASTNodeVisitor* visitor);
 	virtual ~ASTUnaryOp();
@@ -148,9 +148,9 @@ struct ASTBinaryOp : ASTExpression {
 	std::string op;
 	ASTExpression* left;
 	ASTExpression* right;
-	C3TypePtr type;
+	SLTypePtr type;
 
-	ASTBinaryOp(const std::string& op, ASTExpression* left, ASTExpression* right, C3TypePtr type) : ASTExpression(type), op(op), left(left), right(right) {}
+	ASTBinaryOp(const std::string& op, ASTExpression* left, ASTExpression* right, SLTypePtr type) : ASTExpression(type), op(op), left(left), right(right) {}
 	virtual void print(int indentation = 0);
 	virtual const void* accept(ASTNodeVisitor* visitor);
 	virtual ~ASTBinaryOp();
@@ -190,7 +190,7 @@ struct ASTFunctionCall : ASTExpression {
 struct ASTCast : ASTExpression {
 	ASTExpression* original;
 
-	ASTCast(ASTExpression* original, C3TypePtr type) : ASTExpression(type, original->is_constant), original(original) {}
+	ASTCast(ASTExpression* original, SLTypePtr type) : ASTExpression(type, original->is_constant), original(original) {}
 	virtual void print(int indentation = 0);
 	virtual const void* accept(ASTNodeVisitor* visitor);
 	virtual ~ASTCast();
@@ -218,7 +218,7 @@ struct ASTWhileLoop : ASTNode {
 };
 
 struct ASTNullPointer : ASTExpression {
-	ASTNullPointer(C3TypePtr type) : ASTExpression(type, true) {}
+	ASTNullPointer(SLTypePtr type) : ASTExpression(type, true) {}
 	virtual void print(int indentation = 0);
 	virtual const void* accept(ASTNodeVisitor* visitor);
 	virtual ~ASTNullPointer() = default;

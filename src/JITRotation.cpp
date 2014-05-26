@@ -26,14 +26,59 @@ extern "C" {
 }
 
 bool JITRotation::initializeWithFile(const char* filename) {
+	const char header[] =
+		"class Actor;"
+		"extern uint64 AuraCount(const Actor* actor, const uint8* identifier) : \"JITRotationActorAuraCount\";"
+		"extern double CooldownRemaining(const Actor* actor, const uint8* identifier) : \"JITRotationActorCooldownRemaining\";"
+		"extern double AuraTimeRemaining(const Actor* actor, const uint8* identifier) : \"JITRotationActorAuraTimeRemaining\";"
+		"extern uint64 TP(const Actor* actor) : \"JITRotationActorTP\";"
+		"hidden const uint8* NextAction(const Actor* self, const Actor* target) {"
+	;
+	
+	const char footer[] = "}";
+
+	FILE* f = fopen(filename, "r");
+
+	if (!f) {
+		printf("Unable to open file %s\n", filename);
+		return false;
+	}
+
+	fseek(f, 0, SEEK_END);
+	auto fsize = ftell(f);
+	rewind(f);
+ 
+ 	auto sourceLength = sizeof(header) + fsize + sizeof(footer);
+ 
+	auto source = (char*)malloc(sourceLength);
+	if (!source) {
+		printf("Unable to allocate memory for rotation source\n");
+		fclose(f);
+		return false;
+	}
+
+	memcpy(source, header, sizeof(header));
+
+	if (fread(source + sizeof(header), fsize, 1, f) != 1) {
+		printf("Unable to read file %s\n", filename);
+		fclose(f);
+		return false;
+	}
+
+	memcpy(source + sizeof(header) + fsize, footer, sizeof(footer));
+
+	fclose(f);
+
 	// PREPROCESS
 
 	Preprocessor pp;
 
-	if (!pp.process_file(filename)) {
+	if (!pp.process_file(filename, source, sourceLength)) {
 		printf("Couldn't preprocess file.\n");
 		return false;
 	}
+
+	free(source);
 	
 	// PARSE
 	
@@ -81,16 +126,12 @@ bool JITRotation::initializeWithFile(const char* filename) {
 		return false;
 	}
 
-	_jitSubject = decltype(_jitSubject)(engine->getPointerToGlobal(module->getGlobalVariable("^_Subject")));
-	_jitTarget = decltype(_jitTarget)(engine->getPointerToGlobal(module->getGlobalVariable("^_Target")));
 	_jitNextAction = decltype(_jitNextAction)((std::intptr_t)engine->getPointerToFunction(module->getFunction("^NextAction")));
 
 	return _jitNextAction;
 }
 
 const Action* JITRotation::nextAction(const Actor* subject, const Actor* target) const {
-	*_jitSubject = subject;
-	*_jitTarget = target;
-	auto identifier = _jitNextAction();
+	auto identifier = _jitNextAction(subject, target);
 	return identifier ? subject->model()->action(identifier) : nullptr;
 }

@@ -14,8 +14,8 @@ class Model {
 
 		virtual const Action* action(const char* identifier) const = 0;
 
-		virtual Damage generateDamage(const Action* action, const Actor* actor) const = 0;
-		virtual Damage generateAutoAttackDamage(const Actor* actor) const = 0;
+		virtual Damage generateDamage(const Action* action, Actor* actor) const = 0;
+		virtual Damage generateAutoAttackDamage(Actor* actor) const = 0;
 
 		virtual Damage acceptDamage(const Damage& incoming, const Actor* actor) const = 0;
 

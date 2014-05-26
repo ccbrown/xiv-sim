@@ -7,16 +7,16 @@
 Parser::Parser() {
 	Scope global("^");
 
-	global.types["void"]   = C3Type::VoidType();
-	global.types["auto"]   = C3Type::AutoType();
-	global.types["bool"]   = C3Type::BoolType();
-	global.types["int8"]   = C3Type::Int8Type();
-	global.types["uint8"]  = C3Type::ModifiedType(C3Type::Int8Type(), C3TypeModifierUnsigned);
-	global.types["int32"]  = C3Type::Int32Type();
-	global.types["uint32"] = C3Type::ModifiedType(C3Type::Int32Type(), C3TypeModifierUnsigned);
-	global.types["int64"]  = C3Type::Int64Type();
-	global.types["uint64"] = C3Type::ModifiedType(C3Type::Int64Type(), C3TypeModifierUnsigned);
-	global.types["double"] = C3Type::DoubleType();
+	global.types["void"]   = SLType::VoidType();
+	global.types["var"]    = SLType::AutoType();
+	global.types["bool"]   = SLType::BoolType();
+	global.types["int8"]   = SLType::Int8Type();
+	global.types["uint8"]  = SLType::ModifiedType(SLType::Int8Type(), SLTypeModifierUnsigned);
+	global.types["int32"]  = SLType::Int32Type();
+	global.types["uint32"] = SLType::ModifiedType(SLType::Int32Type(), SLTypeModifierUnsigned);
+	global.types["int64"]  = SLType::Int64Type();
+	global.types["uint64"] = SLType::ModifiedType(SLType::Int64Type(), SLTypeModifierUnsigned);
+	global.types["double"] = SLType::DoubleType();
 
 	_scopes.push_back(global);
 	
@@ -27,15 +27,18 @@ Parser::Parser() {
 	_keywords.insert("class");
 	_keywords.insert("const");
 	_keywords.insert("extern");
+	_keywords.insert("perform");
 	_keywords.insert("return");
 	_keywords.insert("import");
 	_keywords.insert("if");
 	_keywords.insert("else");
+	_keywords.insert("hidden");
 	_keywords.insert("static");
-	_keywords.insert("static_cast");
 	_keywords.insert("namespace");
 	_keywords.insert("nullptr");
 	_keywords.insert("typename");
+	_keywords.insert("and");
+	_keywords.insert("or");
 
 	// TODO: respect unary precedence
 	_binary_ops["."]  = { 110, false };
@@ -57,7 +60,9 @@ Parser::Parser() {
 	_binary_ops["=="] = {  40, false };
 	_binary_ops["!="] = {  40, false };
 	_binary_ops["&&"] = {  26, false };
+	_binary_ops["and"] = {  26, false };
 	_binary_ops["||"] = {  25, false };
+	_binary_ops["or"] = {  25, false };
 	_binary_ops["="]  = {  20, true };
 }
 
@@ -164,8 +169,10 @@ bool Parser::_peek(ParserTokenType type, TokenIterator* next) {
 			return _peek(ptt_keyword) && tok->value() == "const";
 		case ptt_keyword_extern:
 			return _peek(ptt_keyword) && tok->value() == "extern";
+		case ptt_keyword_hidden:
+			return _peek(ptt_keyword) && tok->value() == "hidden";
 		case ptt_keyword_return:
-			return _peek(ptt_keyword) && tok->value() == "return";
+			return _peek(ptt_keyword) && (tok->value() == "return" || tok->value() == "perform");
 		case ptt_keyword_import:
 			return _peek(ptt_keyword) && tok->value() == "import";
 		case ptt_keyword_if:
@@ -174,8 +181,6 @@ bool Parser::_peek(ParserTokenType type, TokenIterator* next) {
 			return _peek(ptt_keyword) && tok->value() == "else";
 		case ptt_keyword_static:
 			return _peek(ptt_keyword) && tok->value() == "static";
-		case ptt_keyword_static_cast:
-			return _peek(ptt_keyword) && tok->value() == "static_cast";
 		case ptt_keyword_namespace:
 			return _peek(ptt_keyword) && tok->value() == "namespace";
 		case ptt_keyword_nullptr:
@@ -189,7 +194,7 @@ bool Parser::_peek(ParserTokenType type, TokenIterator* next) {
 		case ptt_unary_op:
 			return tok->type() == TokenTypePunctuator && _unary_ops.find(tok->value()) != _unary_ops.end();
 		case ptt_binary_op:
-			return tok->type() == TokenTypePunctuator && _binary_ops.find(tok->value()) != _binary_ops.end();
+			return (tok->type() == TokenTypePunctuator || tok->type() == TokenTypeIdentifier) && _binary_ops.find(tok->value()) != _binary_ops.end();
 		case ptt_string_literal:
 			return tok->type() == TokenTypeStringLiteral;
 		case ptt_char_constant:
@@ -272,7 +277,7 @@ Parser::Scope& Parser::_push_scope(const std::string& name) {
 	return _scopes.back();
 }
 
-Parser::Scope& Parser::_push_scope(C3FunctionPtr function) {
+Parser::Scope& Parser::_push_scope(SLFunctionPtr function) {
 	Scope& s = _push_scope(function->name());
 	s.return_type = function->return_type();
 	return s;
@@ -306,7 +311,7 @@ std::string Parser::_try_parse_full_name() {
 	return ret;
 }
 
-C3TypePtr Parser::_resolve_type(const std::string& name) {
+SLTypePtr Parser::_resolve_type(const std::string& name) {
 	for (auto it = _scopes.rbegin(); it != _scopes.rend(); ++it) {
 		auto& scope = *it;
 		auto namespace_copy = scope.current_namespace;
@@ -329,7 +334,7 @@ C3TypePtr Parser::_resolve_type(const std::string& name) {
 	return nullptr;
 }
 
-C3TypePtr Parser::_try_parse_type() {
+SLTypePtr Parser::_try_parse_type() {
 	auto start = _cur_tok;
 
 	bool is_constant = false;
@@ -343,7 +348,7 @@ C3TypePtr Parser::_try_parse_type() {
 
 	if (name.empty()) { return nullptr; }
 
-	C3TypePtr type = _resolve_type(name);
+	SLTypePtr type = _resolve_type(name);
 
 	if (!type) {
 		_cur_tok = start;
@@ -351,15 +356,15 @@ C3TypePtr Parser::_try_parse_type() {
 	}
 	
 	if (is_constant) {
-		type = C3Type::ModifiedType(type, C3TypeModifierConstant);
+		type = SLType::ModifiedType(type, SLTypeModifierConstant);
 	}
 	
 	while (true) {
 		if (_peek(ptt_asterisk)) {
-			type = C3Type::PointerType(type);
+			type = SLType::PointerType(type);
 			_consume(1);
 		} else if (_peek(ptt_ampersand)) {
-			type = C3Type::ReferenceType(type);
+			type = SLType::ReferenceType(type);
 			_consume(1);
 		} else {
 			break;
@@ -369,7 +374,7 @@ C3TypePtr Parser::_try_parse_type() {
 	return type;
 }
 
-C3VariablePtr Parser::_resolve_variable(const std::string& name) {
+SLVariablePtr Parser::_resolve_variable(const std::string& name) {
 	for (auto it = _scopes.rbegin(); it != _scopes.rend(); ++it) {
 		auto& scope = *it;
 		auto namespace_copy = scope.current_namespace;
@@ -392,7 +397,7 @@ C3VariablePtr Parser::_resolve_variable(const std::string& name) {
 	return nullptr;
 }
 
-C3VariablePtr Parser::_try_parse_variable() {
+SLVariablePtr Parser::_try_parse_variable() {
 	auto start = _cur_tok;
 
 	auto name = _try_parse_full_name();
@@ -407,8 +412,8 @@ C3VariablePtr Parser::_try_parse_variable() {
 	return nullptr;
 }
 
-std::vector<C3FunctionPtr> Parser::_function_candidates(const std::string& name) {
-	std::vector<C3FunctionPtr> ret;
+std::vector<SLFunctionPtr> Parser::_function_candidates(const std::string& name) {
+	std::vector<SLFunctionPtr> ret;
 	
 	for (auto it = _scopes.rbegin(); it != _scopes.rend(); ++it) {
 		auto& scope = *it;
@@ -434,7 +439,7 @@ std::vector<C3FunctionPtr> Parser::_function_candidates(const std::string& name)
 	return ret;
 }
 
-C3FunctionPtr Parser::_try_parse_function() {
+SLFunctionPtr Parser::_try_parse_function() {
 	// only generate errors if the thing we're at is a function but there's something wrong with it
 	
 	auto start = _cur_tok;
@@ -458,8 +463,8 @@ C3FunctionPtr Parser::_try_parse_function() {
 	return *function_candidates.begin();
 }
 
-ASTExpression* Parser::_implicit_conversion(ASTExpression* expression, C3TypePtr type) {
-	auto rr_exp_type = C3Type::RemoveReference(expression->type);
+ASTExpression* Parser::_implicit_conversion(ASTExpression* expression, SLTypePtr type) {
+	auto rr_exp_type = SLType::RemoveReference(expression->type);
 	
 	if (*rr_exp_type == *type) {
 		return expression;
@@ -467,21 +472,21 @@ ASTExpression* Parser::_implicit_conversion(ASTExpression* expression, C3TypePtr
 	
 	// TODO: this should really be rewritten
 
-	if (expression->type->type() == C3TypeTypePointer && type->type() == C3TypeTypePointer && *C3Type::PointerType(C3Type::RemoveReference(expression->type->pointed_to_type())) == *type) {
+	if (expression->type->type() == SLTypeTypePointer && type->type() == SLTypeTypePointer && *SLType::PointerType(SLType::RemoveReference(expression->type->pointed_to_type())) == *type) {
 		return expression;
 	}
 
 	if (true
-		&& rr_exp_type->type() == C3TypeTypePointer && type->type() == C3TypeTypePointer
-		&&  (   *C3Type::ModifiedType(rr_exp_type->pointed_to_type(), C3TypeModifierConstant) == *C3Type::ModifiedType(type->pointed_to_type(), C3TypeModifierConstant)
-			|| (rr_exp_type->pointed_to_type()->type() != C3TypeTypePointer && type->pointed_to_type()->type() == C3TypeTypeVoid)
+		&& rr_exp_type->type() == SLTypeTypePointer && type->type() == SLTypeTypePointer
+		&&  (   *SLType::ModifiedType(rr_exp_type->pointed_to_type(), SLTypeModifierConstant) == *SLType::ModifiedType(type->pointed_to_type(), SLTypeModifierConstant)
+			|| (rr_exp_type->pointed_to_type()->type() != SLTypeTypePointer && type->pointed_to_type()->type() == SLTypeTypeVoid)
 		)
 		&& (!rr_exp_type->pointed_to_type()->is_constant() || type->pointed_to_type()->is_constant())
 	) {
 		return new ASTCast(expression, type);
 	}
 
-	if (expression->type->type() == C3TypeTypeNullPointer && type->type() == C3TypeTypePointer) {
+	if (expression->type->type() == SLTypeTypeNullPointer && type->type() == SLTypeTypePointer) {
 		return new ASTCast(expression, type);
 	}
 	
@@ -492,41 +497,41 @@ ASTExpression* Parser::_implicit_conversion(ASTExpression* expression, C3TypePtr
 	return nullptr;
 }
 
-ASTExpression* Parser::_explicit_conversion(ASTExpression* expression, C3TypePtr type) {
+ASTExpression* Parser::_explicit_conversion(ASTExpression* expression, SLTypePtr type) {
 	if (auto converted = _implicit_conversion(expression, type)) {
 		return converted;
 	}
 	
-	auto rr_exp_type = C3Type::RemoveReference(expression->type);
+	auto rr_exp_type = SLType::RemoveReference(expression->type);
 	
-	if ((rr_exp_type->is_integer() || rr_exp_type->is_floating_point() || rr_exp_type->pointed_to_type()) && type->type() == C3TypeTypeBool) {
+	if ((rr_exp_type->is_integer() || rr_exp_type->is_floating_point() || rr_exp_type->pointed_to_type()) && type->type() == SLTypeTypeBool) {
 		return new ASTCast(expression, type);
 	}
 
 	return nullptr;
 }
 
-C3TypePtr Parser::_resolve_auto_type(C3TypePtr auto_type, C3TypePtr target) {
+SLTypePtr Parser::_resolve_auto_type(SLTypePtr auto_type, SLTypePtr target) {
 	if (!auto_type->is_auto()) { return auto_type; }
 
-	if (auto_type->type() == C3TypeTypeReference) {
-		if (target->type() == C3TypeTypeReference) {
+	if (auto_type->type() == SLTypeTypeReference) {
+		if (target->type() == SLTypeTypeReference) {
 			auto inner = _resolve_auto_type(auto_type->referenced_type(), target->referenced_type());
-			return inner ? C3Type::ModifiedType(C3Type::ReferenceType(inner), auto_type->modifiers()) : nullptr;
+			return inner ? SLType::ModifiedType(SLType::ReferenceType(inner), auto_type->modifiers()) : nullptr;
 		}
 		return nullptr;
 	}
 
-	if (auto_type->type() == C3TypeTypePointer) {
-		if (target->type() == C3TypeTypePointer) {
+	if (auto_type->type() == SLTypeTypePointer) {
+		if (target->type() == SLTypeTypePointer) {
 			auto inner = _resolve_auto_type(auto_type->pointed_to_type(), target->pointed_to_type());
-			return inner ? C3Type::ModifiedType(C3Type::PointerType(inner), auto_type->modifiers()) : nullptr;
+			return inner ? SLType::ModifiedType(SLType::PointerType(inner), auto_type->modifiers()) : nullptr;
 		}
 		return nullptr;
 	}
 	
-	if (auto_type->type() == C3TypeTypeAuto) {
-		return C3Type::ModifiedType(C3Type::RemoveReference(target), auto_type->modifiers());
+	if (auto_type->type() == SLTypeTypeAuto) {
+		return SLType::ModifiedType(SLType::RemoveReference(target), auto_type->modifiers());
 	}
 
 	return nullptr;
@@ -544,6 +549,11 @@ ASTVariableDec* Parser::_parse_variable_dec() {
 
 	if (!type) {
 		_errors.push_back(ParseError("expected type", _token()));
+		return nullptr;
+	}
+
+	if (!type->is_defined()) {
+		_errors.push_back(ParseError("type undefined", _token()));
 		return nullptr;
 	}
 
@@ -588,11 +598,11 @@ ASTVariableDec* Parser::_parse_variable_dec() {
 			delete init;
 			return nullptr;
 		}
-	} else if (type->is_auto()) {
-		_errors.push_back(ParseError("variables with auto types must have an initialization", name_tok));
+	} else {
+		_errors.push_back(ParseError("variables must be initialized", name_tok));
 	}
 
-	C3VariablePtr var = C3VariablePtr(new C3Variable(type, name_tok->value(), scope.global_prefix() + name_tok->value(), name_tok, is_static));
+	SLVariablePtr var = SLVariablePtr(new SLVariable(type, name_tok->value(), scope.global_prefix() + name_tok->value(), name_tok, is_static));
 	scope.variables[scope.local_prefix() + var->name()] = var;
 
 	return new ASTVariableDec(var, init);
@@ -622,7 +632,7 @@ ASTNode* Parser::_parse_function_proto_or_def(bool* was_just_proto) {
 			// add the arguments to the scope
 			Scope& scope = _scopes.back();
 			for (size_t i = 0; i < proto->arg_names.size(); ++i) {
-				scope.variables[proto->arg_names[i]] = C3VariablePtr(new C3Variable(proto->func->arg_types()[i], proto->arg_names[i], scope.global_prefix() + proto->arg_names[i], protoTok));
+				scope.variables[proto->arg_names[i]] = SLVariablePtr(new SLVariable(proto->func->arg_types()[i], proto->arg_names[i], scope.global_prefix() + proto->arg_names[i], protoTok));
 			}
 			// parse the body
 			ASTSequence* body = _parse_block();
@@ -652,6 +662,13 @@ ASTNode* Parser::_parse_function_proto_or_def(bool* was_just_proto) {
 }
 
 ASTFunctionProto* Parser::_parse_function_proto(bool* args_are_named) {
+	bool is_hidden = false;
+	
+	if (_peek(ptt_keyword_hidden)) {
+		is_hidden = true;
+		_consume(1);
+	}
+	
 	auto return_type = _try_parse_type();
 	
 	if (!return_type) {
@@ -678,11 +695,11 @@ ASTFunctionProto* Parser::_parse_function_proto(bool* args_are_named) {
 
 	_consume(1); // consume open parenthesis
 
-	std::vector<C3TypePtr>   args;
+	std::vector<SLTypePtr>   args;
 	std::vector<std::string> names;
 	
 	while (!_peek(ptt_close_paren)) {
-		C3TypePtr arg_type = _try_parse_type();
+		SLTypePtr arg_type = _try_parse_type();
 
 		if (!arg_type) {
 			_errors.push_back(ParseError("expected argument type", _token()));
@@ -729,7 +746,8 @@ ASTFunctionProto* Parser::_parse_function_proto(bool* args_are_named) {
 	if (global_name == _scopes.front().prefix + "main") {
 		global_name = "main";
 	}
-	C3FunctionPtr func = C3FunctionPtr(new C3Function(return_type, tok->value(), global_name, std::move(args), tok));
+	// TODO: hidden functions should get unique names to avoid conflicts
+	SLFunctionPtr func = SLFunctionPtr(new SLFunction(return_type, tok->value(), global_name, std::move(args), tok));
 
 	auto fit = scope.functions.find(tok->value());
 	if (fit != scope.functions.end()) {
@@ -740,12 +758,14 @@ ASTFunctionProto* Parser::_parse_function_proto(bool* args_are_named) {
 		return new ASTFunctionProto(fit->second, names);
 	}
 
-	scope.functions[scope.local_prefix() + func->name()] = func;
+	if (!is_hidden) {
+		scope.functions[scope.local_prefix() + func->name()] = func;
+	}
 	return new ASTFunctionProto(func, names);
 }
 
 ASTFunctionCall* Parser::_parse_function_call(ASTExpression* func) {
-	if (func->type->type() != C3TypeTypeFunction) {
+	if (func->type->type() != SLTypeTypeFunction) {
 		_errors.push_back(ParseError("previous expression is not a function", _token()));
 		return nullptr;
 	}
@@ -757,7 +777,7 @@ ASTFunctionCall* Parser::_parse_function_call(ASTExpression* func) {
 	_consume(1); // consume '('
 
 	std::vector<ASTExpression*> args;
-	const std::vector<C3TypePtr>& arg_types = func->type->signature().arg_types();
+	const std::vector<SLTypePtr>& arg_types = func->type->signature().arg_types();
 
 	for (size_t i = 0; i < arg_types.size(); ++i) {
 		if (i > 0) {
@@ -815,76 +835,85 @@ ASTNode* Parser::_parse_class_dec_or_def() {
 	}
 	
 	auto name = _consume_token();
-	
-	if (!_peek(ptt_open_brace)) {
-		_errors.push_back(ParseError("expected opening brace", _token()));
-		return nullptr;
-	}
-	
-	_consume(1); // {
-	
-	std::vector<C3StructDefinition::MemberVariable> member_vars;
-	
-	_push_scope(name->value());
-	while (!_peek(ptt_close_brace)) {
-		C3TypePtr type = _try_parse_type();
-		if (!type) {
-			_errors.push_back(ParseError("expected type", _token()));
-			return nullptr;
-		}
-		if (type->is_auto()) {
-			_errors.push_back(ParseError("cannot declare an auto member type", _token()));
-			return nullptr;
-		}
-		if (!_peek(ptt_new_variable_name)) {
-			_errors.push_back(ParseError("expected new member name", _token()));
-			return nullptr;
-		}
-		auto name = _consume_token();
-		member_vars.emplace_back(name->value(), type);
-		if (!_peek(ptt_semicolon)) {
-			_errors.push_back(ParseError("expected semicolon", _token()));
-			// try to recover
-		} else {
-			_consume(1); // ;
-		}
-	}
-	_pop_scope();
 
-	if (!_peek(ptt_close_brace)) {
-		_errors.push_back(ParseError("expected closing brace", _token()));
-		return nullptr;
-	}
+	bool is_defined = false;
+	std::vector<SLStructDefinition::MemberVariable> member_vars;
 
-	_consume(1); // }
+	if (!_peek(ptt_semicolon)) {
+		is_defined = true;
+		
+		if (!_peek(ptt_open_brace)) {
+			_errors.push_back(ParseError("expected opening brace", _token()));
+			return nullptr;
+		}
+		
+		_consume(1); // {
+	
+		_push_scope(name->value());
+		while (!_peek(ptt_close_brace)) {
+			SLTypePtr type = _try_parse_type();
+			if (!type) {
+				_errors.push_back(ParseError("expected type", _token()));
+				return nullptr;
+			}
+			if (type->is_auto()) {
+				_errors.push_back(ParseError("cannot declare an auto member type", _token()));
+				return nullptr;
+			}
+			if (!_peek(ptt_new_variable_name)) {
+				_errors.push_back(ParseError("expected new member name", _token()));
+				return nullptr;
+			}
+			auto name = _consume_token();
+			member_vars.emplace_back(name->value(), type);
+			if (!_peek(ptt_semicolon)) {
+				_errors.push_back(ParseError("expected semicolon", _token()));
+				// try to recover
+			} else {
+				_consume(1); // ;
+			}
+		}
+		_pop_scope();
+	
+		if (!_peek(ptt_close_brace)) {
+			_errors.push_back(ParseError("expected closing brace", _token()));
+			return nullptr;
+		}
+	
+		_consume(1); // }
+	}
 
 	Scope& scope = _scopes.back();
-	scope.types[scope.local_prefix() + name->value()] = C3Type::StructType(name->value(), scope.global_prefix() + name->value(), C3StructDefinition(std::move(member_vars)));
+	auto type = (scope.types[scope.local_prefix() + name->value()] = SLType::StructType(name->value(), scope.global_prefix() + name->value()));
+
+	if (is_defined) {
+		type->define(SLStructDefinition(std::move(member_vars)));
+	}
 
 	return new ASTNop();
 }
 
 ASTExpression* Parser::_parse_binop_rhs(ASTExpression* lhs) {
-	TokenPtr tok = _consume_token();
-
-	if (tok->type() != TokenTypePunctuator || tok->value() == ";") {
+	if (!_peek(ptt_binary_op)) {
 		_errors.push_back(ParseError("expected binary operator", _token()));
 		delete lhs;
 		return nullptr;
 	}
+
+	TokenPtr tok = _consume_token();
 	
 	if (tok->value() == "." || tok->value() == "->") {
 		if (tok->value() == "->") {
-			if (C3Type::RemoveReference(lhs->type)->type() != C3TypeTypePointer) {
+			if (SLType::RemoveReference(lhs->type)->type() != SLTypeTypePointer) {
 				_errors.push_back(ParseError(std::string("dereferencing selection operator used on non-pointer type '" + lhs->type->name() + "'"), _token()));
 				delete lhs;
 				return nullptr;
 			}
-			lhs = new ASTUnaryOp("*", lhs, C3Type::ReferenceType(C3Type::RemoveReference(lhs->type)->pointed_to_type()));
+			lhs = new ASTUnaryOp("*", lhs, SLType::ReferenceType(SLType::RemoveReference(lhs->type)->pointed_to_type()));
 		}
 		auto type = lhs->type;
-		auto rr_type = C3Type::RemoveReference(type);
-		if (rr_type->type() != C3TypeTypeStruct) {
+		auto rr_type = SLType::RemoveReference(type);
+		if (rr_type->type() != SLTypeTypeStruct) {
 			_errors.push_back(ParseError(std::string("selection operator used on non-struct type '") + type->name() + "'", _token()));
 			delete lhs;
 			return nullptr;
@@ -915,10 +944,10 @@ ASTExpression* Parser::_parse_binop_rhs(ASTExpression* lhs) {
 		return nullptr;
 	}
 
-	auto lhs_rr_type = C3Type::RemoveReference(lhs->type);
-	auto rhs_rr_type = C3Type::RemoveReference(rhs->type);
+	auto lhs_rr_type = SLType::RemoveReference(lhs->type);
+	auto rhs_rr_type = SLType::RemoveReference(rhs->type);
 
-	C3TypePtr result_type = lhs_rr_type;
+	SLTypePtr result_type = lhs_rr_type;
 	bool compatible = false;
 
 	if (tok->value() == "=") {
@@ -932,26 +961,23 @@ ASTExpression* Parser::_parse_binop_rhs(ASTExpression* lhs) {
 		}
 	} else if (tok->value() == "==" || tok->value() == "!=" || tok->value() == "<" || tok->value() == "<=" || tok->value() == ">" || tok->value() == ">=") {
 		compatible = ((lhs_rr_type->is_floating_point() && rhs_rr_type->is_floating_point()) || (lhs_rr_type->is_integer() && rhs_rr_type->is_integer()));
-		result_type = C3Type::BoolType();
-	} else if (tok->value() == "&&" || tok->value() == "||") {
-		if (auto converted = _explicit_conversion(lhs, C3Type::BoolType())) {
+		result_type = SLType::BoolType();
+	} else if (tok->value() == "&&" || tok->value() == "||" || tok->value() == "and" || tok->value() == "or") {
+		if (auto converted = _explicit_conversion(lhs, SLType::BoolType())) {
 			lhs = converted;
 		}
-		if (auto converted = _explicit_conversion(rhs, C3Type::BoolType())) {
+		if (auto converted = _explicit_conversion(rhs, SLType::BoolType())) {
 			rhs = converted;
 		}
-		compatible = C3Type::RemoveReference(lhs->type)->type() == C3TypeTypeBool && C3Type::RemoveReference(rhs->type)->type() == C3TypeTypeBool;
-		result_type = C3Type::BoolType();
-	} else if (*lhs_rr_type == *rhs_rr_type) {
+		compatible = SLType::RemoveReference(lhs->type)->type() == SLTypeTypeBool && SLType::RemoveReference(rhs->type)->type() == SLTypeTypeBool;
+		result_type = SLType::BoolType();
+	} else if (*lhs_rr_type == *rhs_rr_type && lhs_rr_type->type() != SLTypeTypePointer) {
 		// values of the same type are compatible
 		compatible = true;
 	} else if (lhs_rr_type->is_integer() && rhs_rr_type->is_integer()) {
 		// integers are compatible because they get promoted as necessary
 		compatible = true;
-		result_type = C3Type::Int64Type();
-	} else if (lhs_rr_type->type() == C3TypeTypePointer && lhs_rr_type->pointed_to_type()->type() != C3TypeTypeVoid && rhs_rr_type->is_integer() && (tok->value() == "+" || tok->value() == "-")) {
-		// pointer arithmetic
-		compatible = true;
+		result_type = SLType::Int64Type();
 	}
 
 	if (!compatible) {
@@ -1002,7 +1028,7 @@ ASTReturn* Parser::_parse_return() {
 		return nullptr;
 	}
 	
-	C3TypePtr expected_type = _scopes.back().return_type;
+	SLTypePtr expected_type = _scopes.back().return_type;
 	
 	if (!expected_type) {
 		_errors.push_back(ParseError("unexpected return statement", _token()));
@@ -1011,7 +1037,7 @@ ASTReturn* Parser::_parse_return() {
 
 	_consume(1); // consume 'return'
 
-	if (expected_type->type() == C3TypeTypeVoid) {
+	if (expected_type->type() == SLTypeTypeVoid) {
 		return new ASTReturn(nullptr);
 	}
 
@@ -1038,21 +1064,18 @@ ASTExpression* Parser::_parse_primary() {
 		return new ASTVariableRef(var);
 	} else if (auto func = _try_parse_function()) {
 		return new ASTFunctionRef(func);
-	} else if (_peek(ptt_keyword_static_cast)) {
-		// static cast
-		return _parse_static_cast();
 	} else if (_peek(ptt_keyword_nullptr)) {
 		// null pointer
 		_consume(1); // nullptr
-		return new ASTNullPointer(C3Type::NullPointerType());
+		return new ASTNullPointer(SLType::NullPointerType());
 	} else if (_peek(ptt_number)) {
 		// number
 		TokenPtr tok = _consume_token();
 		if (tok->value().find_first_of('.') != std::string::npos) {
-			return new ASTFloatingPoint(atof(tok->value().c_str()), C3Type::DoubleType());
+			return new ASTFloatingPoint(atof(tok->value().c_str()), SLType::DoubleType());
 		} else {
 			// TODO: support other bases
-			return new ASTInteger(strtoll(tok->value().c_str(), NULL, 10), C3Type::Int64Type());
+			return new ASTInteger(strtoll(tok->value().c_str(), NULL, 10), SLType::Int64Type());
 		}
 	} else if (_peek(ptt_char_constant)) {
 		// character constant
@@ -1062,11 +1085,11 @@ ASTExpression* Parser::_parse_primary() {
 			value <<= 8;
 			value |= (unsigned char)c;
 		}
-		return new ASTInteger(value, C3Type::Int64Type());
+		return new ASTInteger(value, SLType::Int64Type());
 	} else if (_peek(ptt_string_literal)) {
 		// string literal
 		TokenPtr tok = _consume_token();
-		return new ASTConstantArray(tok->value().c_str(), tok->value().size() + 1, C3Type::ModifiedType(C3Type::Int8Type(), C3TypeModifierUnsigned | C3TypeModifierConstant));
+		return new ASTConstantArray(tok->value().c_str(), tok->value().size() + 1, SLType::ModifiedType(SLType::Int8Type(), SLTypeModifierUnsigned | SLTypeModifierConstant));
 	} else if (_peek(ptt_open_paren)) {
 		// parenthesized expression
 		_consume(1); // (
@@ -1087,66 +1110,6 @@ ASTExpression* Parser::_parse_primary() {
 	return nullptr;
 }
 
-ASTCast* Parser::_parse_static_cast() {
-	if (!_peek(ptt_keyword_static_cast)) {
-		_errors.push_back(ParseError("expected static_cast", _token()));
-		return nullptr;
-	}
-	
-	auto static_cast_tok = _consume_token();
-	
-	if (!_peek(ptt_open_angle)) {
-		_errors.push_back(ParseError("expected opening angle bracket for type", _token()));
-		return nullptr;
-	}
-	_consume(1); // <
-
-	auto type = _try_parse_type();
-	if (!type) {
-		_errors.push_back(ParseError("expected type", _token()));
-		return nullptr;
-	}
-
-	if (type->is_auto()) {
-		_errors.push_back(ParseError("cannot static cast to auto type", _token()));
-		return nullptr;
-	}
-
-	if (!_peek(ptt_close_angle)) {
-		_errors.push_back(ParseError("expected closing angle bracket for type", _token()));
-		return nullptr;
-	}
-	_consume(1); // >
-
-	if (!_peek(ptt_open_paren)) {
-		_errors.push_back(ParseError("expected opening parenthesis", _token()));
-		return nullptr;
-	}
-	_consume(1); // (
-
-	auto expression = _parse_expression();
-	if (!expression) {
-		return nullptr;
-	}
-
-	if (!_peek(ptt_close_paren)) {
-		_errors.push_back(ParseError("expected closing parenthesis", _token()));
-		delete expression;
-		return nullptr;
-	}
-	_consume(1); // )
-		
-	if (type->type() == C3TypeTypePointer && expression->type->type() == C3TypeTypePointer && type->pointed_to_type()->is_constant() && !expression->type->pointed_to_type()->is_constant()) {
-		_errors.push_back(ParseError("cannot cast away constness", static_cast_tok));
-		delete expression;
-		return nullptr;
-	}
-
-	// TODO: enforce more of the limitations of static_cast
-
-	return new ASTCast(expression, type);
-}
-		
 ASTExpression* Parser::_parse_expression(Precedence minPrecedence) {
 	ASTExpression* exp = nullptr;
 
@@ -1171,23 +1134,23 @@ ASTExpression* Parser::_parse_expression(Precedence minPrecedence) {
 			if (!rhs->type->referenced_type()) {
 				_errors.push_back(ParseError("operand to '&' operator must be a reference", rhs_tok));
 			} else {
-				exp = new ASTUnaryOp(tok->value(), rhs, C3Type::PointerType(rhs->type));
+				exp = new ASTUnaryOp(tok->value(), rhs, SLType::PointerType(rhs->type));
 			}
 		} else if (tok->value() == "*") {
-			if (C3Type::RemoveReference(rhs->type)->type() != C3TypeTypePointer) {
+			if (SLType::RemoveReference(rhs->type)->type() != SLTypeTypePointer) {
 				_errors.push_back(ParseError("operand to '*' operator must be a pointer type", rhs_tok));
 			} else {
-				exp = new ASTUnaryOp(tok->value(), rhs, C3Type::ReferenceType(C3Type::RemoveReference(rhs->type)->pointed_to_type()));
+				exp = new ASTUnaryOp(tok->value(), rhs, SLType::ReferenceType(SLType::RemoveReference(rhs->type)->pointed_to_type()));
 			}
 		} else if (tok->value() == "!") {
-			auto converted = _explicit_conversion(rhs, C3Type::BoolType());
+			auto converted = _explicit_conversion(rhs, SLType::BoolType());
 			if (!converted) {
 				_errors.push_back(ParseError("operand to '!' operator must be convertible to bool", rhs_tok));
 			} else {
-				exp = new ASTUnaryOp(tok->value(), converted, C3Type::BoolType());
+				exp = new ASTUnaryOp(tok->value(), converted, SLType::BoolType());
 			}
 		} else if (tok->value() == "-") {
-			auto rr_type = C3Type::RemoveReference(rhs->type);
+			auto rr_type = SLType::RemoveReference(rhs->type);
 			if (!rr_type->is_integer() && !rr_type->is_floating_point()) {
 				_errors.push_back(ParseError("operand to unary '-' operator must be integer or floating point", rhs_tok));
 			} else {
@@ -1344,7 +1307,7 @@ ASTNode* Parser::_parse_statement() {
 		if (!condition) {
 			return nullptr;
 		}
-		auto converted = _explicit_conversion(condition, C3Type::BoolType());
+		auto converted = _explicit_conversion(condition, SLType::BoolType());
 		if (!converted) {
 			_errors.push_back(ParseError("condition not convertible to boolean", _token()));
 			delete condition;
@@ -1365,7 +1328,10 @@ ASTNode* Parser::_parse_statement() {
 			return nullptr;
 		}
 		ASTNode* false_path = nullptr;
-		if (_peek(ptt_keyword_else)) {
+		if (_peek(ptt_keyword_else) || _peek({ptt_semicolon, ptt_keyword_else})) {
+			if (_peek(ptt_semicolon)) {
+				_consume(1); // ;
+			}
 			_consume(1); // else
 			_push_scope();
 			false_path = _parse_statement();
@@ -1391,7 +1357,7 @@ ASTNode* Parser::_parse_statement() {
 	} else if (_peek(ptt_keyword_static)) {
 		// static variable declaration
 		node = _parse_variable_dec();
-	} else if (_scopes.size() == 1 && _peek({ptt_type, ptt_identifier, ptt_open_paren})) {
+	} else if (_scopes.size() == 1 && (_peek({ptt_keyword_hidden, ptt_type, ptt_identifier, ptt_open_paren}) || _peek({ptt_type, ptt_identifier, ptt_open_paren}))) {
 		// function proto or def
 		bool just_proto = true;
 		node = _parse_function_proto_or_def(&just_proto);

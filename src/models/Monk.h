@@ -16,8 +16,8 @@ class Monk : public Model {
 	
 		const Action* action(const char* identifier) const override;
 
-		virtual Damage generateDamage(const Action* action, const Actor* actor) const override;
-		virtual Damage generateAutoAttackDamage(const Actor* actor) const override;
+		virtual Damage generateDamage(const Action* action, Actor* actor) const override;
+		virtual Damage generateAutoAttackDamage(Actor* actor) const override;
 
 		virtual Damage acceptDamage(const Damage& incoming, const Actor* actor) const override;
 

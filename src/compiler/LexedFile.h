@@ -11,6 +11,7 @@ class LexedFileToken;
 class LexedFile {
 	public:
 		LexedFile(const char* filename);
+		LexedFile(const char* filename, const char* contents, size_t size);
 		~LexedFile();
 		
 		bool lex(std::shared_ptr<LexedFile> self);

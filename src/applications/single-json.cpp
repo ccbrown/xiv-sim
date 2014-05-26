@@ -42,8 +42,11 @@ int SingleJSON(int argc, const char* argv[]) {
 	Actor::Configuration targetConfiguration;
 	targetConfiguration.model = &targetModel;
 
+	std::random_device randomDevice;
+
 	Simulation::Configuration configuration;
 	configuration.length = std::chrono::seconds(simulationSeconds);
+	configuration.rng = &randomDevice;
 	configuration.subjectConfiguration = &subjectConfiguration;
 	configuration.targetConfiguration = &targetConfiguration;
 

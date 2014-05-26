@@ -5,6 +5,7 @@
 #include <chrono>
 #include <queue>
 #include <map>
+#include <random>
 #include <string>
 #include <memory>
 
@@ -12,6 +13,7 @@ class Simulation {
 	public:
 		struct Configuration {
 			std::chrono::microseconds length;
+			std::random_device* rng = nullptr;
 			Actor::Configuration* subjectConfiguration = nullptr;
 			Actor::Configuration* targetConfiguration = nullptr;
 		};
@@ -31,8 +33,8 @@ class Simulation {
 	
 		Simulation(const Configuration* configuration)
 			: _configuration(configuration)
-			, _subject(configuration->subjectConfiguration)
-			, _target(configuration->targetConfiguration)
+			, _subject(configuration->subjectConfiguration, configuration->rng)
+			, _target(configuration->targetConfiguration, configuration->rng)
 		{}
 
 		void run();

@@ -6,10 +6,9 @@
 #include <random>
 
 void Simulation::run() {
-	std::random_device generator;
 	std::uniform_int_distribution<std::chrono::microseconds::rep> distribution(0, 3000000);
 	
-	std::chrono::microseconds dotTickOffset(distribution(generator));
+	std::chrono::microseconds dotTickOffset(distribution(*_configuration->rng));
 
 	_schedule([&] {
 		_shouldStop = true;

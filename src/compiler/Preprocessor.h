@@ -9,6 +9,7 @@ class Preprocessor {
 		Preprocessor();
 
 		bool process_file(const char* filename);
+		bool process_file(const char* filename, const char* contents, size_t size);
 		
 		const std::list<TokenPtr>& tokens();
 

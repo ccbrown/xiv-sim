@@ -70,7 +70,7 @@ const void* ASTFunctionRef::accept(ASTNodeVisitor* visitor) {
 
 void ASTFunctionProto::print(int indentation) {
 	printf("%*sfunction proto: %s %s(", indentation * 2, "", func->return_type()->name().c_str(), func->name().c_str());
-	const std::vector<C3TypePtr>& types = func->arg_types();
+	const std::vector<SLTypePtr>& types = func->arg_types();
 	for (size_t i = 0; i < types.size(); ++i) {
 		printf(i == 0 ? "%s %s" : ", %s %s", types[i]->name().c_str(), arg_names[i].c_str());
 	}
@@ -96,7 +96,7 @@ ASTFunctionDef::~ASTFunctionDef() {
 }
 
 ASTStructMemberRef::ASTStructMemberRef(ASTExpression* structure, size_t index) 
-	: ASTExpression(C3Type::ReferenceType(C3Type::RemoveReference(structure->type)->struct_definition().member_vars()[index].type))
+	: ASTExpression(SLType::ReferenceType(SLType::RemoveReference(structure->type)->struct_definition().member_vars()[index].type))
 	, structure(structure)
 	, index(index)
 {	

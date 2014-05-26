@@ -44,7 +44,7 @@ class LLVMCodeGenerator : public ASTNodeVisitor {
 	private:
 		llvm::Value* _value(ASTExpression* exp);
 		llvm::Value* _dereferenced_value(ASTExpression* exp);
-		llvm::Type* _llvm_type(C3TypePtr type);
+		llvm::Type* _llvm_type(SLTypePtr type);
 
 		void _build_basic_block(llvm::BasicBlock* block, ASTNode* node, llvm::BasicBlock* next);
 	
@@ -54,10 +54,10 @@ class LLVMCodeGenerator : public ASTNodeVisitor {
 
 		struct FunctionContext {
 			FunctionContext() = default;
-			FunctionContext(C3FunctionPtr c3_function, llvm::Function* llvm_function, llvm::AllocaInst* return_alloca, llvm::BasicBlock* return_block)
+			FunctionContext(SLFunctionPtr c3_function, llvm::Function* llvm_function, llvm::AllocaInst* return_alloca, llvm::BasicBlock* return_block)
 				: c3_function(c3_function), llvm_function(llvm_function), return_alloca(return_alloca), return_block(return_block) {}
 			
-			C3FunctionPtr c3_function = nullptr;
+			SLFunctionPtr c3_function = nullptr;
 			llvm::Function* llvm_function = nullptr;
 			llvm::AllocaInst* return_alloca = nullptr;
 			llvm::BasicBlock* return_block = nullptr;

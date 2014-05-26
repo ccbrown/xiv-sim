@@ -4,8 +4,9 @@
 #include "Damage.h"
 
 #include <chrono>
-#include <unordered_map>
+#include <random>
 #include <string>
+#include <unordered_map>
 
 class Action;
 class Aura;
@@ -29,15 +30,16 @@ class Actor {
 			const Rotation* rotation = nullptr;
 		};
 
-		Actor(const Configuration* configuration) : _configuration(configuration), _stats(configuration->stats) {}
+		Actor(const Configuration* configuration, std::random_device* rng) : _configuration(configuration), _rng(rng), _stats(configuration->stats) {}
 
 		const Action* act(const Actor* target) const;
 
+		std::random_device& rng() { return *_rng; }
 		const Model* model() const { return _configuration->model; }
 
 		const Stats& stats() const { return _stats; }
 
-		Damage generateDamage(const Action* action) const;
+		Damage generateDamage(const Action* action);
 		Damage acceptDamage(const Damage& incoming) const;
 
 		void advanceTime(const std::chrono::microseconds& time);
@@ -81,6 +83,8 @@ class Actor {
 		
 	private:
 		const Configuration* const _configuration = nullptr;
+		std::random_device* const _rng = nullptr;
+
 		Stats _stats;
 
 		std::chrono::microseconds _time = 0_us;

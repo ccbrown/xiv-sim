@@ -62,9 +62,12 @@ int MultiIteration(int argc, const char* argv[]) {
 	
 	std::vector<std::future<TrialResults>> futures;
 
+	std::random_device randomDevice;
+
 	for (int i = 0; i < iterations; ++i) {
 		Simulation::Configuration configuration;
 		configuration.length = std::chrono::duration_cast<std::chrono::microseconds>(7_min + (i % 100) / 50.0 * 6_min);
+		configuration.rng = &randomDevice;
 		configuration.subjectConfiguration = &subjectConfiguration;
 		configuration.targetConfiguration = &targetConfiguration;
 		

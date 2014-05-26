@@ -2,7 +2,7 @@
 
 #include "Token.h"
 #include "AST.h"
-#include "C3/C3.h"
+#include "SL/SL.h"
 
 #include <list>
 #include <unordered_map>
@@ -59,12 +59,12 @@ class Parser {
 			ptt_keyword_class,
 			ptt_keyword_const,
 			ptt_keyword_extern,
+			ptt_keyword_hidden,
 			ptt_keyword_return,
 			ptt_keyword_import,
 			ptt_keyword_if,
 			ptt_keyword_else,
 			ptt_keyword_static,
-			ptt_keyword_static_cast,
 			ptt_keyword_namespace,
 			ptt_keyword_nullptr,
 			ptt_keyword_typename,
@@ -87,11 +87,11 @@ class Parser {
 			}
 			
 			std::string prefix;
-			std::unordered_map<std::string, C3TypePtr> types;
-			std::unordered_map<std::string, C3VariablePtr> variables;
-			std::unordered_map<std::string, C3FunctionPtr> functions;
+			std::unordered_map<std::string, SLTypePtr> types;
+			std::unordered_map<std::string, SLVariablePtr> variables;
+			std::unordered_map<std::string, SLFunctionPtr> functions;
 			std::list<std::string> current_namespace;
-			C3TypePtr return_type;
+			SLTypePtr return_type;
 		};
 		
 		std::list<Scope> _scopes;
@@ -122,32 +122,32 @@ class Parser {
 		bool _peek(std::initializer_list<ParserTokenType> types);
 
 		Scope& _push_scope(const std::string& name = "");
-		Scope& _push_scope(C3FunctionPtr function);
+		Scope& _push_scope(SLFunctionPtr function);
 		void _pop_scope();
 
 		std::string _try_parse_full_name();
 
-		C3TypePtr _resolve_type(const std::string& name);
-		C3TypePtr _try_parse_type();
+		SLTypePtr _resolve_type(const std::string& name);
+		SLTypePtr _try_parse_type();
 
-		C3VariablePtr _resolve_variable(const std::string& name);
-		C3VariablePtr _try_parse_variable();
+		SLVariablePtr _resolve_variable(const std::string& name);
+		SLVariablePtr _try_parse_variable();
 
-		std::vector<C3FunctionPtr> _function_candidates(const std::string& name);
+		std::vector<SLFunctionPtr> _function_candidates(const std::string& name);
 
-		C3FunctionPtr _try_parse_function();
+		SLFunctionPtr _try_parse_function();
 		
 		/**
 		* Takes ownership of `from` only if successful.
 		*/
-		ASTExpression* _implicit_conversion(ASTExpression* from, C3TypePtr to);
+		ASTExpression* _implicit_conversion(ASTExpression* from, SLTypePtr to);
 
 		/**
 		* Takes ownership of `from` only if successful.
 		*/
-		ASTExpression* _explicit_conversion(ASTExpression* from, C3TypePtr to);
+		ASTExpression* _explicit_conversion(ASTExpression* from, SLTypePtr to);
 		
-		C3TypePtr _resolve_auto_type(C3TypePtr auto_type, C3TypePtr target);
+		SLTypePtr _resolve_auto_type(SLTypePtr auto_type, SLTypePtr target);
 
 		ASTVariableDec* _parse_variable_dec();
 		ASTNode* _parse_function_proto_or_def(bool* was_just_proto);
@@ -157,8 +157,7 @@ class Parser {
 
 		ASTExpression* _parse_expression(Precedence minPrecedence = { 0, false });
 		ASTExpression* _parse_primary();
-		ASTCast* _parse_static_cast();
-		
+
 		ASTNode* _parse_external_declaration();
 
 		ASTReturn* _parse_return();

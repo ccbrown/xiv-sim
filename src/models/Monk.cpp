@@ -289,7 +289,7 @@ Monk::Monk() {
 				virtual int tickDamage() const { return 20; }
 			};
 
-			Skill() : Action("fracture-dot") {
+			Skill() : Action("fracture") {
 				_targetAuras.push_back(new DoT());
 			}
 			virtual int damage() const override { return 100; }
@@ -311,22 +311,21 @@ const Action* Monk::action(const char* identifier) const {
 	return it == _actions.end() ? nullptr : it->second;
 }
 
-Damage Monk::generateDamage(const Action* action, const Actor* actor) const {
+Damage Monk::generateDamage(const Action* action, Actor* actor) const {
 	auto& stats = actor->stats();
 	
 	Damage ret;
 	double criticalHitChance = action->criticalHitChance((stats.criticalHitRate * 0.0697 - 18.437) / 100.0) + actor->additionalCriticalHitChance();
 
-	std::random_device generator;
 	std::uniform_real_distribution<double> distribution(0.0, 1.0);
 
-	ret.isCritical = (distribution(generator) < criticalHitChance);
+	ret.isCritical = (distribution(actor->rng()) < criticalHitChance);
 
 	double amount = action->damage() / 100.0 * (stats.weaponDamage * (stats.strength * 0.00389 + stats.determination * 0.0008 + 0.01035) + (stats.strength * 0.08034) + (stats.determination * 0.02622));
 	amount *= actor->damageMultiplier();
 
 	// TODO: this sway is a complete guess off the top of my head and should be researched
-	amount *= 1.0 + (0.5 - distribution(generator)) * 0.1;
+	amount *= 1.0 + (0.5 - distribution(actor->rng())) * 0.1;
 
 	if (ret.isCritical) {
 		amount *= 1.5;
@@ -338,22 +337,21 @@ Damage Monk::generateDamage(const Action* action, const Actor* actor) const {
 	return ret;
 }
 
-Damage Monk::generateAutoAttackDamage(const Actor* actor) const {
+Damage Monk::generateAutoAttackDamage(Actor* actor) const {
 	auto& stats = actor->stats();
 
 	Damage ret;
 	double criticalHitChance = (stats.criticalHitRate * 0.0697 - 18.437) / 100.0 + actor->additionalCriticalHitChance();
 
-	std::random_device generator;
 	std::uniform_real_distribution<double> distribution(0.0, 1.0);
 
-	ret.isCritical = (distribution(generator) < criticalHitChance);
+	ret.isCritical = (distribution(actor->rng()) < criticalHitChance);
 
 	double amount = stats.weaponDelay / 3.0 * (stats.weaponDamage * (stats.strength * 0.00408 + stats.determination * 0.00208 - 0.30991) + (stats.strength * 0.07149) + (stats.determination * 0.03443));
 	amount *= actor->damageMultiplier();
 
 	// TODO: this sway is a complete guess off the top of my head and should be researched
-	amount *= 1.0 + (0.5 - distribution(generator)) * 0.1;
+	amount *= 1.0 + (0.5 - distribution(actor->rng())) * 0.1;
 
 	if (ret.isCritical) {
 		amount *= 1.5;

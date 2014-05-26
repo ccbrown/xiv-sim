@@ -1,21 +1,21 @@
 #pragma once
 
-#include "C3TypePtr.h"
+#include "SLTypePtr.h"
 
 #include <vector>
 #include <string>
 
-class C3StructDefinition {
+class SLStructDefinition {
 	public:
 		struct MemberVariable {
-			MemberVariable(std::string name, C3TypePtr type) : name(name), type(type) {}
+			MemberVariable(std::string name, SLTypePtr type) : name(name), type(type) {}
 
 			std::string name;
-			C3TypePtr type;
+			SLTypePtr type;
 		};
 	
-		C3StructDefinition() {}
-		C3StructDefinition(const std::vector<MemberVariable>&& member_vars) : _member_vars(member_vars) {}
+		SLStructDefinition() {}
+		SLStructDefinition(const std::vector<MemberVariable>&& member_vars) : _member_vars(member_vars) {}
 		
 		size_t size() const;
 		
