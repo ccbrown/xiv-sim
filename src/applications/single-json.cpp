@@ -6,6 +6,7 @@
 #include "../models/Summoner.h"
 
 #include <memory>
+#include <cstring>
 
 namespace applications {
 
