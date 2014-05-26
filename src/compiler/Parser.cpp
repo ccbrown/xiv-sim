@@ -26,13 +26,14 @@ Parser::Parser() {
 	
 	_keywords.insert("class");
 	_keywords.insert("const");
+	_keywords.insert("__end");
 	_keywords.insert("extern");
 	_keywords.insert("perform");
 	_keywords.insert("return");
 	_keywords.insert("import");
 	_keywords.insert("if");
 	_keywords.insert("else");
-	_keywords.insert("hidden");
+	_keywords.insert("__hidden");
 	_keywords.insert("static");
 	_keywords.insert("namespace");
 	_keywords.insert("nullptr");
@@ -170,7 +171,9 @@ bool Parser::_peek(ParserTokenType type, TokenIterator* next) {
 		case ptt_keyword_extern:
 			return _peek(ptt_keyword) && tok->value() == "extern";
 		case ptt_keyword_hidden:
-			return _peek(ptt_keyword) && tok->value() == "hidden";
+			return _peek(ptt_keyword) && tok->value() == "__hidden";
+		case ptt_keyword_end:
+			return _peek(ptt_keyword) && tok->value() == "__end";
 		case ptt_keyword_return:
 			return _peek(ptt_keyword) && (tok->value() == "return" || tok->value() == "perform");
 		case ptt_keyword_import:
@@ -1201,14 +1204,19 @@ ASTExpression* Parser::_parse_expression(Precedence minPrecedence) {
 ASTSequence* Parser::_parse_block() {
 	ASTSequence* seq = new ASTSequence();
 
+	bool is_at_end = false;
+
 	while (true) {
 		while (_peek(ptt_semicolon)) { _consume(1); }
 
 		if (_peek(ptt_end_token) || _peek(ptt_close_brace)) {
 			return seq;
+		} else if (is_at_end) {
+			_errors.push_back(ParseError("expected end of block", _token()));
+			break;
 		}
 
-		ASTNode* node = _parse_statement();
+		ASTNode* node = _parse_statement(&is_at_end);
 		if (!node) {
 			break;
 		}
@@ -1220,9 +1228,16 @@ ASTSequence* Parser::_parse_block() {
 	return nullptr;
 }
 
-ASTNode* Parser::_parse_statement() {
+ASTNode* Parser::_parse_statement(bool* is_end) {
 	ASTNode* node = nullptr;
 	bool expect_semicolon = true;
+	
+	if (_peek(ptt_keyword_end)) {
+		if (is_end) { *is_end = true; }
+		_consume(1); // __end
+	} else if (is_end) {
+		*is_end = false;
+	}
 
 	if (_peek(ptt_keyword_import)) {
 		auto import_token = _consume_token();

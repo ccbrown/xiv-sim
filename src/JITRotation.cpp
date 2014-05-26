@@ -17,7 +17,7 @@ bool JITRotation::initializeWithFile(const char* filename) {
 		"double CooldownRemaining(const Actor* actor, const uint8* identifier);"
 		"double AuraTimeRemaining(const Actor* actor, const uint8* identifier);"
 		"uint64 TP(const Actor* actor);"
-		"hidden const uint8* NextAction(const Actor* self, const Actor* target) {"
+		"__end __hidden const uint8* NextAction(const Actor* self, const Actor* target) {"
 	;
 	
 	const char footer[] = "}";

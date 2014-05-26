@@ -58,6 +58,7 @@ class Parser {
 			ptt_keyword_auto,
 			ptt_keyword_class,
 			ptt_keyword_const,
+			ptt_keyword_end,
 			ptt_keyword_extern,
 			ptt_keyword_hidden,
 			ptt_keyword_return,
@@ -164,7 +165,7 @@ class Parser {
 
 		ASTExpression* _parse_binop_rhs(ASTExpression* lhs);
 		ASTSequence* _parse_block();
-		ASTNode* _parse_statement();
+		ASTNode* _parse_statement(bool* is_end = nullptr);
 
 		std::list<ParseError> _errors;
 };
