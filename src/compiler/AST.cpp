@@ -124,7 +124,7 @@ const void* ASTFloatingPoint::accept(ASTNodeVisitor* visitor) {
 }
 
 void ASTInteger::print(int indentation) {
-	printf("%*sinteger: %lld\n", indentation * 2, "", value);
+	printf("%*sinteger: %llu\n", indentation * 2, "", value);
 }
 
 const void* ASTInteger::accept(ASTNodeVisitor* visitor) {

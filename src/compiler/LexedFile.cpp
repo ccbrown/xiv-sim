@@ -2,6 +2,7 @@
 
 #include <string>
 #include <cstdlib>
+#include <cstring>
 
 LexedFile::LexedFile() {}
 LexedFile LexedFile::operator=(const LexedFile& other) { return *this; }
