@@ -105,6 +105,8 @@ class Actor {
 		double autoAttackSpeedMultiplier() const;
 		void transformIncomingDamage(Damage* damage) const;
 		double additionalCriticalHitChance() const;
+		
+		double globalCooldownMultiplier() const;
 
 		void triggerCooldown(const std::string& identifier, std::chrono::microseconds duration);
 		std::chrono::microseconds cooldownRemaining(const std::string& identifier) const;

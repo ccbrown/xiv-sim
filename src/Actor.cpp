@@ -167,11 +167,18 @@ void Actor::transformIncomingDamage(Damage* damage) const {
 double Actor::additionalCriticalHitChance() const {
 	double ret = 0.0;
 	for (auto& kv : _auras) {
-		ret += kv.second.aura->additionalCriticalHitChance();
+		ret += kv.second.aura->additionalCriticalHitChance() * kv.second.count;
 	}
 	return ret;
 }
 
+double Actor::globalCooldownMultiplier() const {
+	double ret = 1.0;
+	for (auto& kv : _auras) {
+		ret *= (1.0 - kv.second.aura->reducedGlobalCooldown() * kv.second.count);
+	}
+	return ret;
+}
 
 void Actor::triggerCooldown(const std::string& identifier, std::chrono::microseconds duration) {
 	auto& cooldown = _cooldowns[identifier];

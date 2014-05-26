@@ -18,6 +18,10 @@ const Action* Base::action(const char* identifier) const {
 	return it == _actions.end() ? nullptr : it->second;
 }
 
+std::chrono::microseconds Base::globalCooldown(const Actor* actor) const {
+	return std::chrono::duration_cast<std::chrono::microseconds>(_baseGlobalCooldown(actor) * actor->globalCooldownMultiplier());
+}
+
 Damage Base::generateDamage(const Action* action, Actor* actor) const {
 	auto& stats = actor->stats();
 	

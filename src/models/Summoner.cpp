@@ -34,18 +34,18 @@ Summoner::Summoner() {
 	}
 }
 
-std::chrono::microseconds Summoner::globalCooldown(const Actor* actor) const {
-	auto& stats = actor->stats();
-	auto gcd = std::chrono::duration<double>(2.49 - (stats.spellSpeed - 344) * (0.01 / 10.5));
-	return std::chrono::duration_cast<std::chrono::microseconds>(gcd);
-}
-
 int Summoner::maximumMP(const Actor* actor) const {
 	return 3012 + (actor->stats().piety - 214) * 7.25;
 }
 
 DamageType Summoner::_defaultDamageType() const {
 	return DamageTypeMagic;
+}
+
+std::chrono::microseconds Summoner::_baseGlobalCooldown(const Actor* actor) const {
+	auto& stats = actor->stats();
+	auto gcd = std::chrono::duration<double>(2.49 - (stats.spellSpeed - 344) * (0.01 / 10.5));
+	return std::chrono::duration_cast<std::chrono::microseconds>(gcd);
 }
 
 // TODO: these numbers are probably 100% wrong (they were copied / pasted from monk)

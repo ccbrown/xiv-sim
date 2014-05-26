@@ -15,6 +15,8 @@ class Base : public Model {
 	
 		const Action* action(const char* identifier) const override;
 
+		virtual std::chrono::microseconds globalCooldown(const Actor* actor) const override;
+
 		virtual Damage generateDamage(const Action* action, Actor* actor) const override;
 		virtual Damage generateAutoAttackDamage(Actor* actor) const override;
 
@@ -36,6 +38,7 @@ class Base : public Model {
 		
 		virtual DamageType _defaultDamageType() const = 0;
 		
+		virtual std::chrono::microseconds _baseGlobalCooldown(const Actor* actor) const = 0;
 		virtual double _basePotencyMultiplier(const Actor* actor) const = 0;
 		virtual double _baseAutoAttackDamage(const Actor* actor) const = 0;
 };

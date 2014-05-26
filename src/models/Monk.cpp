@@ -44,6 +44,7 @@ Monk::Monk() {
 		virtual int maximumCount() const override { return 3; }
 		virtual double increasedDamage() const override { return 0.09; }
 		virtual double increasedAutoAttackSpeed() const { return 0.05; }
+		virtual double reducedGlobalCooldown() const { return 0.05; }
 	};
 
 	{
@@ -294,18 +295,18 @@ Monk::Monk() {
 	}
 }
 
-std::chrono::microseconds Monk::globalCooldown(const Actor* actor) const {
-	auto& stats = actor->stats();
-	auto gcd = std::chrono::duration<double>(2.49 - (stats.skillSpeed - 344) * (0.01 / 10.5));
-	return std::chrono::duration_cast<std::chrono::microseconds>(gcd);
-}
-
 int Monk::maximumMP(const Actor* actor) const {
 	return 0;
 }
 
 DamageType Monk::_defaultDamageType() const {
 	return DamageTypeBlunt;
+}
+
+std::chrono::microseconds Monk::_baseGlobalCooldown(const Actor* actor) const {
+	auto& stats = actor->stats();
+	auto gcd = std::chrono::duration<double>(2.49 - (stats.skillSpeed - 344) * (0.01 / 10.5));
+	return std::chrono::duration_cast<std::chrono::microseconds>(gcd);
 }
 
 /**

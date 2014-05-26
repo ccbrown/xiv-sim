@@ -20,6 +20,7 @@ class Aura {
 			
 		virtual double increasedDamage() const { return 0.0; }
 		virtual double increasedAutoAttackSpeed() const { return 0.0; }
+		virtual double reducedGlobalCooldown() const { return 0.0; }
 		virtual double additionalCriticalHitChance() const { return 0.0; }
 
 		virtual void transformIncomingDamage(Damage* damage) const {}
