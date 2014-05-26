@@ -1,6 +1,7 @@
 #include "Lexer.h"
 
 #include <string>
+#include <cstring>
 
 Lexer::Lexer() {}
 
