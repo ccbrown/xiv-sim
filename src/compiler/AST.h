@@ -6,6 +6,7 @@
 #include <list>
 #include <vector>
 #include <cstdlib>
+#include <cstring>
 
 class ASTNodeVisitor;
 
