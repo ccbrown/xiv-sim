@@ -4,11 +4,9 @@
 
 #include <chrono>
 #include <queue>
-#include <map>
 #include <random>
 #include <string>
 #include <memory>
-#include <vector>
 
 class Simulation {
 	public:

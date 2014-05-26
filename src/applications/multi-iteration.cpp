@@ -6,6 +6,7 @@
 
 #include <future>
 #include <vector>
+#include <map>
 
 namespace applications {
 
