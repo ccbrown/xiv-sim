@@ -14,6 +14,9 @@ if (!CooldownRemaining(self, "blood-for-blood"))
 if (!CooldownRemaining(self, "internal-release"))
 	perform "internal-release";
 
+if (!AuraCount(self, "greased-lightning") and !CooldownRemaining(self, "perfect-balance"))
+	perform "perfect-balance";
+
 if (AuraCount(self, "greased-lightning") == 3 and AuraCount(self, "twin-snakes")) {
 	if (!CooldownRemaining(self, "steel-peak"))
 		perform "steel-peak";
@@ -22,14 +25,11 @@ if (AuraCount(self, "greased-lightning") == 3 and AuraCount(self, "twin-snakes")
 		perform "howling-fist";
 }
 
-if (!AuraCount(target, "touch-of-death-dot"))
-	perform "touch-of-death";
-
-if (!AuraCount(target, "demolish-dot") and !isCoeurlForm and !CooldownRemaining(self, "perfect-balance"))
-	perform "perfect-balance";
-
 if (AuraTimeRemaining(target, "demolish-dot") < 4.0 and isCoeurlForm)
 	perform "demolish-rear";
+
+if (TP(self) >= 300 and !AuraCount(target, "touch-of-death-dot"))
+	perform "touch-of-death";
 
 if ((AuraTimeRemaining(self, "greased-lightning") < 4.0 or AuraCount(self, "greased-lightning") < 3) and isCoeurlForm) {
 	if (AuraTimeRemaining(target, "demolish-dot") < 4.0)

@@ -83,12 +83,9 @@ void Simulation::_resolveAction(const Action* action, Actor* subject, Actor* tar
 
 		subject->triggerCooldown(action->identifier(), action->cooldown());
 	}
-	
+
 	if (!action->isOffGlobalCooldown()) {
 		subject->triggerGlobalCooldown();
-		_schedule([&] {
-			_checkActors();
-		}, subject->globalCooldownRemaining());
 	}
 
 	subject->setTP(subject->tp() - action->tpCost() + action->tpRestoration());
@@ -123,6 +120,12 @@ void Simulation::_resolveAction(const Action* action, Actor* subject, Actor* tar
 	}
 
 	subject->integrateDamageStats(damage, action->identifier().c_str());
+
+	if (!action->isOffGlobalCooldown()) {
+		_schedule([&] {
+			_checkActors();
+		}, subject->globalCooldownRemaining());
+	}
 
 	_schedule([&] {
 		_checkActors();
