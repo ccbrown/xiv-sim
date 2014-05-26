@@ -11,8 +11,8 @@ namespace applications {
 
 struct TrialResults {
 	Simulation::Configuration configuration;
-	Simulation::Stats overallStats;
-	std::map<std::string, Simulation::Stats> statsByEffect;
+	Actor::SimulationStats overallStats;
+	std::unordered_map<std::string, Actor::EffectSimulationStats> effectStats;
 };
 
 static TrialResults Trial(const Simulation::Configuration&& configuration) {
@@ -22,8 +22,8 @@ static TrialResults Trial(const Simulation::Configuration&& configuration) {
 	Simulation simulation(&ret.configuration);
 	simulation.run();
 
-	ret.overallStats = simulation.stats();
-	ret.statsByEffect = simulation.statsByEffect();
+	ret.overallStats = simulation.subject()->simulationStats();
+	ret.effectStats = simulation.subject()->effectSimulationStats();
 	return ret;
 }
 
@@ -56,8 +56,8 @@ int MultiIteration(int argc, const char* argv[]) {
 	
 	int iterations = 3000;
 
-	Simulation::Stats overallStats;
-	std::map<std::string, Simulation::Stats> statsByEffect;
+	Actor::SimulationStats overallStats;
+	std::map<std::string, Actor::EffectSimulationStats> effectStats;
 	auto totalSimulationTime = 0_us;
 	
 	std::vector<std::future<TrialResults>> futures;
@@ -78,8 +78,8 @@ int MultiIteration(int argc, const char* argv[]) {
 		auto results = future.get();
 		
 		overallStats += results.overallStats;
-		for (auto& kv : results.statsByEffect) {
-			statsByEffect[kv.first] += kv.second;
+		for (auto& kv : results.effectStats) {
+			effectStats[kv.first] += kv.second;
 		}
 		totalSimulationTime += results.configuration.length;
 	}
@@ -93,15 +93,15 @@ int MultiIteration(int argc, const char* argv[]) {
 
 		printf("\n");
 
-		printf("Overall Damage Done: %d\n", overallStats.totalDamageDealt);
-		printf("Overall DPS: %.3f\n", overallStats.totalDamageDealt / simulationTime);
+		printf("Overall Damage Done: %d\n", overallStats.damageDealt);
+		printf("Overall DPS: %.3f\n", overallStats.damageDealt / simulationTime);
 
 		printf("\n");
 		
 		printf("EFFECT                              DAMAGE           DPS         COUNT         CRITS           AVG\n");
-		for (auto& kv : statsByEffect) {
+		for (auto& kv : effectStats) {
 			auto& stats = kv.second;
-			printf("%-28s  %12d  %12.3f  %12d  %12d  %12.3f\n", kv.first.c_str(), stats.totalDamageDealt, stats.totalDamageDealt / simulationTime, stats.count, stats.criticalHits, stats.totalDamageDealt / (double)stats.count);
+			printf("%-28s  %12d  %12.3f  %12d  %12d  %12.3f\n", kv.first.c_str(), stats.damageDealt, stats.damageDealt / simulationTime, stats.count, stats.criticalHits, stats.damageDealt / (double)stats.count);
 		}
 	}
 

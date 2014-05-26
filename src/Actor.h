@@ -28,23 +28,58 @@ class Actor {
 			int skillSpeed = 0;
 			int spellSpeed = 0;
 		};
+
+		struct EffectSimulationStats {
+			int count = 0;
+			int criticalHits = 0;
+			int damageDealt = 0;
+			
+			EffectSimulationStats& operator+=(const EffectSimulationStats& other) {
+				count += other.count;
+				criticalHits += other.criticalHits;
+				damageDealt += other.damageDealt;
+				return *this;
+			}
+		};
+
+		struct SimulationStats {
+			int damageDealt = 0;
+			std::vector<std::pair<std::chrono::microseconds, int>> tpSamples;
+			std::unordered_map<std::string, std::vector<std::pair<std::chrono::microseconds, int>>> auraSamples;
+
+			SimulationStats& operator+=(const SimulationStats& other) {
+				damageDealt += other.damageDealt;
+				return *this;
+			}
+
+			SimulationStats& operator+=(const EffectSimulationStats& effectStats) {
+				damageDealt += effectStats.damageDealt;
+				return *this;
+			}
+		};
 	
 		struct Configuration {
 			Stats stats;
 			const Model* model = nullptr;
 			const Rotation* rotation = nullptr;
+			std::random_device* rng = nullptr;
+			bool keepsSamples = false;
 		};
 
-		Actor(const Configuration* configuration, std::random_device* rng)
-			: _configuration(configuration), _rng(rng), _stats(configuration->stats), _mp(maximumMP())
+		Actor(const Configuration* configuration)
+			: _configuration(configuration), _stats(configuration->stats), _mp(maximumMP())
 		{}
 
 		const Action* act(const Actor* target) const;
 
-		std::random_device& rng() { return *_rng; }
+		std::random_device& rng() { return *_configuration->rng; }
 		const Model* model() const { return _configuration->model; }
 
 		const Stats& stats() const { return _stats; }
+		const SimulationStats& simulationStats() const { return _simulationStats; }
+		const std::unordered_map<std::string, EffectSimulationStats>& effectSimulationStats() const { return _effectSimulationStats; }
+
+		void integrateDamageStats(const Damage& damage, const char* effect);
 
 		Damage generateDamage(const Action* action);
 		Damage acceptDamage(const Damage& incoming) const;
@@ -95,7 +130,6 @@ class Actor {
 		
 	private:
 		const Configuration* const _configuration = nullptr;
-		std::random_device* const _rng = nullptr;
 
 		Stats _stats;
 
@@ -113,4 +147,9 @@ class Actor {
 
 		std::unordered_map<std::string, Cooldown> _cooldowns;
 		std::unordered_map<std::string, AppliedAura> _auras;
+
+		SimulationStats _simulationStats;
+		std::unordered_map<std::string, EffectSimulationStats> _effectSimulationStats;
+		
+		void _integrateAuraApplicationCountChange(const char* identifier, int count);
 };

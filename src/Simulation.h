@@ -8,6 +8,7 @@
 #include <random>
 #include <string>
 #include <memory>
+#include <vector>
 
 class Simulation {
 	public:
@@ -17,30 +18,16 @@ class Simulation {
 			Actor::Configuration* subjectConfiguration = nullptr;
 			Actor::Configuration* targetConfiguration = nullptr;
 		};
-		
-		struct Stats {
-			int count = 0;
-			int criticalHits = 0;
-			int totalDamageDealt = 0;
-			
-			Stats& operator+=(const Stats& other) {
-				count += other.count;
-				criticalHits += other.criticalHits;
-				totalDamageDealt += other.totalDamageDealt;
-				return *this;
-			}			
-		};
-	
+
 		Simulation(const Configuration* configuration)
 			: _configuration(configuration)
-			, _subject(configuration->subjectConfiguration, configuration->rng)
-			, _target(configuration->targetConfiguration, configuration->rng)
+			, _subject(configuration->subjectConfiguration)
+			, _target(configuration->targetConfiguration)
 		{}
 
 		void run();
 		
-		const Stats& stats() const { return _stats; }
-		const std::map<std::string, Stats>& statsByEffect() const { return _statsByEffect; }
+		const Actor* subject() const { return &_subject; }
 
 	private:
 		const Configuration* const _configuration = nullptr;
@@ -78,9 +65,4 @@ class Simulation {
 		void _checkActors();
 		void _tick();
 		void _resolveAction(const Action* action, Actor* subject, Actor* target);
-		
-		Stats _damageStats(const Damage& damage);
-		
-		Stats _stats;
-		std::map<std::string, Stats> _statsByEffect;
 };

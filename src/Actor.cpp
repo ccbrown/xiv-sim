@@ -8,6 +8,15 @@ const Action* Actor::act(const Actor* target) const {
 	return _configuration->rotation ? _configuration->rotation->nextAction(this, target) : nullptr;
 }
 
+void Actor::integrateDamageStats(const Damage& damage, const char* effect) {
+	EffectSimulationStats effectStats;
+	effectStats.count = 1;
+	effectStats.criticalHits = damage.isCritical ? 1 : 0;
+	effectStats.damageDealt = damage.amount;
+	_simulationStats += effectStats;
+	_effectSimulationStats[effect] += effectStats;
+}
+
 Damage Actor::generateDamage(const Action* action) {
 	return _configuration->model->generateDamage(action, this);
 }
@@ -17,6 +26,12 @@ Damage Actor::acceptDamage(const Damage& incoming) const {
 }
 
 void Actor::advanceTime(const std::chrono::microseconds& time) {
+	if (_configuration->keepsSamples) {
+		if (_simulationStats.tpSamples.empty() || _simulationStats.tpSamples.back().second != _tp) {
+			_simulationStats.tpSamples.emplace_back(_time, _tp);
+		}
+	}
+
 	_time = time;
 
 	for (auto it = _cooldowns.begin(); it != _cooldowns.end();) {
@@ -29,6 +44,7 @@ void Actor::advanceTime(const std::chrono::microseconds& time) {
 
 	for (auto it = _auras.begin(); it != _auras.end();) {
 		if (_time - it->second.time >= it->second.duration) {
+			_integrateAuraApplicationCountChange(it->second.aura->identifier().c_str(), 0);
 			it = _auras.erase(it);
 		} else {
 			++it;
@@ -81,11 +97,15 @@ void Actor::applyAura(Actor* source, Aura* aura) {
 
 	if (application.count < aura->maximumCount()) {
 		++application.count;
+		_integrateAuraApplicationCountChange(aura->identifier().c_str(), application.count);
 	}
 }
 
 void Actor::dispelAura(const std::string& identifier) {
-	_auras.erase(identifier);
+	auto it = _auras.find(identifier);
+	if (it == _auras.end()) { return; }
+	_integrateAuraApplicationCountChange(it->second.aura->identifier().c_str(), 0);
+	_auras.erase(it);
 }
 
 int Actor::auraCount(const std::string& identifier) const {
@@ -106,12 +126,12 @@ Damage Actor::generateTickDamage(const std::string& auraIdentifier) const {
 
 		std::uniform_real_distribution<double> distribution(0.0, 1.0);
 
-		ret.isCritical = (distribution(*_rng) < application.tickCriticalHitChance);
+		ret.isCritical = (distribution(*_configuration->rng) < application.tickCriticalHitChance);
 
 		double amount = application.baseTickDamage;
 
 		// TODO: this sway is a complete guess off the top of my head and should be researched
-		amount *= 1.0 + (0.5 - distribution(*_rng)) * 0.1;
+		amount *= 1.0 + (0.5 - distribution(*_configuration->rng)) * 0.1;
 
 		if (ret.isCritical) {
 			amount *= 1.5;
@@ -162,4 +182,11 @@ void Actor::triggerCooldown(const std::string& identifier, std::chrono::microsec
 std::chrono::microseconds Actor::cooldownRemaining(const std::string& identifier) const {
 	auto it = _cooldowns.find(identifier);
 	return it == _cooldowns.end() ? 0_us : ((it->second.time + it->second.duration) - _time);
+}
+
+void Actor::_integrateAuraApplicationCountChange(const char* identifier, int count) {
+	if (_configuration->keepsSamples) {
+		auto& samples = _simulationStats.auraSamples[identifier];
+		samples.emplace_back(_time, count);
+	}
 }

@@ -7,7 +7,6 @@
 
 void Simulation::run() {
 	std::uniform_int_distribution<std::chrono::microseconds::rep> distribution(0, 3000000);
-	
 	std::chrono::microseconds dotTickOffset(distribution(*_configuration->rng));
 
 	_schedule([&] {
@@ -31,7 +30,7 @@ void Simulation::run() {
 	}
 }
 
-void Simulation::_advanceTime(std::chrono::microseconds time) {
+void Simulation::_advanceTime(std::chrono::microseconds time) {	
 	_time = time;
 	_subject.advanceTime(_time);
 	_target.advanceTime(_time);
@@ -44,10 +43,7 @@ void Simulation::_schedule(const std::function<void()>& function, std::chrono::m
 void Simulation::_checkActors() {
 	if (!_subject.autoAttackDelayRemaining().count()) {
 		auto damage = _target.acceptDamage(_subject.performAutoAttack());
-
-		auto stats = _damageStats(damage);
-		_stats += stats;
-		_statsByEffect["auto-attack"] += stats;
+		_subject.integrateDamageStats(damage, "auto-attack");
 
 		_schedule([&] {
 			_checkActors();
@@ -67,10 +63,7 @@ void Simulation::_tick() {
 		if (!kv.second.aura->tickDamage()) { continue; }
 		
 		auto damage = _target.acceptDamage(_target.generateTickDamage(kv.first));
-
-		auto stats = _damageStats(damage);
-		_stats += stats;
-		_statsByEffect[kv.first] += stats;
+		_subject.integrateDamageStats(damage, kv.first.c_str());
 	}
 	
 	_checkActors();
@@ -129,21 +122,9 @@ void Simulation::_resolveAction(const Action* action, Actor* subject, Actor* tar
 		target->applyAura(subject, aura);
 	}
 
-	auto stats = _damageStats(damage);
-	if (subject == &_subject) {
-		_stats += stats;
-	}
-	_statsByEffect[action->identifier()] += stats;
+	subject->integrateDamageStats(damage, action->identifier().c_str());
 
 	_schedule([&] {
 		_checkActors();
 	});
-}
-
-Simulation::Stats Simulation::_damageStats(const Damage& damage) {
-	Stats ret;
-	ret.count = 1;
-	ret.criticalHits = damage.isCritical ? 1 : 0;
-	ret.totalDamageDealt = damage.amount;
-	return ret;
 }

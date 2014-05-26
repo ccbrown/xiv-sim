@@ -32,10 +32,14 @@ int SingleJSON(int argc, const char* argv[]) {
 		printf("Unknown model.\n");
 		return 1;
 	}
-	
+
+	std::random_device randomDevice;
+
 	Actor::Configuration subjectConfiguration;
 	subjectConfiguration.model = model.get();
 	subjectConfiguration.rotation = &subjectRotation;
+	subjectConfiguration.rng = &randomDevice;
+	subjectConfiguration.keepsSamples = true;
 
 	int simulationSeconds = 0;
 	
@@ -58,8 +62,7 @@ int SingleJSON(int argc, const char* argv[]) {
 	models::Monk targetModel;
 	Actor::Configuration targetConfiguration;
 	targetConfiguration.model = &targetModel;
-
-	std::random_device randomDevice;
+	targetConfiguration.rng = &randomDevice;
 
 	Simulation::Configuration configuration;
 	configuration.length = std::chrono::seconds(simulationSeconds);
@@ -70,23 +73,61 @@ int SingleJSON(int argc, const char* argv[]) {
 	Simulation simulation(&configuration);
 	simulation.run();
 	
-	auto& stats = simulation.stats();
+	auto& stats = simulation.subject()->simulationStats();
 
 	printf("{");
 
-	printf("\"length\": %d, \"damage\": %d, \"dps\": %f, ", simulationSeconds, stats.totalDamageDealt, stats.totalDamageDealt / (double)simulationSeconds);
+	printf("\"length\":%d,\"damage\":%d,\"dps\":%f,", simulationSeconds, stats.damageDealt, stats.damageDealt / (double)simulationSeconds);
 
-	printf("\"effects\": [");
-	bool first = true;
-	for (auto& kv : simulation.statsByEffect()) {
-		auto& stats = kv.second;
-		if (!first) {
-			printf(", ");
+	{
+		printf("\"effects\":[");
+		bool first = true;
+		for (auto& kv : simulation.subject()->effectSimulationStats()) {
+			auto& stats = kv.second;
+			if (!first) {
+				printf(",");
+			}
+			printf("{\"id\":\"%s\",\"damage\":%d,\"dps\":%f,\"count\":%d,\"crits\":%d,\"avg-damage\":%f}", kv.first.c_str(), stats.damageDealt, stats.damageDealt / (double)simulationSeconds, stats.count, stats.criticalHits, stats.damageDealt / (double)stats.count);
+			first = false;
 		}
-		printf("{ \"id\": \"%s\", \"damage\": %d, \"dps\": %f, \"count\": %d, \"crits\": %d, \"avg-damage\": %f }", kv.first.c_str(), stats.totalDamageDealt, stats.totalDamageDealt / (double)simulationSeconds, stats.count, stats.criticalHits, stats.totalDamageDealt / (double)stats.count);
-		first = false;
+		printf("],");
 	}
-	printf("]");
+
+	{
+		printf("\"tp-samples\":[");
+		bool first = true;
+		for (auto& sample : stats.tpSamples) {
+			if (!first) {
+				printf(",");
+			}
+			printf("[%lld,%d]", sample.first.count(), sample.second);
+			first = false;
+		}
+		printf("],");
+	}
+
+	{
+		printf("\"auras\":{");
+		bool first = true;
+		for (auto& aura : stats.auraSamples) {
+			if (!first) {
+				printf(", ");
+			}
+			printf("\"%s\":", aura.first.c_str());
+			printf("[");
+			bool firstSample = true;
+			for (auto& sample : aura.second) {
+				if (!firstSample) {
+					printf(",");
+				}
+				printf("[%lld,%d]", sample.first.count(), sample.second);
+				firstSample = false;
+			}
+			printf("]");
+			first = false;
+		}
+		printf("}");
+	}
 
 	printf("}");
 	
