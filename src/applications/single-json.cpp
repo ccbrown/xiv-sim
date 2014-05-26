@@ -3,37 +3,53 @@
 #include "../Simulation.h"
 
 #include "../models/Monk.h"
+#include "../models/Summoner.h"
+
+#include <memory>
 
 namespace applications {
 
 int SingleJSON(int argc, const char* argv[]) {
-	if (argc < 2) {
-		printf("Rotation and configuration required.\n");
+	if (argc < 3) {
+		printf("Usage: simulator single-json model rotation configuration\n");
 		return 1;
 	}
 	
 	JITRotation subjectRotation;
-	if (!subjectRotation.initializeWithFile(argv[0])) {
+	if (!subjectRotation.initializeWithFile(argv[1])) {
 		printf("Unable to read rotation.\n");
 		return 1;
 	}
+
+	std::unique_ptr<Model> model;
 	
-	models::Monk subjectModel;
+	if (!strcmp(argv[0], "monk")) {
+		model.reset(new models::Monk());
+	} else if (!strcmp(argv[0], "summoner")) {
+		model.reset(new models::Summoner());
+	} else {
+		printf("Unknown model.\n");
+		return 1;
+	}
+	
 	Actor::Configuration subjectConfiguration;
-	subjectConfiguration.model = &subjectModel;
+	subjectConfiguration.model = model.get();
 	subjectConfiguration.rotation = &subjectRotation;
 
 	int simulationSeconds = 0;
 	
-	if (sscanf(argv[1], "WDMG=%d WDEL=%lf STR=%d CRIT=%d SS=%d DET=%d LEN=%d"
+	if (sscanf(argv[2], "WDMG=%d WDEL=%lf STR=%d INT=%d PIE=%d CRIT=%d SKS=%d SPS=%d DET=%d LEN=%d"
 		, &subjectConfiguration.stats.weaponDamage
 		, &subjectConfiguration.stats.weaponDelay
 		, &subjectConfiguration.stats.strength
+		, &subjectConfiguration.stats.intelligence
+		, &subjectConfiguration.stats.piety
 		, &subjectConfiguration.stats.criticalHitRate
 		, &subjectConfiguration.stats.skillSpeed
+		, &subjectConfiguration.stats.spellSpeed
 		, &subjectConfiguration.stats.determination
 		, &simulationSeconds
-	) != 7) {
+	) != 10) {
 		printf("Unable to parse configuration.\n");
 		return 1;
 	}

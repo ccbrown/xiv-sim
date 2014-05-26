@@ -61,6 +61,7 @@ void Simulation::_checkActors() {
 
 void Simulation::_tick() {
 	_subject.setTP(std::min(_subject.tp() + 60, 1000));
+	_subject.setMP(std::min(_subject.mp() + (int)(_subject.maximumMP() * 0.02), _subject.maximumMP()));
 	
 	for (auto& kv : _target.auras()) {
 		if (!kv.second.aura->tickDamage()) { continue; }
@@ -98,6 +99,7 @@ void Simulation::_resolveAction(const Action* action, Actor* subject, Actor* tar
 	}
 
 	subject->setTP(subject->tp() - action->tpCost() + action->tpRestoration());
+	subject->setMP(subject->mp() - action->mpCost());
 
 	Damage damage;
 

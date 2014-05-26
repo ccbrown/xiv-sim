@@ -3,13 +3,7 @@
 #include "../Action.h"
 #include "../Actor.h"
 
-#include <random>
-
 namespace models {
-
-/**
-* Thanks to valk.dancing-mad.com for a lot of these formulae.
-*/
 
 Monk::Monk() {
 	{
@@ -300,98 +294,32 @@ Monk::Monk() {
 	}
 }
 
-Monk::~Monk() {
-	for (auto& kv : _actions) {
-		delete kv.second;
-	}
-}
-
-const Action* Monk::action(const char* identifier) const {
-	auto it = _actions.find(identifier);
-	return it == _actions.end() ? nullptr : it->second;
-}
-
-Damage Monk::generateDamage(const Action* action, Actor* actor) const {
-	auto& stats = actor->stats();
-	
-	Damage ret;
-	double criticalHitChance = action->criticalHitChance((stats.criticalHitRate * 0.0697 - 18.437) / 100.0) + actor->additionalCriticalHitChance();
-
-	std::uniform_real_distribution<double> distribution(0.0, 1.0);
-
-	ret.isCritical = (distribution(actor->rng()) < criticalHitChance);
-
-	double amount = action->damage() / 100.0 * (stats.weaponDamage * (stats.strength * 0.00389 + stats.determination * 0.0008 + 0.01035) + (stats.strength * 0.08034) + (stats.determination * 0.02622));
-	amount *= actor->damageMultiplier();
-
-	// TODO: this sway is a complete guess off the top of my head and should be researched
-	amount *= 1.0 + (0.5 - distribution(actor->rng())) * 0.1;
-
-	if (ret.isCritical) {
-		amount *= 1.5;
-	}
-	
-	ret.amount = amount;
-	ret.type = DamageTypeBlunt;
-
-	return ret;
-}
-
-Damage Monk::generateAutoAttackDamage(Actor* actor) const {
-	auto& stats = actor->stats();
-
-	Damage ret;
-	double criticalHitChance = (stats.criticalHitRate * 0.0697 - 18.437) / 100.0 + actor->additionalCriticalHitChance();
-
-	std::uniform_real_distribution<double> distribution(0.0, 1.0);
-
-	ret.isCritical = (distribution(actor->rng()) < criticalHitChance);
-
-	double amount = stats.weaponDelay / 3.0 * (stats.weaponDamage * (stats.strength * 0.00408 + stats.determination * 0.00208 - 0.30991) + (stats.strength * 0.07149) + (stats.determination * 0.03443));
-	amount *= actor->damageMultiplier();
-
-	// TODO: this sway is a complete guess off the top of my head and should be researched
-	amount *= 1.0 + (0.5 - distribution(actor->rng())) * 0.1;
-
-	if (ret.isCritical) {
-		amount *= 1.5;
-	}
-
-	ret.amount = amount;
-	ret.type = DamageTypeBlunt;
-
-	return ret;
-}
-
-Damage Monk::acceptDamage(const Damage& incoming, const Actor* actor) const {
-	Damage ret = incoming;
-	actor->transformIncomingDamage(&ret);
-	ret.amount = round(ret.amount);
-	return ret;
-}
-
 std::chrono::microseconds Monk::globalCooldown(const Actor* actor) const {
 	auto& stats = actor->stats();
 	auto gcd = std::chrono::duration<double>(2.49 - (stats.skillSpeed - 344) * (0.01 / 10.5));
 	return std::chrono::duration_cast<std::chrono::microseconds>(gcd);
 }
 
-std::chrono::microseconds Monk::autoAttackInterval(const Actor* actor) const {
+int Monk::maximumMP(const Actor* actor) const {
+	return 0;
+}
+
+DamageType Monk::_defaultDamageType() const {
+	return DamageTypeBlunt;
+}
+
+/**
+* Thanks to valk.dancing-mad.com for these formulae.
+*/
+
+double Monk::_basePotencyMultiplier(const Actor* actor) const {
 	auto& stats = actor->stats();
-	auto interval = std::chrono::duration<double>(stats.weaponDelay / actor->autoAttackSpeedMultiplier());
-	return std::chrono::duration_cast<std::chrono::microseconds>(interval);
+	return 0.01 * (stats.weaponDamage * (stats.strength * 0.00389 + stats.determination * 0.0008 + 0.01035) + (stats.strength * 0.08034) + (stats.determination * 0.02622));
 }
 
-double Monk::baseTickDamage(const Actor* source, const Aura* aura) const {
-	auto& stats = source->stats();
-	double ret = aura->tickDamage() / 100.0 * (stats.weaponDamage * (stats.strength * 0.00389 + stats.determination * 0.0008 + 0.01035) + (stats.strength * 0.08034) + (stats.determination * 0.02622));
-	ret *= source->damageMultiplier();
-	return ret;
-}
-
-double Monk::tickCriticalHitChance(const Actor* source) const {
-	auto& stats = source->stats();
-	return (stats.criticalHitRate * 0.0697 - 18.437) / 100.0 + source->additionalCriticalHitChance();
+double Monk::_baseAutoAttackDamage(const Actor* actor) const {
+	auto& stats = actor->stats();
+	return stats.weaponDelay / 3.0 * (stats.weaponDamage * (stats.strength * 0.00408 + stats.determination * 0.00208 - 0.30991) + (stats.strength * 0.07149) + (stats.determination * 0.03443));
 }
 
 }

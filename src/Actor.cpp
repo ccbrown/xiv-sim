@@ -45,6 +45,10 @@ void Actor::triggerGlobalCooldown() {
 	_globalCooldownStartTime = _time;
 }
 
+int Actor::maximumMP() const {
+	return _configuration->model->maximumMP(this);
+}
+
 std::chrono::microseconds Actor::autoAttackDelayRemaining() const {
 	// TODO: make sure this matches ffxiv for changes to greased lightning between auto-attacks
 	auto elapsed = _time - _lastAutoAttackTime;

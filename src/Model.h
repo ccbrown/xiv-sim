@@ -24,4 +24,6 @@ class Model {
 		
 		virtual double baseTickDamage(const Actor* source, const Aura* aura) const = 0;
 		virtual double tickCriticalHitChance(const Actor* source) const = 0;
+
+		virtual int maximumMP(const Actor* actor) const = 0;
 };

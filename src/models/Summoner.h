@@ -4,9 +4,9 @@
 
 namespace models {
 
-class Monk : public Base {
+class Summoner : public Base {
 	public:
-		Monk();
+		Summoner();
 
 		virtual std::chrono::microseconds globalCooldown(const Actor* actor) const override;
 		virtual int maximumMP(const Actor* actor) const override;

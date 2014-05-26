@@ -3,6 +3,7 @@
 enum DamageType {
 	DamageTypeUnknown,
 	DamageTypeBlunt,
+	DamageTypeMagic,
 };
 
 struct Damage {

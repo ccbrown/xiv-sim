@@ -33,6 +33,8 @@ class Action {
 		virtual int tpCost() const { return 0; }
 		virtual int tpRestoration() const { return 0; }
 
+		virtual int mpCost() const { return 0; }
+
 	protected:
 		const std::string _identifier;
 	

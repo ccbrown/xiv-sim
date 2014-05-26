@@ -18,10 +18,15 @@ class Actor {
 		struct Stats {
 			int weaponDamage = 0;
 			double weaponDelay = 0.0;
+
 			int strength = 0;
+			int intelligence = 0;
+			int piety = 0;
+
 			int determination = 0;
 			int criticalHitRate = 0;
 			int skillSpeed = 0;
+			int spellSpeed = 0;
 		};
 	
 		struct Configuration {
@@ -30,7 +35,9 @@ class Actor {
 			const Rotation* rotation = nullptr;
 		};
 
-		Actor(const Configuration* configuration, std::random_device* rng) : _configuration(configuration), _rng(rng), _stats(configuration->stats) {}
+		Actor(const Configuration* configuration, std::random_device* rng)
+			: _configuration(configuration), _rng(rng), _stats(configuration->stats), _mp(maximumMP())
+		{}
 
 		const Action* act(const Actor* target) const;
 
@@ -70,6 +77,11 @@ class Actor {
 		int tp() const { return _tp; }
 		void setTP(int tp) { _tp = tp; }
 
+		int mp() const { return _mp; }
+		void setMP(int mp) { _mp = mp; }
+			
+		int maximumMP() const;
+
 		struct AppliedAura {
 			Aura* aura = nullptr;
 			int count = 0;
@@ -97,6 +109,8 @@ class Actor {
 		};
 		
 		int _tp = 1000;
+		int _mp = 0;
+
 		std::unordered_map<std::string, Cooldown> _cooldowns;
 		std::unordered_map<std::string, AppliedAura> _auras;
 };
