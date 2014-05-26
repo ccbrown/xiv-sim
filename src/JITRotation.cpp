@@ -10,28 +10,13 @@
 #include <llvm/ExecutionEngine/ExecutionEngine.h>
 #include <llvm/ExecutionEngine/JIT.h>
 
-extern "C" {
-	uint64_t JITRotationActorAuraCount(const Actor* actor, const char* identifier) {
-		return actor->auraCount(identifier);
-	}
-	double JITRotationActorCooldownRemaining(const Actor* actor, const char* identifier) {
-		return std::chrono::duration<double>(actor->cooldownRemaining(identifier)).count();
-	}
-	double JITRotationActorAuraTimeRemaining(const Actor* actor, const char* identifier) {
-		return std::chrono::duration<double>(actor->auraTimeRemaining(identifier)).count();
-	}
-	uint64_t JITRotationActorTP(const Actor* actor) {
-		return actor->tp();
-	}
-}
-
 bool JITRotation::initializeWithFile(const char* filename) {
 	const char header[] =
 		"class Actor;"
-		"extern uint64 AuraCount(const Actor* actor, const uint8* identifier) : \"JITRotationActorAuraCount\";"
-		"extern double CooldownRemaining(const Actor* actor, const uint8* identifier) : \"JITRotationActorCooldownRemaining\";"
-		"extern double AuraTimeRemaining(const Actor* actor, const uint8* identifier) : \"JITRotationActorAuraTimeRemaining\";"
-		"extern uint64 TP(const Actor* actor) : \"JITRotationActorTP\";"
+		"uint64 AuraCount(const Actor* actor, const uint8* identifier);"
+		"double CooldownRemaining(const Actor* actor, const uint8* identifier);"
+		"double AuraTimeRemaining(const Actor* actor, const uint8* identifier);"
+		"uint64 TP(const Actor* actor);"
 		"hidden const uint8* NextAction(const Actor* self, const Actor* target) {"
 	;
 	
@@ -126,6 +111,11 @@ bool JITRotation::initializeWithFile(const char* filename) {
 		return false;
 	}
 
+	engine->addGlobalMapping(module->getFunction("^AuraCount"), (void*)&JITRotation::ActorAuraCount);
+	engine->addGlobalMapping(module->getFunction("^CooldownRemaining"), (void*)&JITRotation::ActorCooldownRemaining);
+	engine->addGlobalMapping(module->getFunction("^AuraTimeRemaining"), (void*)&JITRotation::ActorAuraTimeRemaining);
+	engine->addGlobalMapping(module->getFunction("^TP"), (void*)&JITRotation::ActorTP);
+
 	_jitNextAction = decltype(_jitNextAction)((std::intptr_t)engine->getPointerToFunction(module->getFunction("^NextAction")));
 
 	return _jitNextAction;
@@ -134,4 +124,17 @@ bool JITRotation::initializeWithFile(const char* filename) {
 const Action* JITRotation::nextAction(const Actor* subject, const Actor* target) const {
 	auto identifier = _jitNextAction(subject, target);
 	return identifier ? subject->model()->action(identifier) : nullptr;
+}
+
+uint64_t JITRotation::ActorAuraCount(const Actor* actor, const char* identifier) {
+	return actor->auraCount(identifier);
+}
+double JITRotation::ActorCooldownRemaining(const Actor* actor, const char* identifier) {
+	return std::chrono::duration<double>(actor->cooldownRemaining(identifier)).count();
+}
+double JITRotation::ActorAuraTimeRemaining(const Actor* actor, const char* identifier) {
+	return std::chrono::duration<double>(actor->auraTimeRemaining(identifier)).count();
+}
+uint64_t JITRotation::ActorTP(const Actor* actor) {
+	return actor->tp();
 }
