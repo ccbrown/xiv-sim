@@ -77,7 +77,7 @@ int SingleJSON(int argc, const char* argv[]) {
 
 	printf("{");
 
-	printf("\"length\":%d,\"damage\":%d,\"dps\":%f,", simulationSeconds, stats.damageDealt, stats.damageDealt / (double)simulationSeconds);
+	printf("\"length\":%lld,\"damage\":%d,\"dps\":%f,", configuration.length.count(), stats.damageDealt, stats.damageDealt / (double)simulationSeconds);
 
 	{
 		printf("\"effects\":[");
