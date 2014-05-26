@@ -5,7 +5,7 @@ EXENAME = simulator
 SRCDIR = src
 OBJDIR = obj
 
-LLVM_CONFIG = llvm-config
+LLVM_CONFIG ?= llvm-config
 
 override CXXFLAGS += -g -Wall -O3 -std=c++1y `$(LLVM_CONFIG) --cppflags`
 override LDFLAGS += `$(LLVM_CONFIG) --ldflags --libs core support target executionengine jit native`
