@@ -47,14 +47,6 @@ bool Action::resolve(Actor* source, Actor* target) const {
 	for (auto& kv : source->auras()) {
 		if (int count = dispelsSourceAura(kv.second.aura)) {
 			source->dispelAura(kv.second.aura->identifier(), kv.first.second, count);
-			break;
-		}
-	}
-
-	for (auto& kv : target->auras()) {
-		if (int count = dispelsTargetAura(kv.second.aura)) {
-			target->dispelAura(kv.second.aura->identifier(), kv.first.second, count);
-			break;
 		}
 	}
 

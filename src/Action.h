@@ -32,7 +32,6 @@ class Action {
 		virtual const std::vector<Aura*>& targetAuras() const { return _targetAuras; }
 
 		virtual int dispelsSourceAura(const Aura* aura) const { return 0; }
-		virtual int dispelsTargetAura(const Aura* aura) const { return 0; }
 
 		virtual int tpCost() const { return 0; }
 		virtual int tpRestoration() const { return 0; }
