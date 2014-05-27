@@ -12,25 +12,23 @@ class Simulation {
 	public:
 		struct Configuration {
 			std::chrono::microseconds length;
-			std::random_device* rng = nullptr;
 			Actor::Configuration* subjectConfiguration = nullptr;
 			Actor::Configuration* targetConfiguration = nullptr;
 		};
 
-		Simulation(const Configuration* configuration)
-			: _configuration(configuration)
-			, _subject(configuration->subjectConfiguration)
-			, _target(configuration->targetConfiguration)
-		{}
+		Simulation(const Configuration* configuration);			
+		~Simulation();
 
 		void run();
 		
-		const Actor* subject() const { return &_subject; }
+		const std::vector<Actor*>& subjects() const { return _subjects; }
 
 	private:
 		const Configuration* const _configuration = nullptr;
-		Actor _subject;
-		Actor _target;
+		std::random_device _rng;
+
+		std::vector<Actor*> _subjects;
+		Actor* _target = nullptr;
 
 		std::chrono::microseconds _time = 0_us;
 

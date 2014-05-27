@@ -7,5 +7,5 @@ class Rotation {
 	public:
 		virtual ~Rotation() = default;
 		
-		virtual const Action* nextAction(const Actor* subject, const Actor* target) const = 0;
+		virtual const Action* nextAction(Actor* subject, const Actor* target) const = 0;
 };

@@ -25,7 +25,23 @@ class Aura {
 
 		virtual void transformIncomingDamage(Damage* damage) const {}
 			
-		virtual bool providesImmunity(Aura* aura) const { return false; }
+		virtual bool providesImmunity(const Aura* aura) const { return false; }
+
+		struct StatsMultiplier {
+			double strength = 1.0;
+			double dexterity = 1.0;
+			double intelligence = 1.0;
+			double piety = 1.0;
+			double skillSpeed = 1.0;
+			double spellSpeed = 1.0;
+			double criticalHitRate = 1.0;
+			double determination = 1.0;
+		};
+		
+		virtual const StatsMultiplier& statsMultiplier() const { return _statsMultiplier; }
+
+	protected:
+		StatsMultiplier _statsMultiplier;
 
 	private:
 		const std::string _identifier;

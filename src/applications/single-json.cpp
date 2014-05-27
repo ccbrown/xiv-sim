@@ -1,12 +1,15 @@
 #include "../Actor.h"
 #include "../JITRotation.h"
+#include "../PetRotation.h"
 #include "../Simulation.h"
 
+#include "../models/Garuda.h"
 #include "../models/Monk.h"
 #include "../models/Summoner.h"
 
 #include <memory>
 #include <cstring>
+#include <map>
 
 namespace applications {
 
@@ -22,24 +25,28 @@ int SingleJSON(int argc, const char* argv[]) {
 		return 1;
 	}
 
+	Actor::Configuration subjectConfiguration;
+	subjectConfiguration.identifier = "player";
+	subjectConfiguration.rotation = &subjectRotation;
+	subjectConfiguration.keepsSamples = true;
+
 	std::unique_ptr<Model> model;
-	
+	std::unique_ptr<Model> petModel;
+	std::unique_ptr<Rotation> petRotation;
+
 	if (!strcmp(argv[0], "monk")) {
 		model.reset(new models::Monk());
 	} else if (!strcmp(argv[0], "summoner")) {
 		model.reset(new models::Summoner());
+		
+		petModel.reset(new models::Garuda());
+		petRotation.reset(new PetRotation(petModel->action("wind-blade")));
 	} else {
 		printf("Unknown model.\n");
 		return 1;
 	}
 
-	std::random_device randomDevice;
-
-	Actor::Configuration subjectConfiguration;
 	subjectConfiguration.model = model.get();
-	subjectConfiguration.rotation = &subjectRotation;
-	subjectConfiguration.rng = &randomDevice;
-	subjectConfiguration.keepsSamples = true;
 
 	int simulationSeconds = 0;
 	
@@ -59,78 +66,122 @@ int SingleJSON(int argc, const char* argv[]) {
 		return 1;
 	}
 
+	Actor::Configuration petConfiguration;
+	
+	if (petModel && petRotation) {
+		petConfiguration.identifier = "player-pet";
+		petConfiguration.model = petModel.get();
+		petConfiguration.rotation = petRotation.get();
+		petConfiguration.keepsSamples = subjectConfiguration.keepsSamples;
+		// TODO: exclude food stats from pet stats
+		petConfiguration.stats = subjectConfiguration.stats;
+		subjectConfiguration.petConfiguration = &petConfiguration;
+	}
+
 	models::Monk targetModel;
 	Actor::Configuration targetConfiguration;
+	targetConfiguration.identifier = "target";
 	targetConfiguration.model = &targetModel;
-	targetConfiguration.rng = &randomDevice;
+	targetConfiguration.keepsSamples = true;
 
 	Simulation::Configuration configuration;
 	configuration.length = std::chrono::seconds(simulationSeconds);
-	configuration.rng = &randomDevice;
 	configuration.subjectConfiguration = &subjectConfiguration;
 	configuration.targetConfiguration = &targetConfiguration;
 
 	Simulation simulation(&configuration);
 	simulation.run();
 	
-	auto& stats = simulation.subject()->simulationStats();
+	Actor::SimulationStats mergedStats;
+	std::map<std::string, Actor::EffectSimulationStats> mergedEffectStats;
+
+	for (auto& subject : simulation.subjects()) {
+		mergedStats += subject->simulationStats();
+		for (auto& kv : subject->effectSimulationStats()) {
+			mergedEffectStats[kv.first] += kv.second;
+		}
+	}
 
 	printf("{");
 
-	printf("\"length\":%lld,\"damage\":%d,\"dps\":%f,", configuration.length.count(), stats.damageDealt, stats.damageDealt / (double)simulationSeconds);
+	printf("\"length\":%lld,\"damage\":%d,\"dps\":%f,", configuration.length.count(), mergedStats.damageDealt, mergedStats.damageDealt / (double)simulationSeconds);
 
-	{
-		printf("\"effects\":[");
-		bool first = true;
-		for (auto& kv : simulation.subject()->effectSimulationStats()) {
-			auto& stats = kv.second;
-			if (!first) {
-				printf(",");
+	printf("\"subjects\":{");
+
+	bool firstSubject = true;
+	for (auto& subject : simulation.subjects()) {
+		if (!firstSubject) { printf(","); }
+		firstSubject = false;
+
+		printf("\"%s\":{", subject->identifier().c_str());
+
+		auto& stats = subject->simulationStats();
+		
+		printf("\"damage\":%d,\"dps\":%f,", stats.damageDealt, stats.damageDealt / (double)simulationSeconds);
+		
+		auto& effectStats = subject->effectSimulationStats();
+
+		{
+			printf("\"effects\":[");
+			bool first = true;
+			for (auto& kv : effectStats) {
+				if (!first) { printf(","); }
+				printf("{\"id\":\"%s\",\"damage\":%d,\"dps\":%f,\"count\":%d,\"crits\":%d,\"avg-damage\":%f}", kv.first.c_str(), kv.second.damageDealt, kv.second.damageDealt / (double)simulationSeconds, kv.second.count, kv.second.criticalHits, kv.second.damageDealt / (double)kv.second.count);
+				first = false;
 			}
-			printf("{\"id\":\"%s\",\"damage\":%d,\"dps\":%f,\"count\":%d,\"crits\":%d,\"avg-damage\":%f}", kv.first.c_str(), stats.damageDealt, stats.damageDealt / (double)simulationSeconds, stats.count, stats.criticalHits, stats.damageDealt / (double)stats.count);
-			first = false;
+			printf("],");
 		}
-		printf("],");
-	}
-
-	{
-		printf("\"tp-samples\":[");
-		bool first = true;
-		for (auto& sample : stats.tpSamples) {
-			if (!first) {
-				printf(",");
-			}
-			printf("[%lld,%d]", sample.first.count(), sample.second);
-			first = false;
-		}
-		printf("],");
-	}
-
-	{
-		printf("\"auras\":{");
-		bool first = true;
-		for (auto& aura : stats.auraSamples) {
-			if (!first) {
-				printf(", ");
-			}
-			printf("\"%s\":", aura.first.c_str());
-			printf("[");
-			bool firstSample = true;
-			for (auto& sample : aura.second) {
-				if (!firstSample) {
-					printf(",");
-				}
+	
+		{
+			printf("\"tp-samples\":[");
+			bool first = true;
+			for (auto& sample : stats.tpSamples) {
+				if (!first) { printf(","); }
 				printf("[%lld,%d]", sample.first.count(), sample.second);
-				firstSample = false;
+				first = false;
 			}
-			printf("]");
-			first = false;
+			printf("],");
 		}
+	
+		{
+			printf("\"mp-samples\":[");
+			bool first = true;
+			for (auto& sample : stats.mpSamples) {
+				if (!first) { printf(","); }
+				printf("[%lld,%d]", sample.first.count(), sample.second);
+				first = false;
+			}
+			printf("],");
+		}
+	
+		{
+			printf("\"auras\":{");
+			bool first = true;
+			for (auto& aura : stats.auraSamples) {
+				if (!first) { printf(", "); }
+				printf("\"%s\":", aura.first.c_str());
+				printf("[");
+				bool firstSample = true;
+				for (auto& sample : aura.second) {
+					if (!firstSample) {
+						printf(",");
+					}
+					printf("[%lld,%d]", sample.first.count(), sample.second);
+					firstSample = false;
+				}
+				printf("]");
+				first = false;
+			}
+			printf("}");
+		}
+		
 		printf("}");
 	}
 
 	printf("}");
-	
+
+	printf("}");
+
 	printf("\n");
 
 	return 0;

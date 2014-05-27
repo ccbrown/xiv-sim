@@ -23,8 +23,12 @@ static TrialResults Trial(const Simulation::Configuration&& configuration) {
 	Simulation simulation(&ret.configuration);
 	simulation.run();
 
-	ret.overallStats = simulation.subject()->simulationStats();
-	ret.effectStats = simulation.subject()->effectSimulationStats();
+	for (auto& subject : simulation.subjects()) {
+		ret.overallStats += subject->simulationStats();
+		for (auto& kv : subject->effectSimulationStats()) {
+			ret.effectStats[kv.first] += kv.second;
+		}
+	}
 	return ret;
 }
 
@@ -42,6 +46,7 @@ int MultiIteration(int argc, const char* argv[]) {
 	
 	models::Monk subjectModel;
 	Actor::Configuration subjectConfiguration;
+	subjectConfiguration.identifier = "player";
 	subjectConfiguration.stats.weaponDamage = 47;
 	subjectConfiguration.stats.weaponDelay = 2.72;
 	subjectConfiguration.stats.strength = 512;
@@ -53,6 +58,7 @@ int MultiIteration(int argc, const char* argv[]) {
 
 	models::Monk targetModel;
 	Actor::Configuration targetConfiguration;
+	targetConfiguration.identifier = "target";
 	targetConfiguration.model = &targetModel;
 	
 	int iterations = 3000;
@@ -63,12 +69,9 @@ int MultiIteration(int argc, const char* argv[]) {
 	
 	std::vector<std::future<TrialResults>> futures;
 
-	std::random_device randomDevice;
-
 	for (int i = 0; i < iterations; ++i) {
 		Simulation::Configuration configuration;
 		configuration.length = std::chrono::duration_cast<std::chrono::microseconds>(7_min + (i % 100) / 50.0 * 6_min);
-		configuration.rng = &randomDevice;
 		configuration.subjectConfiguration = &subjectConfiguration;
 		configuration.targetConfiguration = &targetConfiguration;
 		

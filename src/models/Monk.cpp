@@ -2,6 +2,7 @@
 
 #include "../Action.h"
 #include "../Actor.h"
+#include "../Aura.h"
 
 namespace models {
 
@@ -65,7 +66,7 @@ Monk::Monk() {
 			}
 			virtual int damage() const override { return 150; }
 			virtual int tpCost() const override { return 60; }
-			virtual bool dispelsSubjectAura(Aura* aura) const override { return aura->identifier() == "opo-opo-form"; }
+			virtual int dispelsSubjectAura(const Aura* aura) const override { return aura->identifier() == "opo-opo-form" ? 1 : 0; }
 		};
 
 		_registerAction<Skill>();
@@ -78,7 +79,7 @@ Monk::Monk() {
 			}
 			virtual int damage() const override { return 150; }
 			virtual int tpCost() const override { return 60; }
-			virtual bool dispelsSubjectAura(Aura* aura) const override { return aura->identifier() == "opo-opo-form"; }
+			virtual int dispelsSubjectAura(const Aura* aura) const override { return aura->identifier() == "opo-opo-form" ? 1 : 0; }
 		};
 		
 		_registerAction<Skill>();
@@ -92,7 +93,7 @@ Monk::Monk() {
 			virtual int damage() const override { return 150; }
 			virtual int tpCost() const override { return 60; }
 			virtual double criticalHitChance(double base) const override { return 1.0; }
-			virtual bool dispelsSubjectAura(Aura* aura) const override { return aura->identifier() == "opo-opo-form"; }
+			virtual int dispelsSubjectAura(const Aura* aura) const override { return aura->identifier() == "opo-opo-form" ? 1 : 0; }
 		};
 		
 		_registerAction<Skill>();
@@ -112,7 +113,7 @@ Monk::Monk() {
 			}
 			virtual int damage() const override { return 140; }
 			virtual int tpCost() const override { return 60; }
-			virtual bool dispelsSubjectAura(Aura* aura) const override { return aura->identifier() == "raptor-form"; }
+			virtual int dispelsSubjectAura(const Aura* aura) const override { return aura->identifier() == "raptor-form" ? 1 : 0; }
 		};
 
 		_registerAction<Skill>();
@@ -125,7 +126,7 @@ Monk::Monk() {
 			}
 			virtual int damage() const override { return 190; }
 			virtual int tpCost() const override { return 50; }
-			virtual bool dispelsSubjectAura(Aura* aura) const override { return aura->identifier() == "raptor-form"; }
+			virtual int dispelsSubjectAura(const Aura* aura) const override { return aura->identifier() == "raptor-form" ? 1 : 0; }
 		};
 		
 		_registerAction<Skill>();
@@ -139,7 +140,7 @@ Monk::Monk() {
 			}
 			virtual int damage() const override { return 180; }
 			virtual int tpCost() const override { return 50; }
-			virtual bool dispelsSubjectAura(Aura* aura) const override { return aura->identifier() == "coeurl-form"; }
+			virtual int dispelsSubjectAura(const Aura* aura) const override { return aura->identifier() == "coeurl-form" ? 1 : 0; }
 		};
 		
 		_registerAction<Skill>();
@@ -160,7 +161,7 @@ Monk::Monk() {
 			}
 			virtual int damage() const override { return 70; }
 			virtual int tpCost() const override { return 50; }
-			virtual bool dispelsSubjectAura(Aura* aura) const override { return aura->identifier() == "coeurl-form"; }
+			virtual int dispelsSubjectAura(const Aura* aura) const override { return aura->identifier() == "coeurl-form" ? 1 : 0; }
 		};
 	
 		_registerAction<Skill>();
@@ -258,7 +259,7 @@ Monk::Monk() {
 			struct Buff : Aura {
 				Buff() : Aura("perfect-balance") {}
 				virtual std::chrono::microseconds duration() const override { return 10_s; }
-				virtual bool providesImmunity(Aura* aura) const override {
+				virtual bool providesImmunity(const Aura* aura) const override {
 					return aura->identifier() == "opo-opo-form" || aura->identifier() == "raptor-form" || aura->identifier() == "coeurl-form";
 				}
 			};
@@ -268,8 +269,8 @@ Monk::Monk() {
 			}
 			virtual bool isOffGlobalCooldown() const { return true; }
 			virtual std::chrono::microseconds cooldown() const { return 240_s; }
-			virtual bool dispelsSubjectAura(Aura* aura) const override {
-				return aura->identifier() == "opo-opo-form" || aura->identifier() == "raptor-form" || aura->identifier() == "coeurl-form";
+			virtual int dispelsSubjectAura(const Aura* aura) const override {
+				return (aura->identifier() == "opo-opo-form" || aura->identifier() == "raptor-form" || aura->identifier() == "coeurl-form") ? 1 : 0;
 			}
 		};
 		
@@ -305,7 +306,7 @@ DamageType Monk::_defaultDamageType() const {
 
 std::chrono::microseconds Monk::_baseGlobalCooldown(const Actor* actor) const {
 	auto& stats = actor->stats();
-	auto gcd = std::chrono::duration<double>(2.49 - (stats.skillSpeed - 344) * (0.01 / 10.5));
+	auto gcd = std::chrono::duration<double>(2.5 - (stats.skillSpeed - 341) * (0.01 / 10.5));
 	return std::chrono::duration_cast<std::chrono::microseconds>(gcd);
 }
 

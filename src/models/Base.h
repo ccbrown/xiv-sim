@@ -17,7 +17,7 @@ class Base : public Model {
 
 		virtual std::chrono::microseconds globalCooldown(const Actor* actor) const override;
 
-		virtual Damage generateDamage(const Action* action, Actor* actor) const override;
+		virtual Damage generateDamage(const Action* action, const Actor* source, const Actor* target) const override;
 		virtual Damage generateAutoAttackDamage(Actor* actor) const override;
 
 		virtual Damage acceptDamage(const Damage& incoming, const Actor* actor) const override;
@@ -26,6 +26,7 @@ class Base : public Model {
 
 		virtual double baseTickDamage(const Actor* source, const Aura* aura) const override;
 		virtual double tickCriticalHitChance(const Actor* source) const override;
+		virtual std::chrono::microseconds castTime(const Action* action, const Actor* actor) const override;
 
 	protected:
 		std::unordered_map<std::string, Action*> _actions;

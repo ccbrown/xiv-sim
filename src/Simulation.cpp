@@ -5,9 +5,28 @@
 
 #include <random>
 
+Simulation::Simulation(const Configuration* configuration) : _configuration(configuration) {
+	auto subject = new Actor(configuration->subjectConfiguration, &_rng);
+	_subjects.push_back(subject);
+	if (subject->pet()) {
+		_subjects.push_back(subject->pet());
+	}
+
+	_target = new Actor(configuration->targetConfiguration, &_rng);
+	_subjects.push_back(_target);
+}
+
+Simulation::~Simulation() {
+	for (auto& subject : _subjects) {
+		if (!subject->owner()) {
+			delete subject;
+		}
+	}
+}
+
 void Simulation::run() {
 	std::uniform_int_distribution<std::chrono::microseconds::rep> distribution(0, 3000000);
-	std::chrono::microseconds dotTickOffset(distribution(*_configuration->rng));
+	std::chrono::microseconds dotTickOffset(distribution(_rng));
 
 	_schedule([&] {
 		_shouldStop = true;
@@ -32,8 +51,9 @@ void Simulation::run() {
 
 void Simulation::_advanceTime(std::chrono::microseconds time) {	
 	_time = time;
-	_subject.advanceTime(_time);
-	_target.advanceTime(_time);
+	for (auto& subject : _subjects) {
+		subject->advanceTime(_time);
+	}
 }
 
 void Simulation::_schedule(const std::function<void()>& function, std::chrono::microseconds delay) {
@@ -41,31 +61,29 @@ void Simulation::_schedule(const std::function<void()>& function, std::chrono::m
 }
 
 void Simulation::_checkActors() {
-	if (!_subject.autoAttackDelayRemaining().count()) {
-		auto damage = _target.acceptDamage(_subject.performAutoAttack());
-		_subject.integrateDamageStats(damage, "auto-attack");
+	for (auto& subject : _subjects) {
+		if (subject == _target) { continue; }
 
-		_schedule([&] {
-			_checkActors();
-		}, _subject.autoAttackDelayRemaining());
-	}
+		if (!subject->currentCast() && !subject->autoAttackDelayRemaining().count()) {
+			auto damage = _target->acceptDamage(subject->performAutoAttack());
+			subject->integrateDamageStats(damage, "auto-attack");
 	
-	if (auto action = _subject.act(&_target)) {
-		_resolveAction(action, &_subject, &_target);
+			_schedule([&] {
+				_checkActors();
+			}, subject->autoAttackDelayRemaining());
+		}
+		
+		if (auto action = subject->act(_target)) {
+			_resolveAction(action, subject, _target);
+		}
 	}
 }
 
 void Simulation::_tick() {
-	_subject.setTP(std::min(_subject.tp() + 60, 1000));
-	_subject.setMP(std::min(_subject.mp() + (int)(_subject.maximumMP() * 0.02), _subject.maximumMP()));
-	
-	for (auto& kv : _target.auras()) {
-		if (!kv.second.aura->tickDamage()) { continue; }
-		
-		auto damage = _target.acceptDamage(_target.generateTickDamage(kv.first));
-		_subject.integrateDamageStats(damage, kv.first.c_str());
+	for (auto& subject : _subjects) {
+		subject->tick();		
 	}
-	
+
 	_checkActors();
 
 	_schedule([&] {
@@ -73,61 +91,25 @@ void Simulation::_tick() {
 	}, 3_s);	
 }
 
-void Simulation::_resolveAction(const Action* action, Actor* subject, Actor* target) {	
-	if (!action->isOffGlobalCooldown() && subject->isOnGlobalCooldown()) { return; }
-
-	if (subject->tp() < action->tpCost()) { return; }
-
-	if (action->cooldown().count()) {
-		if (subject->cooldownRemaining(action->identifier()).count()) { return; }
-
-		subject->triggerCooldown(action->identifier(), action->cooldown());
-	}
-
-	if (!action->isOffGlobalCooldown()) {
-		subject->triggerGlobalCooldown();
-	}
-
-	subject->setTP(subject->tp() - action->tpCost() + action->tpRestoration());
-	subject->setMP(subject->mp() - action->mpCost());
-
-	Damage damage;
-
-	if (action->damage()) {
-		damage = target->acceptDamage(subject->generateDamage(action));
-	}
-
-	for (auto& kv : subject->auras()) {
-		if (action->dispelsSubjectAura(kv.second.aura)) {
-			subject->dispelAura(kv.second.aura->identifier());
-			break;
+void Simulation::_resolveAction(const Action* action, Actor* subject, Actor* target) {
+	if (action->castTime().count()) {
+		if (subject->beginCast(action, target)) {
+			std::chrono::microseconds remaining;
+			if (subject->currentCast(&remaining)) {
+				_schedule([&] {
+					_checkActors();
+				}, remaining);
+			}
 		}
-	}
-
-	for (auto& kv : target->auras()) {
-		if (action->dispelsTargetAura(kv.second.aura)) {
-			target->dispelAura(kv.second.aura->identifier());
-			break;
+	} else if (action->resolve(subject, target)) {
+		if (!action->isOffGlobalCooldown()) {
+			_schedule([&] {
+				_checkActors();
+			}, subject->globalCooldownRemaining());
 		}
-	}
-
-	for (auto& aura : action->subjectAuras()) {
-		subject->applyAura(subject, aura);
-	}
-
-	for (auto& aura : action->targetAuras()) {
-		target->applyAura(subject, aura);
-	}
-
-	subject->integrateDamageStats(damage, action->identifier().c_str());
-
-	if (!action->isOffGlobalCooldown()) {
+	
 		_schedule([&] {
 			_checkActors();
-		}, subject->globalCooldownRemaining());
+		});
 	}
-
-	_schedule([&] {
-		_checkActors();
-	});
 }
