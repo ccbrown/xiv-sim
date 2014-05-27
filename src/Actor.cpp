@@ -156,6 +156,10 @@ std::chrono::microseconds Actor::globalCooldownRemaining() const {
 	return elapsed < gcd ? gcd - elapsed : 0_us;
 }
 
+std::chrono::microseconds Actor::animationLockRemaining() const {
+	return _time >= _animationLockEndTime ? 0_us : (_animationLockEndTime - _time);
+}
+
 void Actor::applyAura(const Aura* aura, Actor* source) {
 	for (auto& kv : _auras) {
 		if (kv.second.aura->providesImmunity(aura)) {
@@ -264,7 +268,7 @@ std::chrono::microseconds Actor::cooldownRemaining(const std::string& identifier
 bool Actor::beginCast(const Action* action, Actor* target) {
 	if (mp() < action->mpCost()) { return false; }
 		
-	if (currentCast() || isOnGlobalCooldown()) { return false; }
+	if (currentCast() || globalCooldownRemaining().count() || animationLockRemaining().count()) { return false; }
 
 	_castAction = action;
 	_castTarget = target;
@@ -287,6 +291,10 @@ const Action* Actor::currentCast(std::chrono::microseconds* remaining, Actor** t
 
 void Actor::triggerGlobalCooldown() {
 	_globalCooldownStartTime = _time;
+}
+
+void Actor::triggerAnimationLock(std::chrono::microseconds duration) {
+	_animationLockEndTime = _time + duration;
 }
 
 void Actor::_integrateAuraApplicationCountChange(const char* identifier, int count) {

@@ -111,15 +111,14 @@ class Actor {
 
 		std::chrono::microseconds autoAttackDelayRemaining() const;
 		std::chrono::microseconds globalCooldownRemaining() const;
-		
+		std::chrono::microseconds animationLockRemaining() const;
+
 		void applyAura(const Aura* aura, Actor* source);
 		void dispelAura(const std::string& identifier, Actor* source, int count = 1);
 		void extendAura(const std::string& identifier, Actor* source, const std::chrono::microseconds& extension);
 
 		int auraCount(const std::string& identifier, const Actor* source) const;
 		std::chrono::microseconds auraTimeRemaining(const std::string& identifier, const Actor* source) const;
-
-		bool isOnGlobalCooldown() const { return globalCooldownRemaining() > 0_us; }
 
 		double damageMultiplier() const;
 		double autoAttackSpeedMultiplier() const;
@@ -135,6 +134,7 @@ class Actor {
 		const Action* currentCast(std::chrono::microseconds* remaining = nullptr, Actor** target = nullptr) const;
 
 		void triggerGlobalCooldown();
+		void triggerAnimationLock(std::chrono::microseconds duration);
 
 		int tp() const { return _tp; }
 		void setTP(int tp) { _tp = std::min(tp, 1000); }
@@ -185,7 +185,9 @@ class Actor {
 			std::chrono::microseconds time = 0_us;
 			std::chrono::microseconds duration = 0_us;
 		};
-		
+
+		std::chrono::microseconds _animationLockEndTime = 0_us;
+
 		int _tp = 1000;
 		int _mp = 0;
 

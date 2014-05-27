@@ -17,7 +17,9 @@ bool Action::isReady(const Actor* source) const {
 bool Action::isUsable(const Actor* source) const {
 	if (source->currentCast()) { return false; }
 	
-	if (!isOffGlobalCooldown() && source->isOnGlobalCooldown()) { return false; }
+	if (!isOffGlobalCooldown() && source->globalCooldownRemaining().count()) { return false; }
+		
+	if (source->animationLockRemaining().count()) { return false; }
 
 	if (source->tp() < tpCost() || source->mp() < mpCost()) { return false; }
 
@@ -34,6 +36,8 @@ bool Action::resolve(Actor* source, Actor* target) const {
 	if (!isOffGlobalCooldown()) {
 		source->triggerGlobalCooldown();
 	}
+	
+	source->triggerAnimationLock(animationLock());
 
 	source->setTP(source->tp() - tpCost() + tpRestoration());
 	source->setMP(source->mp() - mpCost() + mpRestoration(source));

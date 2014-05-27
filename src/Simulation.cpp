@@ -107,7 +107,11 @@ void Simulation::_resolveAction(const Action* action, Actor* subject, Actor* tar
 				_checkActors();
 			}, subject->globalCooldownRemaining());
 		}
-	
+
+		_schedule([&] {
+			_checkActors();
+		}, subject->animationLockRemaining());
+
 		_schedule([&] {
 			_checkActors();
 		});
