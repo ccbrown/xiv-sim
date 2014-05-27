@@ -10,8 +10,8 @@ if (IsReady(self, "internal-release"))
 if (IsReady(self, "full-thrust-combo")) {
 	if (IsReady(self, "life-surge"))
 		perform "life-surge";
-	else if (AuraCount(self, "life-surge", self))
-		perform "full-thrust-combo";
+
+	perform "full-thrust-combo";
 }
 
 if (IsReady(self, "vorpal-thrust-combo"))
