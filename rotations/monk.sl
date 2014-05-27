@@ -3,54 +3,54 @@ var isRaptorForm = AuraCount(self, "raptor-form", self) or AuraCount(self, "perf
 var isCoeurlForm = AuraCount(self, "coeurl-form", self) or AuraCount(self, "perfect-balance", self);
 
 if (!AuraCount(self, "fists-of-fire", self))
-	perform "fists-of-fire";
+	use "fists-of-fire";
 
 if (TP(self) <= 600 and IsReady(self, "invigorate"))
-	perform "invigorate";
+	use "invigorate";
 
 if (IsReady(self, "blood-for-blood"))
-	perform "blood-for-blood";
+	use "blood-for-blood";
 
 if (IsReady(self, "internal-release"))
-	perform "internal-release";
+	use "internal-release";
 
 if (!AuraCount(self, "greased-lightning", self) and IsReady(self, "perfect-balance"))
-	perform "perfect-balance";
+	use "perfect-balance";
 
 if (AuraCount(self, "greased-lightning", self) == 3 and AuraCount(self, "twin-snakes", self)) {
 	if (IsReady(self, "steel-peak"))
-		perform "steel-peak";
+		use "steel-peak";
 
 	if (IsReady(self, "howling-fist"))
-		perform "howling-fist";
+		use "howling-fist";
 }
 
 if (AuraTimeRemaining(target, "demolish-dot", self) < 4.0 and isCoeurlForm)
-	perform "demolish-rear";
+	use "demolish-rear";
 
 if (TP(self) >= 300 and !AuraCount(target, "touch-of-death-dot", self))
-	perform "touch-of-death";
+	use "touch-of-death";
 
 if ((AuraTimeRemaining(self, "greased-lightning", self) < 4.0 or AuraCount(self, "greased-lightning", self) < 3) and isCoeurlForm) {
 	if (AuraTimeRemaining(target, "demolish-dot", self) < 4.0)
-		perform "demolish-rear";
+		use "demolish-rear";
 	else
-		perform "snap-punch-flank";
+		use "snap-punch-flank";
 }
 
 if (isRaptorForm and AuraTimeRemaining(self, "twin-snakes", self) < 4.0)
-	perform "twin-snakes-flank";
+	use "twin-snakes-flank";
 
 if (isOpoOpoForm and AuraTimeRemaining(target, "dragon-kick", self) < 4.0 and !AuraCount(self, "perfect-balance", self))
-	perform "dragon-kick-flank-opo-opo";
+	use "dragon-kick-flank-opo-opo";
 
 if (isOpoOpoForm)
-	perform "bootshine-rear-opo-opo";
+	use "bootshine-rear-opo-opo";
 
 if (isRaptorForm)
-	perform "true-strike-rear";
+	use "true-strike-rear";
 
 if (isCoeurlForm)
-	perform "snap-punch-flank";
+	use "snap-punch-flank";
 
-perform "bootshine-rear";
+use "bootshine-rear";

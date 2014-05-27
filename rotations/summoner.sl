@@ -4,27 +4,27 @@ if (!CooldownRemaining(garuda, "contagion") and AuraTimeRemaining(target, "bio-d
 	Command(garuda, "contagion");
 
 if (!CooldownRemaining(self, "aetherflow"))
-	perform "aetherflow";
+	use "aetherflow";
 
 if (!CooldownRemaining(self, "rouse"))
-	perform "rouse";
+	use "rouse";
 
 if (!CooldownRemaining(self, "spur"))
-	perform "spur";
+	use "spur";
 
 if (!AuraCount(target, "bio-dot", self))
-	perform "bio";
+	use "bio";
 
 if (AuraTimeRemaining(target, "miasma-dot", self) < 2.0)
-	perform "miasma";
+	use "miasma";
 
 if (AuraTimeRemaining(target, "bio-ii-dot", self) < 2.0)
-	perform "bio-ii";
+	use "bio-ii";
 
 if (AuraCount(self, "aetherflow", self) && !CooldownRemaining(self, "fester"))
-	perform "fester";
+	use "fester";
 
 if (MP(self) > 500)
-	perform "ruin-ii";
+	use "ruin-ii";
 
-perform "ruin";
+use "ruin";

@@ -28,7 +28,7 @@ Parser::Parser() {
 	_keywords.insert("const");
 	_keywords.insert("__end");
 	_keywords.insert("extern");
-	_keywords.insert("perform");
+	_keywords.insert("use");
 	_keywords.insert("return");
 	_keywords.insert("import");
 	_keywords.insert("if");
@@ -175,7 +175,7 @@ bool Parser::_peek(ParserTokenType type, TokenIterator* next) {
 		case ptt_keyword_end:
 			return _peek(ptt_keyword) && tok->value() == "__end";
 		case ptt_keyword_return:
-			return _peek(ptt_keyword) && (tok->value() == "return" || tok->value() == "perform");
+			return _peek(ptt_keyword) && (tok->value() == "return" || tok->value() == "use");
 		case ptt_keyword_import:
 			return _peek(ptt_keyword) && tok->value() == "import";
 		case ptt_keyword_if:
