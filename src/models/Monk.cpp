@@ -16,9 +16,9 @@ Monk::Monk() {
 			};
 	
 			Skill() : Action("fists-of-fire") {
-				_subjectAuras.push_back(new Buff());
+				_sourceAuras.push_back(new Buff());
 			}
-			virtual bool isOffGlobalCooldown() const { return true; }
+			virtual bool isOffGlobalCooldown() const override { return true; }
 		};
 		
 		_registerAction<Skill>();
@@ -44,8 +44,8 @@ Monk::Monk() {
 		virtual std::chrono::microseconds duration() const override { return 12_s; }
 		virtual int maximumCount() const override { return 3; }
 		virtual double increasedDamage() const override { return 0.09; }
-		virtual double increasedAutoAttackSpeed() const { return 0.05; }
-		virtual double reducedGlobalCooldown() const { return 0.05; }
+		virtual double increasedAutoAttackSpeed() const override { return 0.05; }
+		virtual double reducedGlobalCooldown() const override { return 0.05; }
 	};
 
 	{
@@ -62,11 +62,14 @@ Monk::Monk() {
 			
 			Skill() : Action("dragon-kick-flank-opo-opo") {
 				_targetAuras.push_back(new Debuff());
-				_subjectAuras.push_back(new RaptorForm());
+				_sourceAuras.push_back(new RaptorForm());
 			}
 			virtual int damage() const override { return 150; }
 			virtual int tpCost() const override { return 60; }
-			virtual int dispelsSubjectAura(const Aura* aura) const override { return aura->identifier() == "opo-opo-form" ? 1 : 0; }
+			virtual int dispelsSourceAura(const Aura* aura) const override { return aura->identifier() == "opo-opo-form" ? 1 : 0; }
+			virtual bool requirements(const Actor* source) const override {
+				return source->auraCount("opo-opo-form", source) || source->auraCount("perfect-balance", source);
+			}
 		};
 
 		_registerAction<Skill>();
@@ -75,11 +78,11 @@ Monk::Monk() {
 	{
 		struct Skill : Action {
 			Skill() : Action("bootshine-rear") {
-				_subjectAuras.push_back(new RaptorForm());
+				_sourceAuras.push_back(new RaptorForm());
 			}
 			virtual int damage() const override { return 150; }
 			virtual int tpCost() const override { return 60; }
-			virtual int dispelsSubjectAura(const Aura* aura) const override { return aura->identifier() == "opo-opo-form" ? 1 : 0; }
+			virtual int dispelsSourceAura(const Aura* aura) const override { return aura->identifier() == "opo-opo-form" ? 1 : 0; }
 		};
 		
 		_registerAction<Skill>();
@@ -88,12 +91,15 @@ Monk::Monk() {
 	{
 		struct Skill : Action {
 			Skill() : Action("bootshine-rear-opo-opo") {
-				_subjectAuras.push_back(new RaptorForm());
+				_sourceAuras.push_back(new RaptorForm());
 			}
 			virtual int damage() const override { return 150; }
 			virtual int tpCost() const override { return 60; }
 			virtual double criticalHitChance(double base) const override { return 1.0; }
-			virtual int dispelsSubjectAura(const Aura* aura) const override { return aura->identifier() == "opo-opo-form" ? 1 : 0; }
+			virtual int dispelsSourceAura(const Aura* aura) const override { return aura->identifier() == "opo-opo-form" ? 1 : 0; }
+			virtual bool requirements(const Actor* source) const override {
+				return source->auraCount("opo-opo-form", source) || source->auraCount("perfect-balance", source);
+			}
 		};
 		
 		_registerAction<Skill>();
@@ -108,12 +114,15 @@ Monk::Monk() {
 			};
 			
 			Skill() : Action("twin-snakes-flank") {
-				_subjectAuras.push_back(new Buff());
-				_subjectAuras.push_back(new CoeurlForm());
+				_sourceAuras.push_back(new Buff());
+				_sourceAuras.push_back(new CoeurlForm());
 			}
 			virtual int damage() const override { return 140; }
 			virtual int tpCost() const override { return 60; }
-			virtual int dispelsSubjectAura(const Aura* aura) const override { return aura->identifier() == "raptor-form" ? 1 : 0; }
+			virtual int dispelsSourceAura(const Aura* aura) const override { return aura->identifier() == "raptor-form" ? 1 : 0; }
+			virtual bool requirements(const Actor* source) const override {
+				return source->auraCount("raptor-form", source) || source->auraCount("perfect-balance", source);
+			}
 		};
 
 		_registerAction<Skill>();
@@ -122,11 +131,14 @@ Monk::Monk() {
 	{
 		struct Skill : Action {
 			Skill() : Action("true-strike-rear") {
-				_subjectAuras.push_back(new CoeurlForm());
+				_sourceAuras.push_back(new CoeurlForm());
 			}
 			virtual int damage() const override { return 190; }
 			virtual int tpCost() const override { return 50; }
-			virtual int dispelsSubjectAura(const Aura* aura) const override { return aura->identifier() == "raptor-form" ? 1 : 0; }
+			virtual int dispelsSourceAura(const Aura* aura) const override { return aura->identifier() == "raptor-form" ? 1 : 0; }
+			virtual bool requirements(const Actor* source) const override {
+				return source->auraCount("raptor-form", source) || source->auraCount("perfect-balance", source);
+			}
 		};
 		
 		_registerAction<Skill>();
@@ -135,12 +147,15 @@ Monk::Monk() {
 	{
 		struct Skill : Action {
 			Skill() : Action("snap-punch-flank") {
-				_subjectAuras.push_back(new OpoOpoForm());
-				_subjectAuras.push_back(new GreasedLightning());
+				_sourceAuras.push_back(new OpoOpoForm());
+				_sourceAuras.push_back(new GreasedLightning());
 			}
 			virtual int damage() const override { return 180; }
 			virtual int tpCost() const override { return 50; }
-			virtual int dispelsSubjectAura(const Aura* aura) const override { return aura->identifier() == "coeurl-form" ? 1 : 0; }
+			virtual int dispelsSourceAura(const Aura* aura) const override { return aura->identifier() == "coeurl-form" ? 1 : 0; }
+			virtual bool requirements(const Actor* source) const override {
+				return source->auraCount("coeurl-form", source) || source->auraCount("perfect-balance", source);
+			}
 		};
 		
 		_registerAction<Skill>();
@@ -151,17 +166,20 @@ Monk::Monk() {
 			struct DoT : Aura {
 				DoT() : Aura("demolish-dot") {}
 				virtual std::chrono::microseconds duration() const override { return 18_s; }
-				virtual int tickDamage() const { return 40; }
+				virtual int tickDamage() const override { return 40; }
 			};
 			
 			Skill() : Action("demolish-rear") {
-				_subjectAuras.push_back(new OpoOpoForm());
-				_subjectAuras.push_back(new GreasedLightning());
+				_sourceAuras.push_back(new OpoOpoForm());
+				_sourceAuras.push_back(new GreasedLightning());
 				_targetAuras.push_back(new DoT());
 			}
 			virtual int damage() const override { return 70; }
 			virtual int tpCost() const override { return 50; }
-			virtual int dispelsSubjectAura(const Aura* aura) const override { return aura->identifier() == "coeurl-form" ? 1 : 0; }
+			virtual int dispelsSourceAura(const Aura* aura) const override { return aura->identifier() == "coeurl-form" ? 1 : 0; }
+			virtual bool requirements(const Actor* source) const override {
+				return source->auraCount("coeurl-form", source) || source->auraCount("perfect-balance", source);
+			}
 		};
 	
 		_registerAction<Skill>();
@@ -171,7 +189,7 @@ Monk::Monk() {
 		struct DoT : Aura {
 			DoT() : Aura("touch-of-death-dot") {}
 			virtual std::chrono::microseconds duration() const override { return 30_s; }
-			virtual int tickDamage() const { return 25; }
+			virtual int tickDamage() const override { return 25; }
 		};
 		
 		struct Skill : Action {
@@ -189,8 +207,8 @@ Monk::Monk() {
 		struct Skill : Action {
 			Skill() : Action("steel-peak") {}
 			virtual int damage() const override { return 150; }
-			virtual bool isOffGlobalCooldown() const { return true; }
-			virtual std::chrono::microseconds cooldown() const { return 40_s; }
+			virtual bool isOffGlobalCooldown() const override { return true; }
+			virtual std::chrono::microseconds cooldown() const override { return 40_s; }
 		};
 		
 		_registerAction<Skill>();
@@ -200,8 +218,8 @@ Monk::Monk() {
 		struct Skill : Action {
 			Skill() : Action("howling-fist") {}
 			virtual int damage() const override { return 170; }
-			virtual bool isOffGlobalCooldown() const { return true; }
-			virtual std::chrono::microseconds cooldown() const { return 60_s; }
+			virtual bool isOffGlobalCooldown() const override { return true; }
+			virtual std::chrono::microseconds cooldown() const override { return 60_s; }
 		};
 		
 		_registerAction<Skill>();
@@ -216,10 +234,10 @@ Monk::Monk() {
 			};
 
 			Skill() : Action("internal-release") {
-				_subjectAuras.push_back(new Buff());
+				_sourceAuras.push_back(new Buff());
 			}
-			virtual bool isOffGlobalCooldown() const { return true; }
-			virtual std::chrono::microseconds cooldown() const { return 60_s; }
+			virtual bool isOffGlobalCooldown() const override { return true; }
+			virtual std::chrono::microseconds cooldown() const override { return 60_s; }
 		};
 		
 		_registerAction<Skill>();
@@ -234,10 +252,10 @@ Monk::Monk() {
 			};
 			
 			Skill() : Action("blood-for-blood") {
-				_subjectAuras.push_back(new Buff());
+				_sourceAuras.push_back(new Buff());
 			}
-			virtual bool isOffGlobalCooldown() const { return true; }
-			virtual std::chrono::microseconds cooldown() const { return 80_s; }
+			virtual bool isOffGlobalCooldown() const override { return true; }
+			virtual std::chrono::microseconds cooldown() const override { return 80_s; }
 		};
 		
 		_registerAction<Skill>();
@@ -246,8 +264,8 @@ Monk::Monk() {
 	{
 		struct Skill : Action {
 			Skill() : Action("invigorate") {}
-			virtual bool isOffGlobalCooldown() const { return true; }
-			virtual std::chrono::microseconds cooldown() const { return 120_s; }
+			virtual bool isOffGlobalCooldown() const override { return true; }
+			virtual std::chrono::microseconds cooldown() const override { return 120_s; }
 			virtual int tpRestoration() const override { return 400; }
 		};
 		
@@ -265,11 +283,11 @@ Monk::Monk() {
 			};
 			
 			Skill() : Action("perfect-balance") {
-				_subjectAuras.push_back(new Buff());
+				_sourceAuras.push_back(new Buff());
 			}
-			virtual bool isOffGlobalCooldown() const { return true; }
-			virtual std::chrono::microseconds cooldown() const { return 240_s; }
-			virtual int dispelsSubjectAura(const Aura* aura) const override {
+			virtual bool isOffGlobalCooldown() const override { return true; }
+			virtual std::chrono::microseconds cooldown() const override { return 240_s; }
+			virtual int dispelsSourceAura(const Aura* aura) const override {
 				return (aura->identifier() == "opo-opo-form" || aura->identifier() == "raptor-form" || aura->identifier() == "coeurl-form") ? 1 : 0;
 			}
 		};
@@ -282,7 +300,7 @@ Monk::Monk() {
 			struct DoT : Aura {
 				DoT() : Aura("fracture-dot") {}
 				virtual std::chrono::microseconds duration() const override { return 18_s; }
-				virtual int tickDamage() const { return 20; }
+				virtual int tickDamage() const override { return 20; }
 			};
 
 			Skill() : Action("fracture") {

@@ -3,6 +3,7 @@
 #include "../PetRotation.h"
 #include "../Simulation.h"
 
+#include "../models/Dragoon.h"
 #include "../models/Garuda.h"
 #include "../models/Monk.h"
 #include "../models/Summoner.h"
@@ -10,6 +11,8 @@
 #include <memory>
 #include <cstring>
 #include <map>
+
+#include <inttypes.h>
 
 namespace applications {
 
@@ -36,6 +39,8 @@ int SingleJSON(int argc, const char* argv[]) {
 
 	if (!strcmp(argv[0], "monk")) {
 		model.reset(new models::Monk());
+	} else if (!strcmp(argv[0], "dragoon")) {
+		model.reset(new models::Dragoon());
 	} else if (!strcmp(argv[0], "summoner")) {
 		model.reset(new models::Summoner());
 		
@@ -104,7 +109,7 @@ int SingleJSON(int argc, const char* argv[]) {
 
 	printf("{");
 
-	printf("\"length\":%lld,\"damage\":%d,\"dps\":%f,", configuration.length.count(), mergedStats.damageDealt, mergedStats.damageDealt / (double)simulationSeconds);
+	printf("\"length\":%" PRId64 ",\"damage\":%d,\"dps\":%f,", configuration.length.count(), mergedStats.damageDealt, mergedStats.damageDealt / (double)simulationSeconds);
 
 	printf("\"subjects\":{");
 
@@ -137,7 +142,7 @@ int SingleJSON(int argc, const char* argv[]) {
 			bool first = true;
 			for (auto& sample : stats.tpSamples) {
 				if (!first) { printf(","); }
-				printf("[%lld,%d]", sample.first.count(), sample.second);
+				printf("[%" PRId64 ",%d]", sample.first.count(), sample.second);
 				first = false;
 			}
 			printf("],");
@@ -148,7 +153,7 @@ int SingleJSON(int argc, const char* argv[]) {
 			bool first = true;
 			for (auto& sample : stats.mpSamples) {
 				if (!first) { printf(","); }
-				printf("[%lld,%d]", sample.first.count(), sample.second);
+				printf("[%" PRId64 ",%d]", sample.first.count(), sample.second);
 				first = false;
 			}
 			printf("],");
@@ -166,7 +171,7 @@ int SingleJSON(int argc, const char* argv[]) {
 					if (!firstSample) {
 						printf(",");
 					}
-					printf("[%lld,%d]", sample.first.count(), sample.second);
+					printf("[%" PRId64 ",%d]", sample.first.count(), sample.second);
 					firstSample = false;
 				}
 				printf("]");

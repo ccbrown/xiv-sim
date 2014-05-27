@@ -19,5 +19,6 @@ class JITRotation : public Rotation {
 		static const Actor* ActorPet(const Actor* actor);
 		static uint64_t ActorTP(const Actor* actor);
 		static uint64_t ActorMP(const Actor* actor);
+		static uint8_t ActionIsReady(const Actor* actor, const char* identifier);
 		static void ActorCommand(Actor* actor, const char* identifier);
 };

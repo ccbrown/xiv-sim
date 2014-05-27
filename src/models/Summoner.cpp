@@ -12,7 +12,7 @@ Summoner::Summoner() {
 			struct DoT : Aura {
 				DoT() : Aura("bio-dot") {}
 				virtual std::chrono::microseconds duration() const override { return 18_s; }
-				virtual int tickDamage() const { return 40; }
+				virtual int tickDamage() const override { return 40; }
 			};
 			
 			Spell() : Action("bio") {
@@ -29,7 +29,7 @@ Summoner::Summoner() {
 			struct DoT : Aura {
 				DoT() : Aura("bio-ii-dot") {}
 				virtual std::chrono::microseconds duration() const override { return 30_s; }
-				virtual int tickDamage() const { return 30; }
+				virtual int tickDamage() const override { return 30; }
 			};
 			
 			Spell() : Action("bio-ii") {
@@ -46,7 +46,7 @@ Summoner::Summoner() {
 			struct DoT : Aura {
 				DoT() : Aura("miasma-dot") {}
 				virtual std::chrono::microseconds duration() const override { return 24_s; }
-				virtual int tickDamage() const { return 35; }
+				virtual int tickDamage() const override { return 35; }
 			};
 			
 			Spell() : Action("miasma") {
@@ -64,7 +64,7 @@ Summoner::Summoner() {
 			struct DoT : Aura {
 				DoT() : Aura("miasma-ii-dot") {}
 				virtual std::chrono::microseconds duration() const override { return 15_s; }
-				virtual int tickDamage() const { return 10; }
+				virtual int tickDamage() const override { return 10; }
 			};
 			
 			Spell() : Action("miasma-ii") {
@@ -103,7 +103,7 @@ Summoner::Summoner() {
 			struct DoT : Aura {
 				DoT() : Aura("shadow-flare-dot") {}
 				virtual std::chrono::microseconds duration() const override { return 30_s; }
-				virtual int tickDamage() const { return 25; }
+				virtual int tickDamage() const override { return 25; }
 			};
 
 			Spell() : Action("shadow-flare") {
@@ -125,10 +125,10 @@ Summoner::Summoner() {
 			};
 			
 			Skill() : Action("raging-strikes") {
-				_subjectAuras.push_back(new Buff());
+				_sourceAuras.push_back(new Buff());
 			}
-			virtual bool isOffGlobalCooldown() const { return true; }
-			virtual std::chrono::microseconds cooldown() const { return 180_s; }
+			virtual bool isOffGlobalCooldown() const override { return true; }
+			virtual std::chrono::microseconds cooldown() const override { return 180_s; }
 		};
 		
 		_registerAction<Skill>();
@@ -143,13 +143,13 @@ Summoner::Summoner() {
 			};
 
 			Spell() : Action("aetherflow") {
-				_subjectAuras.push_back(new Buff());
-				_subjectAuras.push_back(new Buff());
-				_subjectAuras.push_back(new Buff());
+				_sourceAuras.push_back(new Buff());
+				_sourceAuras.push_back(new Buff());
+				_sourceAuras.push_back(new Buff());
 			}
-			virtual bool isOffGlobalCooldown() const { return true; }
-			virtual std::chrono::microseconds cooldown() const { return 60_s; }
-			virtual int mpRestoration(const Actor* subject) const { return subject->maximumMP() * 0.20; }
+			virtual bool isOffGlobalCooldown() const override { return true; }
+			virtual std::chrono::microseconds cooldown() const override { return 60_s; }
+			virtual int mpRestoration(const Actor* subject) const override { return subject->maximumMP() * 0.20; }
 		};
 
 		_registerAction<Spell>();
@@ -158,12 +158,15 @@ Summoner::Summoner() {
 	{		
 		struct Spell : Action {
 			Spell() : Action("fester") {}
-			virtual std::chrono::microseconds cooldown() const { return 10_s; }
-			virtual int dispelsSubjectAura(const Aura* aura) const override {
+			virtual std::chrono::microseconds cooldown() const override { return 10_s; }
+			virtual int dispelsSourceAura(const Aura* aura) const override {
 				return aura->identifier() == "aetherflow" ? 1 : 0;
 			}
 			virtual int damage(const Actor* source, const Actor* target) const override {
 				return (target->auraCount("bio-dot", source) ? 100 : 0) + (target->auraCount("bio-ii-dot", source) ? 100 : 0) + (target->auraCount("miasma-dot", source) ? 100 : 0);
+			}
+			virtual bool requirements(const Actor* source) const override {
+				return source->auraCount("aetherflow", source);
 			}
 		};
 		
@@ -179,8 +182,8 @@ Summoner::Summoner() {
 			} buff;
 
 			Spell() : Action("rouse") {}
-			virtual bool isOffGlobalCooldown() const { return true; }
-			virtual std::chrono::microseconds cooldown() const { return 60_s; }
+			virtual bool isOffGlobalCooldown() const override { return true; }
+			virtual std::chrono::microseconds cooldown() const override { return 60_s; }
 			virtual void resolution(Actor* source, Actor* target) const override {
 				source->pet()->applyAura(&buff, source);
 			}
@@ -201,8 +204,8 @@ Summoner::Summoner() {
 			} buff;
 
 			Spell() : Action("spur") {}
-			virtual bool isOffGlobalCooldown() const { return true; }
-			virtual std::chrono::microseconds cooldown() const { return 120_s; }
+			virtual bool isOffGlobalCooldown() const override { return true; }
+			virtual std::chrono::microseconds cooldown() const override { return 120_s; }
 			virtual void resolution(Actor* source, Actor* target) const override {
 				source->pet()->applyAura(&buff, source);
 			}

@@ -13,8 +13,10 @@ class Action {
 	public:
 		Action(const char* identifier) : _identifier(identifier) {}
 		virtual ~Action();
-		
-		bool resolve(Actor* subject, Actor* target) const;
+
+		bool isReady(const Actor* source) const;
+		bool isUsable(const Actor* source) const;
+		bool resolve(Actor* source, Actor* target) const;
 
 		virtual const std::string& identifier() const { return _identifier; }
 
@@ -26,10 +28,10 @@ class Action {
 
 		virtual double criticalHitChance(double base) const { return base; }
 
-		virtual const std::vector<Aura*>& subjectAuras() const { return _subjectAuras; }
+		virtual const std::vector<Aura*>& sourceAuras() const { return _sourceAuras; }
 		virtual const std::vector<Aura*>& targetAuras() const { return _targetAuras; }
 
-		virtual int dispelsSubjectAura(const Aura* aura) const { return 0; }
+		virtual int dispelsSourceAura(const Aura* aura) const { return 0; }
 		virtual int dispelsTargetAura(const Aura* aura) const { return 0; }
 
 		virtual int tpCost() const { return 0; }
@@ -41,9 +43,10 @@ class Action {
 	protected:
 		const std::string _identifier;
 	
-		std::vector<Aura*> _subjectAuras;
+		std::vector<Aura*> _sourceAuras;
 		std::vector<Aura*> _targetAuras;
 
 		virtual int damage() const { return 0; }
 		virtual void resolution(Actor* source, Actor* target) const {}
+		virtual bool requirements(const Actor* source) const { return true; }
 };

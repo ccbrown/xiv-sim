@@ -101,7 +101,7 @@ void Simulation::_resolveAction(const Action* action, Actor* subject, Actor* tar
 				}, remaining);
 			}
 		}
-	} else if (action->resolve(subject, target)) {
+	} else if (subject->completeAction(action, target)) {
 		if (!action->isOffGlobalCooldown()) {
 			_schedule([&] {
 				_checkActors();

@@ -77,7 +77,7 @@ void Actor::advanceTime(const std::chrono::microseconds& time) {
 		auto target = _castTarget;
 		_castAction = nullptr;
 		_castTarget = nullptr;
-		action->resolve(this, target);
+		completeAction(action, target);
 		_lastAutoAttackTime = _time;
 		_globalCooldownStartTime = _castStartTime;
 	}
@@ -121,6 +121,21 @@ void Actor::advanceTime(const std::chrono::microseconds& time) {
 Damage Actor::performAutoAttack() {
 	_lastAutoAttackTime = _time;
 	return _configuration->model->generateAutoAttackDamage(this);
+}
+
+bool Actor::completeAction(const Action* action, Actor* target) {
+	if (action->resolve(this, target)) {
+		if (!action->isOffGlobalCooldown()) {
+			_comboAction = action;
+			_comboActionTime = _time;
+		}
+		return true;
+	}
+	return false;
+}
+
+const Action* Actor::comboAction() const {
+	return (_comboAction && _time - _comboActionTime <= 10_s) ? _comboAction : nullptr;
 }
 
 int Actor::maximumMP() const {

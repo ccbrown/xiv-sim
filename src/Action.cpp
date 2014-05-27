@@ -4,39 +4,49 @@
 #include "Aura.h"
 
 Action::~Action() {
-	for (auto& aura : _subjectAuras) { delete aura; }
+	for (auto& aura : _sourceAuras) { delete aura; }
 	for (auto& aura : _targetAuras) { delete aura; }
 }
 
-bool Action::resolve(Actor* subject, Actor* target) const {
-	if (subject->currentCast()) { return false; }
-	
-	if (!isOffGlobalCooldown() && subject->isOnGlobalCooldown()) { return false; }
+bool Action::isReady(const Actor* source) const {
+	if (cooldown().count() && source->cooldownRemaining(identifier()).count()) { return false; }
+			
+	return requirements(source);
+}
 
-	if (subject->tp() < tpCost() || subject->mp() < mpCost()) { return false; }
+bool Action::isUsable(const Actor* source) const {
+	if (source->currentCast()) { return false; }
+	
+	if (!isOffGlobalCooldown() && source->isOnGlobalCooldown()) { return false; }
+
+	if (source->tp() < tpCost() || source->mp() < mpCost()) { return false; }
+
+	return isReady(source);
+}
+
+bool Action::resolve(Actor* source, Actor* target) const {
+	if (!isUsable(source)) { return false; }
 
 	if (cooldown().count()) {
-		if (subject->cooldownRemaining(identifier()).count()) { return false; }
-
-		subject->triggerCooldown(identifier(), cooldown());
+		source->triggerCooldown(identifier(), cooldown());
 	}
 
 	if (!isOffGlobalCooldown()) {
-		subject->triggerGlobalCooldown();
+		source->triggerGlobalCooldown();
 	}
 
-	subject->setTP(subject->tp() - tpCost() + tpRestoration());
-	subject->setMP(subject->mp() - mpCost() + mpRestoration(subject));
+	source->setTP(source->tp() - tpCost() + tpRestoration());
+	source->setMP(source->mp() - mpCost() + mpRestoration(source));
 
 	Damage damage;
 
-	if (this->damage(subject, target)) {
-		damage = target->acceptDamage(subject->generateDamage(this, target));
+	if (this->damage(source, target)) {
+		damage = target->acceptDamage(source->generateDamage(this, target));
 	}
 
-	for (auto& kv : subject->auras()) {
-		if (int count = dispelsSubjectAura(kv.second.aura)) {
-			subject->dispelAura(kv.second.aura->identifier(), kv.first.second, count);
+	for (auto& kv : source->auras()) {
+		if (int count = dispelsSourceAura(kv.second.aura)) {
+			source->dispelAura(kv.second.aura->identifier(), kv.first.second, count);
 			break;
 		}
 	}
@@ -48,17 +58,17 @@ bool Action::resolve(Actor* subject, Actor* target) const {
 		}
 	}
 
-	for (auto& aura : subjectAuras()) {
-		subject->applyAura(aura, subject);
+	for (auto& aura : sourceAuras()) {
+		source->applyAura(aura, source);
 	}
 
 	for (auto& aura : targetAuras()) {
-		target->applyAura(aura, subject);
+		target->applyAura(aura, source);
 	}
 	
-	resolution(subject, target);
+	resolution(source, target);
 
-	subject->integrateDamageStats(damage, identifier().c_str());
+	source->integrateDamageStats(damage, identifier().c_str());
 
 	return true;
 }

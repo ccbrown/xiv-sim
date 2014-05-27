@@ -104,6 +104,10 @@ class Actor {
 
 		void advanceTime(const std::chrono::microseconds& time);
 		Damage performAutoAttack();
+		
+		bool completeAction(const Action* action, Actor* target);
+
+		const Action* comboAction() const;
 
 		std::chrono::microseconds autoAttackDelayRemaining() const;
 		std::chrono::microseconds globalCooldownRemaining() const;
@@ -160,6 +164,9 @@ class Actor {
 		Actor* _owner = nullptr;
 		
 		const Action* _command = nullptr;
+
+		const Action* _comboAction = nullptr;
+		std::chrono::microseconds _comboActionTime = -1_min;
 
 		Stats _stats;
 		Stats _baseStats;

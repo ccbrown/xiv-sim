@@ -1,6 +1,7 @@
 #include "JITRotation.h"
 
 #include "Actor.h"
+#include "Action.h"
 #include "Model.h"
 
 #include "compiler/Preprocessor.h"
@@ -19,6 +20,7 @@ bool JITRotation::initializeWithFile(const char* filename) {
 		"const Actor* Pet(const Actor* owner);\n"
 		"uint64 TP(const Actor* actor);\n"
 		"uint64 MP(const Actor* actor);\n"
+		"uint8 IsReady(const Actor* actor, const uint8* identifier);\n"
 		"void Command(const Actor* actor, const uint8* identifier);\n"
 		"__end __hidden const uint8* NextAction(const Actor* self, const Actor* target) {\n"
 	;
@@ -120,6 +122,7 @@ bool JITRotation::initializeWithFile(const char* filename) {
 	engine->addGlobalMapping(module->getFunction("^Pet"), (void*)&JITRotation::ActorPet);
 	engine->addGlobalMapping(module->getFunction("^TP"), (void*)&JITRotation::ActorTP);
 	engine->addGlobalMapping(module->getFunction("^MP"), (void*)&JITRotation::ActorMP);
+	engine->addGlobalMapping(module->getFunction("^IsReady"), (void*)&JITRotation::ActionIsReady);
 	engine->addGlobalMapping(module->getFunction("^Command"), (void*)&JITRotation::ActorCommand);
 
 	_jitNextAction = decltype(_jitNextAction)((std::intptr_t)engine->getPointerToFunction(module->getFunction("^NextAction")));
@@ -154,6 +157,10 @@ uint64_t JITRotation::ActorTP(const Actor* actor) {
 
 uint64_t JITRotation::ActorMP(const Actor* actor) {
 	return actor->mp();
+}
+
+uint8_t JITRotation::ActionIsReady(const Actor* actor, const char* identifier) {
+	return actor->model()->action(identifier)->isReady(actor);
 }
 
 void JITRotation::ActorCommand(Actor* actor, const char* identifier) {

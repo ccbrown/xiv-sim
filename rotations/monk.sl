@@ -5,23 +5,23 @@ var isCoeurlForm = AuraCount(self, "coeurl-form", self) or AuraCount(self, "perf
 if (!AuraCount(self, "fists-of-fire", self))
 	perform "fists-of-fire";
 
-if (TP(self) <= 600 and !CooldownRemaining(self, "invigorate"))
+if (TP(self) <= 600 and IsReady(self, "invigorate"))
 	perform "invigorate";
 
-if (!CooldownRemaining(self, "blood-for-blood"))
+if (IsReady(self, "blood-for-blood"))
 	perform "blood-for-blood";
 
-if (!CooldownRemaining(self, "internal-release"))
+if (IsReady(self, "internal-release"))
 	perform "internal-release";
 
-if (!AuraCount(self, "greased-lightning", self) and !CooldownRemaining(self, "perfect-balance"))
+if (!AuraCount(self, "greased-lightning", self) and IsReady(self, "perfect-balance"))
 	perform "perfect-balance";
 
 if (AuraCount(self, "greased-lightning", self) == 3 and AuraCount(self, "twin-snakes", self)) {
-	if (!CooldownRemaining(self, "steel-peak"))
+	if (IsReady(self, "steel-peak"))
 		perform "steel-peak";
 
-	if (!CooldownRemaining(self, "howling-fist"))
+	if (IsReady(self, "howling-fist"))
 		perform "howling-fist";
 }
 

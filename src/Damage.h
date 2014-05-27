@@ -3,6 +3,8 @@
 enum DamageType {
 	DamageTypeUnknown,
 	DamageTypeBlunt,
+	DamageTypePiercing,
+	DamageTypeSlashing,
 	DamageTypeMagic,
 };
 
