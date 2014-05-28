@@ -223,6 +223,7 @@ BlackMage::BlackMage() {
 				}
 				std::uniform_real_distribution<double> distribution(0.0, 1.0);				
 				if (distribution(source->rng()) < 0.40) {
+					// TODO: add a slight delay to firestarter?
 					source->applyAura(firestarter.get(), source);
 				}
 			}
