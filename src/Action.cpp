@@ -48,9 +48,15 @@ bool Action::resolve(Actor* source, Actor* target) const {
 		damage = target->acceptDamage(source->generateDamage(this, target));
 	}
 
-	for (auto& kv : source->auras()) {
-		if (int count = dispelsSourceAura(kv.second.aura)) {
-			source->dispelAura(kv.second.aura->identifier(), kv.first.second, count);
+	bool dispel = true;
+	while (dispel) {
+		dispel = false;
+		for (auto& kv : source->auras()) {
+			if (int count = dispelsSourceAura(kv.second.aura)) {
+				source->dispelAura(kv.second.aura->identifier(), kv.first.second, count);
+				dispel = true;
+				break;
+			}
 		}
 	}
 
