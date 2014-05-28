@@ -1,6 +1,8 @@
 var garuda = Pet(self);
 
-if (!CooldownRemaining(garuda, "contagion") and AuraTimeRemaining(target, "bio-dot", self) > 10.0 and AuraTimeRemaining(target, "bio-ii-dot", self) > 10.0 and AuraTimeRemaining(target, "miasma-dot", self) > 10.0)
+if (IsReady(garuda, "aerial-blast") and AuraTimeRemaining(garuda, "rouse", self) > 3.0 and AuraTimeRemaining(garuda, "spur", self) > 3.0)
+	Command(garuda, "aerial-blast");
+else if (!CooldownRemaining(garuda, "contagion") and AuraTimeRemaining(target, "bio-dot", self) > 10.0 and AuraTimeRemaining(target, "bio-ii-dot", self) > 10.0 and AuraTimeRemaining(target, "miasma-dot", self) > 10.0)
 	Command(garuda, "contagion");
 
 if (!CooldownRemaining(self, "raging-strikes"))

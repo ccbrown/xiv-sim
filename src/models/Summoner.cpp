@@ -159,8 +159,8 @@ Summoner::Summoner() {
 		struct Spell : Action {
 			Spell() : Action("fester") {}
 			virtual std::chrono::microseconds cooldown() const override { return 10_s; }
-			virtual int dispelsSourceAura(const Aura* aura) const override {
-				return aura->identifier() == "aetherflow" ? 1 : 0;
+			virtual void resolution(Actor* source, Actor* target) const override {
+				source->dispelAura("aetherflow", source);
 			}
 			virtual int damage(const Actor* source, const Actor* target) const override {
 				return (target->auraCount("bio-dot", source) ? 100 : 0) + (target->auraCount("bio-ii-dot", source) ? 100 : 0) + (target->auraCount("miasma-dot", source) ? 100 : 0);

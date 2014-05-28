@@ -115,8 +115,8 @@ class Actor {
 		std::chrono::microseconds globalCooldownRemaining() const;
 		std::chrono::microseconds animationLockRemaining() const;
 
-		void applyAura(const Aura* aura, Actor* source);
-		void dispelAura(const std::string& identifier, Actor* source, int count = 1);
+		void applyAura(const Aura* aura, Actor* source, int count = 1);
+		int dispelAura(const std::string& identifier, Actor* source, int count = 1);
 		void extendAura(const std::string& identifier, Actor* source, const std::chrono::microseconds& extension);
 
 		int auraCount(const std::string& identifier, const Actor* source) const;

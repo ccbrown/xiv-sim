@@ -1,7 +1,7 @@
 Welcome
 =======
 
-This is a combat simulator for Final Fantasy 14. Currently it's only set up to simulate monks and it's not at all user friendly. It is, however, to the best of my knowledge pretty accurate, so it's useful for toying around with different stats / rotations / cooldown timings / etc. and getting an idea of what the effects would be.
+This is a combat simulator for Final Fantasy 14. You can find more info on its status at the <a href="http://ffxivguild.net/sim">ffxivguild.net/sim</a>.
 
 If you're a fellow software developer and you're interested in adding models / rotations for other classes or creating a GUI or anything of that sort, please put in some pull requests. :)
 

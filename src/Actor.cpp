@@ -39,7 +39,12 @@ Actor::~Actor() {
 }
 
 const Action* Actor::act(const Actor* target) {
-	return _configuration->rotation ? _configuration->rotation->nextAction(this, target) : nullptr;
+	auto action = _configuration->rotation ? _configuration->rotation->nextAction(this, target) : nullptr;
+	if (!action) { return nullptr; }
+	if (auto replacement = action->replacement(this, target)) {
+		return replacement;
+	}
+	return action;
 }
 
 void Actor::tick() {
@@ -47,9 +52,11 @@ void Actor::tick() {
 	setMP(std::min(mp() + (int)(maximumMP() * 0.02), maximumMP()));	
 
 	for (auto& kv : _auras) {
-		if (!kv.second.aura->tickDamage()) { continue; }
-		auto damage = acceptDamage(_generateTickDamage(kv.second));
-		kv.first.second->integrateDamageStats(damage, kv.first.first.c_str());
+		if (kv.second.aura->tickDamage()) {
+			auto damage = acceptDamage(_generateTickDamage(kv.second));
+			kv.first.second->integrateDamageStats(damage, kv.first.first.c_str());
+		}
+		kv.second.aura->tick(this, kv.first.second, kv.second.count);
 	}
 }
 
@@ -163,7 +170,7 @@ std::chrono::microseconds Actor::animationLockRemaining() const {
 	return _time >= _animationLockEndTime ? 0_us : (_animationLockEndTime - _time);
 }
 
-void Actor::applyAura(const Aura* aura, Actor* source) {
+void Actor::applyAura(const Aura* aura, Actor* source, int count) {
 	for (auto& kv : _auras) {
 		if (kv.second.aura->providesImmunity(aura)) {
 			return;
@@ -180,23 +187,27 @@ void Actor::applyAura(const Aura* aura, Actor* source) {
 	application.tickCriticalHitChance = source->_configuration->model->tickCriticalHitChance(source);
 
 	if (application.count < aura->maximumCount()) {
-		++application.count;
+		application.count = std::min(aura->maximumCount(), application.count + count);
 		_integrateAuraApplicationCountChange(aura->identifier().c_str(), application.count);
 	}
 
 	_updateStats();
 }
 
-void Actor::dispelAura(const std::string& identifier, Actor* source, int count) {
+int Actor::dispelAura(const std::string& identifier, Actor* source, int count) {
 	auto it = _auras.find(std::make_pair(identifier, source));
-	if (it == _auras.end()) { return; }
+	if (it == _auras.end()) { return 0; }
 
-	it->second.count = std::max(it->second.count - count, 0);
+	auto dispelled = std::min(it->second.count, count);
+
+	it->second.count = it->second.count - dispelled;
 	_integrateAuraApplicationCountChange(it->second.aura->identifier().c_str(), it->second.count);
 	if (!it->second.count) {
 		_auras.erase(it);
 		_updateStats();
 	}
+	
+	return dispelled;
 }
 
 void Actor::extendAura(const std::string& identifier, Actor* source, const std::chrono::microseconds& extension) {
@@ -269,7 +280,7 @@ std::chrono::microseconds Actor::cooldownRemaining(const std::string& identifier
 }
 
 bool Actor::beginCast(const Action* action, Actor* target) {
-	if (mp() < action->mpCost()) { return false; }
+	if (!action->isUsable(this)) { return false; }
 		
 	if (currentCast() || globalCooldownRemaining().count() || animationLockRemaining().count()) { return false; }
 

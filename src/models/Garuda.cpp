@@ -18,13 +18,23 @@ Garuda::Garuda() {
 
 	{
 		struct Spell : Action {
+			Spell() : Action("aerial-blast") {}
+			virtual int damage() const override { return 250; }
+			virtual std::chrono::microseconds cooldown() const override { return 300_s; }
+		};
+	
+		_registerAction<Spell>();
+	}
+
+	{
+		struct Spell : Action {
 			Spell() : Action("contagion") {}
 			virtual std::chrono::microseconds cooldown() const override { return 60_s; }
-			virtual void resolution(Actor* subject, Actor* target) const override {
-				target->extendAura("bio-dot", subject->owner(), 15_s);
-				target->extendAura("bio-ii-dot", subject->owner(), 15_s);
-				target->extendAura("miasma-dot", subject->owner(), 15_s);
-				target->extendAura("miasma-ii-dot", subject->owner(), 15_s);
+			virtual void resolution(Actor* source, Actor* target) const override {
+				target->extendAura("bio-dot", source->owner(), 15_s);
+				target->extendAura("bio-ii-dot", source->owner(), 15_s);
+				target->extendAura("miasma-dot", source->owner(), 15_s);
+				target->extendAura("miasma-ii-dot", source->owner(), 15_s);
 			}
 		};
 	
@@ -38,6 +48,10 @@ std::chrono::microseconds Garuda::globalCooldown(const Actor* actor) const {
 
 std::chrono::microseconds Garuda::autoAttackInterval(const Actor* actor) const {
 	return std::chrono::microseconds::max();
+}
+
+std::chrono::microseconds Garuda::castTime(const Action* action, const Actor* actor) const {
+	return action->castTime(actor);
 }
 
 DamageType Garuda::_defaultDamageType() const {

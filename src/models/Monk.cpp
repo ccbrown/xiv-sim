@@ -66,7 +66,9 @@ Monk::Monk() {
 			}
 			virtual int damage() const override { return 150; }
 			virtual int tpCost() const override { return 60; }
-			virtual int dispelsSourceAura(const Aura* aura) const override { return aura->identifier() == "opo-opo-form" ? 1 : 0; }
+			virtual void resolution(Actor* source, Actor* target) const override {
+				source->dispelAura("opo-opo-form", source);
+			}
 			virtual bool requirements(const Actor* source) const override {
 				return source->auraCount("opo-opo-form", source) || source->auraCount("perfect-balance", source);
 			}
@@ -82,7 +84,9 @@ Monk::Monk() {
 			}
 			virtual int damage() const override { return 150; }
 			virtual int tpCost() const override { return 60; }
-			virtual int dispelsSourceAura(const Aura* aura) const override { return aura->identifier() == "opo-opo-form" ? 1 : 0; }
+			virtual void resolution(Actor* source, Actor* target) const override {
+				source->dispelAura("opo-opo-form", source);
+			}
 		};
 		
 		_registerAction<Skill>();
@@ -96,9 +100,11 @@ Monk::Monk() {
 			virtual int damage() const override { return 150; }
 			virtual int tpCost() const override { return 60; }
 			virtual double criticalHitChance(double base) const override { return 1.0; }
-			virtual int dispelsSourceAura(const Aura* aura) const override { return aura->identifier() == "opo-opo-form" ? 1 : 0; }
 			virtual bool requirements(const Actor* source) const override {
 				return source->auraCount("opo-opo-form", source) || source->auraCount("perfect-balance", source);
+			}
+			virtual void resolution(Actor* source, Actor* target) const override {
+				source->dispelAura("opo-opo-form", source);
 			}
 		};
 		
@@ -119,9 +125,11 @@ Monk::Monk() {
 			}
 			virtual int damage() const override { return 140; }
 			virtual int tpCost() const override { return 60; }
-			virtual int dispelsSourceAura(const Aura* aura) const override { return aura->identifier() == "raptor-form" ? 1 : 0; }
 			virtual bool requirements(const Actor* source) const override {
 				return source->auraCount("raptor-form", source) || source->auraCount("perfect-balance", source);
+			}
+			virtual void resolution(Actor* source, Actor* target) const override {
+				source->dispelAura("raptor-form", source);
 			}
 		};
 
@@ -135,9 +143,11 @@ Monk::Monk() {
 			}
 			virtual int damage() const override { return 190; }
 			virtual int tpCost() const override { return 50; }
-			virtual int dispelsSourceAura(const Aura* aura) const override { return aura->identifier() == "raptor-form" ? 1 : 0; }
 			virtual bool requirements(const Actor* source) const override {
 				return source->auraCount("raptor-form", source) || source->auraCount("perfect-balance", source);
+			}
+			virtual void resolution(Actor* source, Actor* target) const override {
+				source->dispelAura("raptor-form", source);
 			}
 		};
 		
@@ -152,9 +162,11 @@ Monk::Monk() {
 			}
 			virtual int damage() const override { return 180; }
 			virtual int tpCost() const override { return 50; }
-			virtual int dispelsSourceAura(const Aura* aura) const override { return aura->identifier() == "coeurl-form" ? 1 : 0; }
 			virtual bool requirements(const Actor* source) const override {
 				return source->auraCount("coeurl-form", source) || source->auraCount("perfect-balance", source);
+			}
+			virtual void resolution(Actor* source, Actor* target) const override {
+				source->dispelAura("coeurl-form", source);
 			}
 		};
 		
@@ -176,9 +188,11 @@ Monk::Monk() {
 			}
 			virtual int damage() const override { return 70; }
 			virtual int tpCost() const override { return 50; }
-			virtual int dispelsSourceAura(const Aura* aura) const override { return aura->identifier() == "coeurl-form" ? 1 : 0; }
 			virtual bool requirements(const Actor* source) const override {
 				return source->auraCount("coeurl-form", source) || source->auraCount("perfect-balance", source);
+			}
+			virtual void resolution(Actor* source, Actor* target) const override {
+				source->dispelAura("coeurl-form", source);
 			}
 		};
 	
@@ -287,8 +301,10 @@ Monk::Monk() {
 			}
 			virtual bool isOffGlobalCooldown() const override { return true; }
 			virtual std::chrono::microseconds cooldown() const override { return 240_s; }
-			virtual int dispelsSourceAura(const Aura* aura) const override {
-				return (aura->identifier() == "opo-opo-form" || aura->identifier() == "raptor-form" || aura->identifier() == "coeurl-form") ? 1 : 0;
+			virtual void resolution(Actor* source, Actor* target) const override {
+				source->dispelAura("raptor-form", source);
+				source->dispelAura("opo-opo-form", source);
+				source->dispelAura("coeurl-form", source);
 			}
 		};
 		

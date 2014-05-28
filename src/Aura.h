@@ -3,6 +3,7 @@
 #include <chrono>
 #include <string>
 
+class Actor;
 struct Damage;
 
 class Aura {
@@ -17,6 +18,7 @@ class Aura {
 		virtual int maximumCount() const { return 1; }
 
 		virtual int tickDamage() const { return 0; }
+		virtual void tick(Actor* actor, Actor* source, int count) const {}
 			
 		virtual double increasedDamage() const { return 0.0; }
 		virtual double increasedAutoAttackSpeed() const { return 0.0; }

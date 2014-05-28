@@ -4,6 +4,7 @@
 #include "../PetRotation.h"
 #include "../Simulation.h"
 
+#include "../models/BlackMage.h"
 #include "../models/Dragoon.h"
 #include "../models/Garuda.h"
 #include "../models/Monk.h"
@@ -42,6 +43,8 @@ int SingleJSON(int argc, const char* argv[]) {
 		model.reset(new models::Monk());
 	} else if (!strcmp(argv[0], "dragoon")) {
 		model.reset(new models::Dragoon());
+	} else if (!strcmp(argv[0], "black-mage")) {
+		model.reset(new models::BlackMage());
 	} else if (!strcmp(argv[0], "summoner")) {
 		model.reset(new models::Summoner());
 		

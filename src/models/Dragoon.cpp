@@ -85,7 +85,9 @@ Dragoon::Dragoon() {
 			}
 			virtual int damage() const override { return 100; }
 			virtual int tpCost() const override { return 80; }
-			virtual int dispelsSourceAura(const Aura* aura) const override { return aura->identifier() == "life-surge" ? 1 : 0; }
+			virtual void resolution(Actor* source, Actor* target) const override {
+				source->dispelAura("life-surge", source);
+			}
 		};
 		
 		_registerAction<Skill>();
@@ -96,7 +98,9 @@ Dragoon::Dragoon() {
 			Skill() : Action("true-thrust") {}
 			virtual int damage() const override { return 150; }
 			virtual int tpCost() const override { return 70; }
-			virtual int dispelsSourceAura(const Aura* aura) const override { return aura->identifier() == "life-surge" ? 1 : 0; }
+			virtual void resolution(Actor* source, Actor* target) const override {
+				source->dispelAura("life-surge", source);
+			}
 		};
 		
 		_registerAction<Skill>();
@@ -110,7 +114,9 @@ Dragoon::Dragoon() {
 			virtual bool requirements(const Actor* source) const override {
 				return source->comboAction() && source->comboAction()->identifier() == "true-thrust";
 			}
-			virtual int dispelsSourceAura(const Aura* aura) const override { return aura->identifier() == "life-surge" ? 1 : 0; }
+			virtual void resolution(Actor* source, Actor* target) const override {
+				source->dispelAura("life-surge", source);
+			}
 		};
 		
 		_registerAction<Skill>();
@@ -124,7 +130,9 @@ Dragoon::Dragoon() {
 			virtual bool requirements(const Actor* source) const override {
 				return source->comboAction() && source->comboAction()->identifier() == "vorpal-thrust-combo";
 			}
-			virtual int dispelsSourceAura(const Aura* aura) const override { return aura->identifier() == "life-surge" ? 1 : 0; }
+			virtual void resolution(Actor* source, Actor* target) const override {
+				source->dispelAura("life-surge", source);
+			}
 		};
 		
 		_registerAction<Skill>();
@@ -135,7 +143,9 @@ Dragoon::Dragoon() {
 			Skill() : Action("impulse-drive-rear") {}
 			virtual int damage() const override { return 180; }
 			virtual int tpCost() const override { return 70; }
-			virtual int dispelsSourceAura(const Aura* aura) const override { return aura->identifier() == "life-surge" ? 1 : 0; }
+			virtual void resolution(Actor* source, Actor* target) const override {
+				source->dispelAura("life-surge", source);
+			}
 		};
 		
 		_registerAction<Skill>();
@@ -161,7 +171,9 @@ Dragoon::Dragoon() {
 			virtual bool requirements(const Actor* source) const override {
 				return source->comboAction() && source->comboAction()->identifier() == "impulse-drive-rear";
 			}
-			virtual int dispelsSourceAura(const Aura* aura) const override { return aura->identifier() == "life-surge" ? 1 : 0; }
+			virtual void resolution(Actor* source, Actor* target) const override {
+				source->dispelAura("life-surge", source);
+			}
 		};
 
 		_registerAction<Skill>();
@@ -183,7 +195,9 @@ Dragoon::Dragoon() {
 			virtual bool requirements(const Actor* source) const override {
 				return source->comboAction() && source->comboAction()->identifier() == "disembowel-combo";
 			}
-			virtual int dispelsSourceAura(const Aura* aura) const override { return aura->identifier() == "life-surge" ? 1 : 0; }
+			virtual void resolution(Actor* source, Actor* target) const override {
+				source->dispelAura("life-surge", source);
+			}
 		};
 	
 		_registerAction<Skill>();
@@ -202,7 +216,9 @@ Dragoon::Dragoon() {
 			}
 			virtual int damage() const override { return 170; }
 			virtual int tpCost() const override { return 70; }
-			virtual int dispelsSourceAura(const Aura* aura) const override { return aura->identifier() == "life-surge" ? 1 : 0; }
+			virtual void resolution(Actor* source, Actor* target) const override {
+				source->dispelAura("life-surge", source);
+			}
 		};
 	
 		_registerAction<Skill>();
@@ -221,7 +237,9 @@ Dragoon::Dragoon() {
 			}
 			virtual int damage() const override { return 170; }
 			virtual int tpCost() const override { return 90; }
-			virtual int dispelsSourceAura(const Aura* aura) const override { return aura->identifier() == "life-surge" ? 1 : 0; }
+			virtual void resolution(Actor* source, Actor* target) const override {
+				source->dispelAura("life-surge", source);
+			}
 		};
 	
 		_registerAction<Skill>();
@@ -234,7 +252,10 @@ Dragoon::Dragoon() {
 				return source->auraCount("power-surge", source) ? 300 : 200;
 			}
 			virtual std::chrono::microseconds cooldown() const override { return 60_s; }
-			virtual int dispelsSourceAura(const Aura* aura) const override { return (aura->identifier() == "power-surge" || aura->identifier() == "life-surge") ? 1 : 0; }
+			virtual void resolution(Actor* source, Actor* target) const override {
+				source->dispelAura("life-surge", source);
+				source->dispelAura("power-surge", source);
+			}
 		};
 	
 		_registerAction<Skill>();
@@ -262,7 +283,9 @@ Dragoon::Dragoon() {
 			Skill() : Action("dragonfire-dive") {}
 			virtual int damage() const override { return 250; }
 			virtual std::chrono::microseconds cooldown() const override { return 180_s; }
-			virtual int dispelsSourceAura(const Aura* aura) const override { return aura->identifier() == "life-surge" ? 1 : 0; }
+			virtual void resolution(Actor* source, Actor* target) const override {
+				source->dispelAura("life-surge", source);
+			}
 		};
 	
 		_registerAction<Skill>();

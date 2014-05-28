@@ -21,7 +21,7 @@ bool Action::isUsable(const Actor* source) const {
 		
 	if (source->animationLockRemaining().count()) { return false; }
 
-	if (source->tp() < tpCost() || source->mp() < mpCost()) { return false; }
+	if (source->tp() < tpCost() || source->mp() < mpCost(source)) { return false; }
 
 	return isReady(source);
 }
@@ -40,24 +40,12 @@ bool Action::resolve(Actor* source, Actor* target) const {
 	source->triggerAnimationLock(animationLock());
 
 	source->setTP(source->tp() - tpCost() + tpRestoration());
-	source->setMP(source->mp() - mpCost() + mpRestoration(source));
+	source->setMP(source->mp() - mpCost(source) + mpRestoration(source));
 
 	Damage damage;
 
 	if (this->damage(source, target)) {
 		damage = target->acceptDamage(source->generateDamage(this, target));
-	}
-
-	bool dispel = true;
-	while (dispel) {
-		dispel = false;
-		for (auto& kv : source->auras()) {
-			if (int count = dispelsSourceAura(kv.second.aura)) {
-				source->dispelAura(kv.second.aura->identifier(), kv.first.second, count);
-				dispel = true;
-				break;
-			}
-		}
 	}
 
 	for (auto& aura : sourceAuras()) {

@@ -101,7 +101,7 @@ double Base::tickCriticalHitChance(const Actor* source) const {
 
 std::chrono::microseconds Base::castTime(const Action* action, const Actor* actor) const {
 	auto& stats = actor->stats();
-	return std::chrono::duration_cast<std::chrono::microseconds>(action->castTime() * (1.0 - (stats.spellSpeed - 341) * (0.01 / 10.5 / 2.5)));
+	return std::chrono::duration_cast<std::chrono::microseconds>(action->castTime(actor) * (1.0 - (stats.spellSpeed - 341) * (0.01 / 10.5 / 2.5)));
 }
 
 }

@@ -20,7 +20,7 @@ class Action {
 
 		virtual const std::string& identifier() const { return _identifier; }
 
-		virtual std::chrono::microseconds castTime() const { return 0_us; }
+		virtual std::chrono::microseconds castTime(const Actor* source) const { return castTime(); }
 		virtual std::chrono::microseconds cooldown() const { return 0_us; }
 		virtual bool isOffGlobalCooldown() const { return false; }
 			
@@ -33,13 +33,13 @@ class Action {
 		virtual const std::vector<Aura*>& sourceAuras() const { return _sourceAuras; }
 		virtual const std::vector<Aura*>& targetAuras() const { return _targetAuras; }
 
-		virtual int dispelsSourceAura(const Aura* aura) const { return 0; }
-
 		virtual int tpCost() const { return 0; }
 		virtual int tpRestoration() const { return 0; }
 
-		virtual int mpCost() const { return 0; }
-		virtual int mpRestoration(const Actor* subject) const { return 0; }
+		virtual int mpCost(const Actor* source) const { return mpCost(); }
+		virtual int mpRestoration(const Actor* source) const { return 0; }
+			
+		virtual const Action* replacement(const Actor* source, const Actor* target) const { return nullptr; }
 
 	protected:
 		const std::string _identifier;
@@ -48,6 +48,8 @@ class Action {
 		std::vector<Aura*> _targetAuras;
 
 		virtual int damage() const { return 0; }
+		virtual int mpCost() const { return 0; }
+		virtual std::chrono::microseconds castTime() const { return 0_us; }
 		virtual void resolution(Actor* source, Actor* target) const {}
 		virtual bool requirements(const Actor* source) const { return true; }
 };

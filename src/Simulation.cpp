@@ -92,7 +92,7 @@ void Simulation::_tick() {
 }
 
 void Simulation::_resolveAction(const Action* action, Actor* subject, Actor* target) {
-	if (action->castTime().count()) {
+	if (action->castTime(subject).count()) {
 		if (subject->beginCast(action, target)) {
 			std::chrono::microseconds remaining;
 			if (subject->currentCast(&remaining)) {
