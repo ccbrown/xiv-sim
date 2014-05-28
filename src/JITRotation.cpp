@@ -15,6 +15,7 @@ bool JITRotation::initializeWithFile(const char* filename) {
 	const char header[] =
 		"class Actor;\n"
 		"uint64 AuraCount(const Actor* actor, const uint8* identifier, const Actor* source);\n"
+		"double GlobalCooldownRemaining(const Actor* actor);\n"
 		"double CooldownRemaining(const Actor* actor, const uint8* identifier);\n"
 		"double AuraTimeRemaining(const Actor* actor, const uint8* identifier, const Actor* source);\n"
 		"const Actor* Pet(const Actor* owner);\n"
@@ -117,6 +118,7 @@ bool JITRotation::initializeWithFile(const char* filename) {
 	}
 
 	engine->addGlobalMapping(module->getFunction("^AuraCount"), (void*)&JITRotation::ActorAuraCount);
+	engine->addGlobalMapping(module->getFunction("^GlobalCooldownRemaining"), (void*)&JITRotation::ActorGlobalCooldownRemaining);
 	engine->addGlobalMapping(module->getFunction("^CooldownRemaining"), (void*)&JITRotation::ActorCooldownRemaining);
 	engine->addGlobalMapping(module->getFunction("^AuraTimeRemaining"), (void*)&JITRotation::ActorAuraTimeRemaining);
 	engine->addGlobalMapping(module->getFunction("^Pet"), (void*)&JITRotation::ActorPet);
@@ -137,6 +139,10 @@ const Action* JITRotation::nextAction(Actor* subject, const Actor* target) const
 
 uint64_t JITRotation::ActorAuraCount(const Actor* actor, const char* identifier, const Actor* source) {
 	return actor->auraCount(identifier, source);
+}
+
+double JITRotation::ActorGlobalCooldownRemaining(const Actor* actor) {
+	return std::chrono::duration<double>(actor->globalCooldownRemaining()).count();
 }
 
 double JITRotation::ActorCooldownRemaining(const Actor* actor, const char* identifier) {

@@ -283,9 +283,7 @@ std::chrono::microseconds Dragoon::_baseGlobalCooldown(const Actor* actor) const
 	return std::chrono::duration_cast<std::chrono::microseconds>(gcd);
 }
 
-/**
-* Thanks to valk.dancing-mad.com for these formulae.
-*/
+// http://valk.dancing-mad.com/
 
 double Dragoon::_basePotencyMultiplier(const Actor* actor) const {
 	auto& stats = actor->stats();

@@ -1,3 +1,4 @@
+#include "../Action.h"
 #include "../Actor.h"
 #include "../JITRotation.h"
 #include "../PetRotation.h"
@@ -31,7 +32,7 @@ int SingleJSON(int argc, const char* argv[]) {
 	Actor::Configuration subjectConfiguration;
 	subjectConfiguration.identifier = "player";
 	subjectConfiguration.rotation = &subjectRotation;
-	subjectConfiguration.keepsSamples = true;
+	subjectConfiguration.keepsHistory = true;
 
 	std::unique_ptr<Model> model;
 	std::unique_ptr<Model> petModel;
@@ -77,7 +78,7 @@ int SingleJSON(int argc, const char* argv[]) {
 		petConfiguration.identifier = "player-pet";
 		petConfiguration.model = petModel.get();
 		petConfiguration.rotation = petRotation.get();
-		petConfiguration.keepsSamples = subjectConfiguration.keepsSamples;
+		petConfiguration.keepsHistory = subjectConfiguration.keepsHistory;
 		// TODO: exclude food stats from pet stats
 		petConfiguration.stats = subjectConfiguration.stats;
 		subjectConfiguration.petConfiguration = &petConfiguration;
@@ -87,7 +88,7 @@ int SingleJSON(int argc, const char* argv[]) {
 	Actor::Configuration targetConfiguration;
 	targetConfiguration.identifier = "target";
 	targetConfiguration.model = &targetModel;
-	targetConfiguration.keepsSamples = true;
+	targetConfiguration.keepsHistory = true;
 
 	Simulation::Configuration configuration;
 	configuration.length = std::chrono::seconds(simulationSeconds);
@@ -163,7 +164,7 @@ int SingleJSON(int argc, const char* argv[]) {
 			printf("\"auras\":{");
 			bool first = true;
 			for (auto& aura : stats.auraSamples) {
-				if (!first) { printf(", "); }
+				if (!first) { printf(","); }
 				printf("\"%s\":", aura.first.c_str());
 				printf("[");
 				bool firstSample = true;
@@ -177,9 +178,20 @@ int SingleJSON(int argc, const char* argv[]) {
 				printf("]");
 				first = false;
 			}
-			printf("}");
+			printf("},");
 		}
-		
+
+		{
+			printf("\"actions\":[");
+			bool first = true;
+			for (auto& action : stats.actions) {
+				if (!first) { printf(","); }
+				printf("\"%s\"", action->identifier().c_str());
+				first = false;
+			}
+			printf("]");
+		}
+
 		printf("}");
 	}
 

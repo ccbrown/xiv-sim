@@ -82,7 +82,7 @@ void Actor::advanceTime(const std::chrono::microseconds& time) {
 		_globalCooldownStartTime = _castStartTime;
 	}
 
-	if (_configuration->keepsSamples) {
+	if (_configuration->keepsHistory) {
 		if (_simulationStats.tpSamples.empty() || _simulationStats.tpSamples.back().second != _tp) {
 			_simulationStats.tpSamples.emplace_back(_time, _tp);
 		}
@@ -125,6 +125,9 @@ Damage Actor::performAutoAttack() {
 
 bool Actor::completeAction(const Action* action, Actor* target) {
 	if (action->resolve(this, target)) {
+		if (_configuration->keepsHistory) {
+			_simulationStats.actions.push_back(action);
+		}
 		if (!action->isOffGlobalCooldown()) {
 			_comboAction = action;
 			_comboActionTime = _time;
@@ -298,7 +301,7 @@ void Actor::triggerAnimationLock(std::chrono::microseconds duration) {
 }
 
 void Actor::_integrateAuraApplicationCountChange(const char* identifier, int count) {
-	if (_configuration->keepsSamples) {
+	if (_configuration->keepsHistory) {
 		auto& samples = _simulationStats.auraSamples[identifier];
 		samples.emplace_back(_time, count);
 	}

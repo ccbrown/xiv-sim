@@ -48,9 +48,11 @@ class Actor {
 
 		struct SimulationStats {
 			int damageDealt = 0;
+
 			std::vector<std::pair<std::chrono::microseconds, int>> tpSamples;
 			std::vector<std::pair<std::chrono::microseconds, int>> mpSamples;
 			std::unordered_map<std::string, std::vector<std::pair<std::chrono::microseconds, int>>> auraSamples;
+			std::vector<const Action*> actions;
 
 			SimulationStats& operator+=(const SimulationStats& other) {
 				damageDealt += other.damageDealt;
@@ -68,7 +70,7 @@ class Actor {
 			Stats stats;
 			const Model* model = nullptr;
 			const Rotation* rotation = nullptr;
-			bool keepsSamples = false;
+			bool keepsHistory = false;
 			const Configuration* petConfiguration = nullptr;
 		};
 

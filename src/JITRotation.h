@@ -15,6 +15,7 @@ class JITRotation : public Rotation {
 
 		static uint64_t ActorAuraCount(const Actor* actor, const char* identifier, const Actor* source);
 		static double ActorCooldownRemaining(const Actor* actor, const char* identifier);
+		static double ActorGlobalCooldownRemaining(const Actor* actor);
 		static double ActorAuraTimeRemaining(const Actor* actor, const char* identifier, const Actor* source);
 		static const Actor* ActorPet(const Actor* actor);
 		static uint64_t ActorTP(const Actor* actor);

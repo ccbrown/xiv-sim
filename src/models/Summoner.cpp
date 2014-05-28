@@ -229,12 +229,14 @@ std::chrono::microseconds Summoner::_baseGlobalCooldown(const Actor* actor) cons
 	return std::chrono::duration_cast<std::chrono::microseconds>(gcd);
 }
 
-// TODO: these numbers are probably 100% wrong (they were copied / pasted from monk)
+// http://www.reddit.com/r/ffxiv/comments/1nxw7m/caster_damage_formula_testingstat_weights/
 
 double Summoner::_basePotencyMultiplier(const Actor* actor) const {
 	auto& stats = actor->stats();
-	return 0.01 * (stats.weaponDamage * (stats.intelligence * 0.00389 + stats.determination * 0.0008 + 0.01035) + (stats.intelligence * 0.08034) + (stats.determination * 0.02622));
+	return 0.01 * (stats.weaponDamage * stats.intelligence * 0.00587517 + stats.determination * 0.074377 + stats.intelligence * 0.077076);
 }
+
+// TODO: this number is probably totally wrong (was copied / pasted from monk)
 
 double Summoner::_baseAutoAttackDamage(const Actor* actor) const {
 	auto& stats = actor->stats();

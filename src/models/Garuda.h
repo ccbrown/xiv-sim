@@ -17,7 +17,7 @@ class Garuda : public Base {
 
 		virtual std::chrono::microseconds _baseGlobalCooldown(const Actor* actor) const override;
 		virtual double _basePotencyMultiplier(const Actor* actor) const override;
-		virtual double _baseAutoAttackDamage(const Actor* actor) const override;
+		virtual double _baseAutoAttackDamage(const Actor* actor) const override { return 0; }
 };
 
 }

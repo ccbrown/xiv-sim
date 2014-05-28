@@ -3,14 +3,19 @@ var garuda = Pet(self);
 if (!CooldownRemaining(garuda, "contagion") and AuraTimeRemaining(target, "bio-dot", self) > 10.0 and AuraTimeRemaining(target, "bio-ii-dot", self) > 10.0 and AuraTimeRemaining(target, "miasma-dot", self) > 10.0)
 	Command(garuda, "contagion");
 
-if (!CooldownRemaining(self, "aetherflow"))
-	use "aetherflow";
+if (!CooldownRemaining(self, "raging-strikes"))
+	use "raging-strikes";
 
-if (!CooldownRemaining(self, "rouse"))
-	use "rouse";
+if (GlobalCooldownRemaining(self) > 1.0) {
+	if (!CooldownRemaining(self, "aetherflow"))
+		use "aetherflow";
 
-if (!CooldownRemaining(self, "spur"))
-	use "spur";
+	if (!CooldownRemaining(self, "rouse"))
+		use "rouse";
+	
+	if (!CooldownRemaining(self, "spur"))
+		use "spur";
+}
 
 if (!AuraCount(target, "bio-dot", self))
 	use "bio";
