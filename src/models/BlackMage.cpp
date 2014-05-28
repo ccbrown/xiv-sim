@@ -175,6 +175,7 @@ BlackMage::BlackMage() {
 		AstralFire() : Aura("astral-fire") {}
 		virtual int maximumCount() const override { return 3; }
 		virtual std::chrono::microseconds duration() const override { return 10_s; }
+		virtual double mpRegenMultiplier() const override { return 0.0; }
 	};
 
 	struct UmbralIce : Aura {

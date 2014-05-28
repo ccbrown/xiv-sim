@@ -20,6 +20,8 @@ class Aura {
 		virtual int tickDamage() const { return 0; }
 		virtual void tick(Actor* actor, Actor* source, int count) const {}
 			
+		virtual double mpRegenMultiplier() const { return 1.0; }
+
 		virtual double increasedDamage() const { return 0.0; }
 		virtual double increasedAutoAttackSpeed() const { return 0.0; }
 		virtual double reducedGlobalCooldown() const { return 0.0; }

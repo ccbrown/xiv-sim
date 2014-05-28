@@ -48,16 +48,19 @@ const Action* Actor::act(const Actor* target) {
 }
 
 void Actor::tick() {
-	setTP(std::min(tp() + 60, 1000));
-	setMP(std::min(mp() + (int)(maximumMP() * 0.02), maximumMP()));	
-
+	auto mpRegen = maximumMP() * 0.02;
+	
 	for (auto& kv : _auras) {
 		if (kv.second.aura->tickDamage()) {
 			auto damage = acceptDamage(_generateTickDamage(kv.second));
 			kv.first.second->integrateDamageStats(damage, kv.first.first.c_str());
 		}
 		kv.second.aura->tick(this, kv.first.second, kv.second.count);
+		mpRegen *= kv.second.aura->mpRegenMultiplier();
 	}
+
+	setTP(std::min(tp() + 60, 1000));
+	setMP(std::min(mp() + (int)(mpRegen), maximumMP()));
 }
 
 void Actor::integrateDamageStats(const Damage& damage, const char* effect) {
