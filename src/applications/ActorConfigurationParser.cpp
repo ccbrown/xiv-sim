@@ -9,7 +9,7 @@
 #include "../models/Monk.h"
 #include "../models/Summoner.h"
 
-#include <regex>
+#include <cctype>
 
 bool ActorConfigurationParser::parseFile(const char* filename) {
 	FILE* f = fopen(filename, "r");
@@ -53,55 +53,65 @@ bool ActorConfigurationParser::parse(const char* str, size_t length) {
 		auto line = ptr;
 		while (true) {
 			if (ptr == end || *ptr == '\n') {
-				const std::regex expression("^\\s*([^=]+?)\\s*=\\s*(.+?)\\s*$");
-				std::match_results<const char*> matches;
-				std::regex_match(line, ptr, matches, expression);
+				std::string key;
+				std::string value;
 				
-				if (matches.size() == 3) {
-					if (matches[1].str() == "weapon physical damage") {
-						_configuration.stats.weaponPhysicalDamage = std::stoi(matches[2].str());
-					} else if (matches[1].str() == "weapon magic damage") {
-						_configuration.stats.weaponMagicDamage = std::stoi(matches[2].str());
-					} else if (matches[1].str() == "weapon delay") {
-						_configuration.stats.weaponDelay = std::stod(matches[2].str());
+				if (auto assignment = (const char*)memchr(line, '=', ptr - line)) {
+					while (isspace(*line)) { ++line; }
+					key.assign(line, assignment - line);
+					while (!key.empty() && isspace(key.back())) { key.pop_back(); }
+
+					auto start = assignment + 1;
+					while (start < ptr && isspace(*start)) { ++start; }
+					value.assign(start, ptr - start);
+					while (!value.empty() && isspace(value.back())) { value.pop_back(); }
+				}
+				
+				if (!key.empty()) {
+					if (key == "weapon physical damage") {
+						_configuration.stats.weaponPhysicalDamage = std::stoi(value);
+					} else if (key == "weapon magic damage") {
+						_configuration.stats.weaponMagicDamage = std::stoi(value);
+					} else if (key == "weapon delay") {
+						_configuration.stats.weaponDelay = std::stod(value);
 						if (_configuration.stats.weaponDelay < 0.3) {
 							printf("Weapon delay out of bounds.\n");
 							return false;
 						}
-					} else if (matches[1].str() == "strength") {
-						_configuration.stats.strength = std::stoi(matches[2].str());
-					} else if (matches[1].str() == "dexterity") {
-						_configuration.stats.dexterity = std::stoi(matches[2].str());
-					} else if (matches[1].str() == "intelligence") {
-						_configuration.stats.intelligence = std::stoi(matches[2].str());
-					} else if (matches[1].str() == "piety") {
-						_configuration.stats.piety = std::stoi(matches[2].str());
-					} else if (matches[1].str() == "critical hit rate") {
-						_configuration.stats.criticalHitRate = std::stoi(matches[2].str());
-					} else if (matches[1].str() == "determination") {
-						_configuration.stats.determination = std::stoi(matches[2].str());
-					} else if (matches[1].str() == "skill speed") {
-						_configuration.stats.skillSpeed = std::stoi(matches[2].str());
-					} else if (matches[1].str() == "spell speed") {
-						_configuration.stats.spellSpeed = std::stoi(matches[2].str());
-					} else if (matches[1].str() == "model") {
-						if (matches[2].str() == "monk") {
+					} else if (key == "strength") {
+						_configuration.stats.strength = std::stoi(value);
+					} else if (key == "dexterity") {
+						_configuration.stats.dexterity = std::stoi(value);
+					} else if (key == "intelligence") {
+						_configuration.stats.intelligence = std::stoi(value);
+					} else if (key == "piety") {
+						_configuration.stats.piety = std::stoi(value);
+					} else if (key == "critical hit rate") {
+						_configuration.stats.criticalHitRate = std::stoi(value);
+					} else if (key == "determination") {
+						_configuration.stats.determination = std::stoi(value);
+					} else if (key == "skill speed") {
+						_configuration.stats.skillSpeed = std::stoi(value);
+					} else if (key == "spell speed") {
+						_configuration.stats.spellSpeed = std::stoi(value);
+					} else if (key == "model") {
+						if (value == "monk") {
 							_model.reset(new models::Monk());
-						} else if (matches[2].str() == "dragoon") {
+						} else if (value == "dragoon") {
 							_model.reset(new models::Dragoon());
-						} else if (matches[2].str() == "black-mage") {
+						} else if (value == "black-mage") {
 							_model.reset(new models::BlackMage());
-						} else if (matches[2].str() == "bard") {
+						} else if (value == "bard") {
 							_model.reset(new models::Bard());
-						} else if (matches[2].str() == "summoner") {
+						} else if (value == "summoner") {
 							_model.reset(new models::Summoner());
 						} else {
 							printf("Unknown model.\n");
 							return false;
 						}
 						_configuration.model = _model.get();
-					} else if (matches[1].str() == "pet") {
-						if (matches[2].str() == "garuda") {
+					} else if (key == "pet") {
+						if (value == "garuda") {
 							_petModel.reset(new models::Garuda());
 							_petRotation.reset(new PetRotation(_petModel->action("wind-blade")));
 						} else {
@@ -109,7 +119,7 @@ bool ActorConfigurationParser::parse(const char* str, size_t length) {
 							return false;
 						}
 						_petConfiguration.reset(new Actor::Configuration());
-						_petConfiguration->identifier = matches[2].str();
+						_petConfiguration->identifier = value;
 						_petConfiguration->model = _petModel.get();
 						_petConfiguration->rotation = _petRotation.get();
 						_configuration.petConfiguration = _petConfiguration.get();
