@@ -8,7 +8,7 @@ If you're a fellow software developer and you're interested in adding models / r
 How to Build
 ============
 
-Install a recent version of GCC or Clang and run `make`.
+Install a recent version of GCC or Clang, and LLVM 3.4 and run `make`.
 
 How to Use
 ==========
