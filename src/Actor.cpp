@@ -51,11 +51,13 @@ void Actor::tick() {
 	auto mpRegen = maximumMP() * 0.02;
 	
 	for (auto& kv : _auras) {
+		bool isCritical = false;
 		if (kv.second.aura->tickDamage()) {
 			auto damage = acceptDamage(_generateTickDamage(kv.second));
+			isCritical = damage.isCritical;
 			kv.first.second->integrateDamageStats(damage, kv.first.first.c_str());
 		}
-		kv.second.aura->tick(this, kv.first.second, kv.second.count);
+		kv.second.aura->tick(this, kv.first.second, kv.second.count, isCritical);
 		mpRegen *= kv.second.aura->mpRegenMultiplier();
 	}
 
@@ -306,6 +308,14 @@ double Actor::additionalCriticalHitChance() const {
 	return ret;
 }
 
+int Actor::strikesPerAutoAttack() const {
+	int ret = 1;
+	for (auto& kv : _auras) {
+		ret += kv.second.aura->additionalStrikesPerAutoAttack() * kv.second.count;
+	}
+	return ret;
+}
+
 double Actor::globalCooldownMultiplier() const {
 	double ret = 1.0;
 	for (auto& kv : _auras) {
@@ -318,6 +328,10 @@ void Actor::triggerCooldown(const std::string& identifier, std::chrono::microsec
 	auto& cooldown = _cooldowns[identifier];
 	cooldown.duration = std::max((cooldown.time + cooldown.duration) - _time, duration);
 	cooldown.time = _time;
+}
+
+void Actor::endCooldown(const std::string& identifier) {
+	_cooldowns.erase(identifier);
 }
 
 std::chrono::microseconds Actor::cooldownRemaining(const std::string& identifier) const {

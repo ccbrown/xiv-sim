@@ -46,6 +46,14 @@ void Simulation::run() {
 		auto function = top.function;
 		_scheduledFunctions.pop();
 		function->operator()();
+
+		for (auto& subject : _subjects) {
+			if (subject == _target) { continue; }
+			auto delay = subject->timeUntilNextTimeOfInterest();
+			if (delay != std::chrono::microseconds::max()) {
+				_scheduleCheck(delay);
+			}
+		}
 	}
 }
 
@@ -75,8 +83,10 @@ void Simulation::_checkActors() {
 		if (subject == _target) { continue; }
 
 		if (!subject->currentCast() && !subject->autoAttackDelayRemaining().count()) {
-			auto damage = _target->acceptDamage(subject->performAutoAttack());
-			subject->integrateDamageStats(damage, "auto-attack");
+			for (int i = 0; i < subject->strikesPerAutoAttack(); ++i) {
+				auto damage = _target->acceptDamage(subject->performAutoAttack());
+				subject->integrateDamageStats(damage, "auto-attack");
+			}
 	
 			_schedule([&] {
 				_checkActors();
@@ -89,11 +99,6 @@ void Simulation::_checkActors() {
 			} else {
 				subject->executeAction(action, _target);
 			}
-		}
-
-		auto delay = subject->timeUntilNextTimeOfInterest();
-		if (delay != std::chrono::microseconds::max()) {
-			_scheduleCheck(delay);
 		}
 	}
 }

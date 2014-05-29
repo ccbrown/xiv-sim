@@ -20,11 +20,152 @@ Bard::Bard() {
 			}
 			virtual int damage() const override { return 140; }
 			virtual int tpCost() const override { return 60; }
+			virtual double criticalHitChance(const Actor* source, double base) const {
+				return source->auraCount("heavier-shot", source) ? 1.0 : base;
+			}
+			virtual void resolution(Actor* source, Actor* target) const override {
+				source->dispelAura("heavier-shot", source);
+			}
 		};
 	
 		_registerAction<Skill>();
 	}
 
+	{
+		struct Skill : Action {
+			Skill() : Action("bloodletter") {}
+			virtual int damage() const override { return 150; }
+			virtual bool isOffGlobalCooldown() const { return true; }
+			virtual std::chrono::microseconds cooldown() const override { return 15_s; }
+		};
+	
+		_registerAction<Skill>();
+	}
+
+	{
+		struct Skill : Action {
+			struct DoT : Aura {
+				DoT() : Aura("windbite-dot") {}
+				virtual std::chrono::microseconds duration() const override { return 18_s; }
+				virtual int tickDamage() const override { return 45; }
+				virtual void tick(Actor* actor, Actor* source, int count, bool isCritical) const {
+					std::uniform_real_distribution<double> distribution(0.0, 1.0);				
+					if (distribution(source->rng()) < 0.5) {
+						source->endCooldown("bloodletter");
+					}
+				}
+			};
+			
+			Skill() : Action("windbite") {
+				_targetAuras.push_back(new DoT());
+			}
+			virtual int damage() const override { return 60; }
+			virtual int tpCost() const override { return 80; }
+		};
+	
+		_registerAction<Skill>();
+	}
+
+	{
+		struct Skill : Action {
+			struct DoT : Aura {
+				DoT() : Aura("venomous-bite-dot") {}
+				virtual std::chrono::microseconds duration() const override { return 18_s; }
+				virtual int tickDamage() const override { return 35; }
+				virtual void tick(Actor* actor, Actor* source, int count, bool isCritical) const {
+					std::uniform_real_distribution<double> distribution(0.0, 1.0);				
+					if (distribution(source->rng()) < 0.5) {
+						source->endCooldown("bloodletter");
+					}
+				}
+			};
+			
+			Skill() : Action("venomous-bite") {
+				_targetAuras.push_back(new DoT());
+			}
+			virtual int damage() const override { return 100; }
+			virtual int tpCost() const override { return 70; }
+		};
+	
+		_registerAction<Skill>();
+	}
+
+	{
+		struct Skill : Action {
+			struct Buff : Aura {
+				Buff() : Aura("hawks-eye") {
+					_statsMultiplier.dexterity = 1.15;
+				}
+				virtual std::chrono::microseconds duration() const override { return 20_s; }
+			};
+
+			Skill() : Action("hawks-eye") {
+				_sourceAuras.push_back(new Buff());
+			}
+			virtual bool isOffGlobalCooldown() const override { return true; }
+			virtual std::chrono::microseconds cooldown() const override { return 90_s; }
+		};
+		
+		_registerAction<Skill>();
+	}
+
+	{
+		struct Skill : Action {
+			struct DoT : Aura {
+				DoT() : Aura("flaming-arrow-dot") {}
+				virtual std::chrono::microseconds duration() const override { return 30_s; }
+				virtual int tickDamage() const override { return 35; }
+			};
+			
+			Skill() : Action("flaming-arrow") {
+				_targetAuras.push_back(new DoT());
+			}
+			virtual std::chrono::microseconds cooldown() const override { return 60_s; }
+			virtual bool isOffGlobalCooldown() const override { return true; }
+		};
+	
+		_registerAction<Skill>();
+	}
+
+	{
+		struct Skill : Action {
+			struct Buff : Aura {
+				Buff() : Aura("heavier-shot") {}
+				virtual std::chrono::microseconds duration() const override { return 10_s; }
+			} heavierShot;
+
+			Skill() : Action("heavy-shot") {}
+			virtual int damage() const override { return 150; }
+			virtual int tpCost() const override { return 60; }
+			virtual void resolution(Actor* source, Actor* target) const override {
+				std::uniform_real_distribution<double> distribution(0.0, 1.0);				
+				if (distribution(source->rng()) < 0.2) {
+					source->applyAura(&heavierShot, source);
+				}
+			}
+		};
+	
+		_registerAction<Skill>();
+	}
+
+	{
+		struct Skill : Action {
+			struct Buff : Aura {
+				Buff() : Aura("barrage") {}
+				virtual int additionalStrikesPerAutoAttack() const override { return 2; }
+				virtual std::chrono::microseconds duration() const override { return 10_s; }
+			};
+
+			Skill() : Action("barrage") {
+				_sourceAuras.push_back(new Buff());
+			}
+			virtual bool isOffGlobalCooldown() const override { return true; }
+			virtual std::chrono::microseconds cooldown() const override { return 180_s; }
+		};
+		
+		_registerAction<Skill>();
+	}
+	
 	{
 		struct Skill : Action {
 			struct Buff : Aura {

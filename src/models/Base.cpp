@@ -27,7 +27,7 @@ Damage Base::generateDamage(const Action* action, const Actor* source, const Act
 	auto& stats = source->stats();
 	
 	Damage ret;
-	double criticalHitChance = action->criticalHitChance((stats.criticalHitRate * 0.0697 - 18.437) / 100.0) + source->additionalCriticalHitChance();
+	double criticalHitChance = action->criticalHitChance(source, (stats.criticalHitRate * 0.0697 - 18.437) / 100.0) + source->additionalCriticalHitChance();
 
 	std::uniform_real_distribution<double> distribution(0.0, 1.0);
 

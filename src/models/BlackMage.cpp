@@ -4,7 +4,6 @@
 #include "../Actor.h"
 #include "../Aura.h"
 
-#include <memory>
 #include <random>
 
 namespace models {
@@ -37,17 +36,16 @@ BlackMage::BlackMage() {
 		// thunder
 
 		struct DoT : Aura {
-			DoT() : Aura("thunder-dot"), thunderCloud(new Thundercloud()) {}
+			DoT() : Aura("thunder-dot") {}
 			virtual std::chrono::microseconds duration() const override { return 12_s; }
 			virtual int tickDamage() const override { return 40; }
-			virtual void tick(Actor* actor, Actor* source, int count) const override {
+			virtual void tick(Actor* actor, Actor* source, int count, bool isCritical) const override {
 				std::uniform_real_distribution<double> distribution(0.0, 1.0);				
 				if (distribution(actor->rng()) < 0.05) {
-					source->applyAura(thunderCloud.get(), source);
+					source->applyAura(&thundercloud, source);
 				}
 			}
-			
-			std::unique_ptr<const Aura> thunderCloud;
+			Thundercloud thundercloud;
 		};
 
 		struct ThundercloudSpell : Action {
@@ -63,17 +61,17 @@ BlackMage::BlackMage() {
 		_registerAction<ThundercloudSpell>();
 
 		struct Spell : Action {
-			Spell() : Action("thunder"), thundercloudAction(new ThundercloudSpell()) {
+			Spell() : Action("thunder") {
 				_targetAuras.push_back(new DoT());
 			}
 			virtual int damage() const override { return 30; }
 			virtual int mpCost() const override { return 212; }
 			virtual std::chrono::microseconds castTime() const override { return 2500_ms; }
 			virtual const Action* replacement(const Actor* source, const Actor* target) const override {
-				return source->auraCount("thundercloud", source) ? thundercloudAction.get() : nullptr;
+				return source->auraCount("thundercloud", source) ? &thundercloudAction : nullptr;
 			};
 
-			std::unique_ptr<const Action> thundercloudAction;
+			ThundercloudSpell thundercloudAction;
 		};
 	
 		_registerAction<Spell>();
@@ -83,17 +81,16 @@ BlackMage::BlackMage() {
 		// thunder-ii
 
 		struct DoT : Aura {
-			DoT() : Aura("thunder-dot"), thunderCloud(new Thundercloud()) {}
+			DoT() : Aura("thunder-dot") {}
 			virtual std::chrono::microseconds duration() const override { return 15_s; }
 			virtual int tickDamage() const override { return 40; }
-			virtual void tick(Actor* actor, Actor* source, int count) const override {
+			virtual void tick(Actor* actor, Actor* source, int count, bool isCritical) const override {
 				std::uniform_real_distribution<double> distribution(0.0, 1.0);				
 				if (distribution(actor->rng()) < 0.05) {
-					source->applyAura(thunderCloud.get(), source);
+					source->applyAura(&thundercloud, source);
 				}
 			}
-			
-			std::unique_ptr<const Aura> thunderCloud;
+			Thundercloud thundercloud;
 		};
 
 		struct ThundercloudSpell : Action {
@@ -109,17 +106,17 @@ BlackMage::BlackMage() {
 		_registerAction<ThundercloudSpell>();
 
 		struct Spell : Action {
-			Spell() : Action("thunder-ii"), thundercloudAction(new ThundercloudSpell()) {
+			Spell() : Action("thunder-ii") {
 				_targetAuras.push_back(new DoT());
 			}
 			virtual int damage() const override { return 50; }
 			virtual int mpCost() const override { return 319; }
 			virtual std::chrono::microseconds castTime() const override { return 3_s; }
 			virtual const Action* replacement(const Actor* source, const Actor* target) const override {
-				return source->auraCount("thundercloud", source) ? thundercloudAction.get() : nullptr;
+				return source->auraCount("thundercloud", source) ? &thundercloudAction : nullptr;
 			};
 
-			std::unique_ptr<const Action> thundercloudAction;
+			ThundercloudSpell thundercloudAction;
 		};
 	
 		_registerAction<Spell>();
@@ -129,17 +126,16 @@ BlackMage::BlackMage() {
 		// thunder-iii
 
 		struct DoT : Aura {
-			DoT() : Aura("thunder-dot"), thunderCloud(new Thundercloud()) {}
+			DoT() : Aura("thunder-dot") {}
 			virtual std::chrono::microseconds duration() const override { return 18_s; }
 			virtual int tickDamage() const override { return 40; }
-			virtual void tick(Actor* actor, Actor* source, int count) const override {
+			virtual void tick(Actor* actor, Actor* source, int count, bool isCritical) const override {
 				std::uniform_real_distribution<double> distribution(0.0, 1.0);				
 				if (distribution(actor->rng()) < 0.05) {
-					source->applyAura(thunderCloud.get(), source);
+					source->applyAura(&thundercloud, source);
 				}
 			}
-			
-			std::unique_ptr<const Aura> thunderCloud;
+			Thundercloud thundercloud;
 		};
 
 		struct ThundercloudSpell : Action {
@@ -155,17 +151,17 @@ BlackMage::BlackMage() {
 		_registerAction<ThundercloudSpell>();
 
 		struct Spell : Action {
-			Spell() : Action("thunder-iii"), thundercloudAction(new ThundercloudSpell()) {
+			Spell() : Action("thunder-iii") {
 				_targetAuras.push_back(new DoT());
 			}
 			virtual int damage() const override { return 60; }
 			virtual int mpCost() const override { return 425; }
 			virtual std::chrono::microseconds castTime() const override { return 3500_ms; }
 			virtual const Action* replacement(const Actor* source, const Actor* target) const override {
-				return source->auraCount("thundercloud", source) ? thundercloudAction.get() : nullptr;
+				return source->auraCount("thundercloud", source) ? &thundercloudAction : nullptr;
 			};
 
-			std::unique_ptr<const Action> thundercloudAction;
+			ThundercloudSpell thundercloudAction;
 		};
 	
 		_registerAction<Spell>();
@@ -182,23 +178,23 @@ BlackMage::BlackMage() {
 		UmbralIce() : Aura("umbral-ice") {}
 		virtual int maximumCount() const override { return 3; }
 		virtual std::chrono::microseconds duration() const override { return 10_s; }
-		virtual void tick(Actor* actor, Actor* source, int count) const override {
+		virtual void tick(Actor* actor, Actor* source, int count, bool isCritical) const override {
 			actor->setMP(actor->mp() + actor->maximumMP() * (0.15 + count * 0.15));
 		}
 	};
 
 	{
 		struct Spell : Action {
-			Spell() : Action("blizzard"), elementalAura(new UmbralIce()) {}
+			Spell() : Action("blizzard") {}
 			virtual int damage(const Actor* source, const Actor* target) const override { return IceSpellDamage(source, 150); }
 			virtual int mpCost(const Actor* source) const override { return IceSpellManaCost(source, 106); }
 			virtual std::chrono::microseconds castTime() const override { return 2500_ms; }
 			virtual void resolution(Actor* source, Actor* target) const override {
 				if (!source->dispelAura("astral-fire", source, 3)) {
-					source->applyAura(elementalAura.get(), source);
+					source->applyAura(&umbralIce, source);
 				}
 			}
-			std::unique_ptr<const Aura> elementalAura;
+			UmbralIce umbralIce;
 		};
 	
 		_registerAction<Spell>();
@@ -214,17 +210,17 @@ BlackMage::BlackMage() {
 		// for firestarter that's actually especially significant. emulate it by waiting a bit before 
 		// applying firestarter
 		struct IncomingFirestarter : Aura {
-			IncomingFirestarter() : Aura("incoming-firestarter"), firestarter(new Firestarter()) {}
+			IncomingFirestarter() : Aura("incoming-firestarter") {}
 			virtual bool isHidden() const override { return true; }
 			virtual std::chrono::microseconds duration() const override { return 200_ms; }
 			virtual void expiration(Actor* actor, Actor* source, int count) const override {
-				actor->applyAura(firestarter.get(), source, count);
+				actor->applyAura(&firestarter, source, count);
 			}
-			std::unique_ptr<const Aura> firestarter;
+			Firestarter firestarter;
 		};
 
 		struct Spell : Action {
-			Spell() : Action("fire"), elementalAura(new AstralFire()), incomingFirestarter(new IncomingFirestarter()) {}
+			Spell() : Action("fire") {}
 			virtual int damage(const Actor* source, const Actor* target) const override { return FireSpellDamage(source, 150); }
 			virtual int mpCost(const Actor* source) const override { return FireSpellManaCost(source, 319); }
 			virtual std::chrono::microseconds castTime(const Actor* source) const override {
@@ -232,15 +228,15 @@ BlackMage::BlackMage() {
 			}
 			virtual void resolution(Actor* source, Actor* target) const override {
 				if (!source->dispelAura("umbral-ice", source, 3)) {
-					source->applyAura(elementalAura.get(), source);
+					source->applyAura(&astralFire, source);
 				}
 				std::uniform_real_distribution<double> distribution(0.0, 1.0);				
 				if (distribution(source->rng()) < 0.40) {
-					source->applyAura(incomingFirestarter.get(), source);
+					source->applyAura(&incomingFirestarter, source);
 				}
 			}
-			std::unique_ptr<const Aura> elementalAura;
-			std::unique_ptr<const Aura> incomingFirestarter;
+			AstralFire astralFire;
+			IncomingFirestarter incomingFirestarter;
 		};
 	
 		_registerAction<Spell>();
@@ -248,32 +244,32 @@ BlackMage::BlackMage() {
 
 	{
 		struct FirestarterSpell : Action {
-			FirestarterSpell() : Action("fire-iii-firestarter"), elementalAura(new AstralFire()) {}
+			FirestarterSpell() : Action("fire-iii-firestarter") {}
 			virtual int damage(const Actor* source, const Actor* target) const override { return FireSpellDamage(source, 220); }
 			virtual void resolution(Actor* source, Actor* target) const override {
 				source->dispelAura("firestarter", source);
 				source->dispelAura("umbral-ice", source, 3);
-				source->applyAura(elementalAura.get(), source, 3);
+				source->applyAura(&astralFire, source, 3);
 			}
-			std::unique_ptr<const Aura> elementalAura;
+			AstralFire astralFire;
 		};
 	
 		_registerAction<FirestarterSpell>();
 	
 		struct Spell : Action {
-			Spell() : Action("fire-iii"), elementalAura(new AstralFire()), firestarterAction(new FirestarterSpell()) {}
+			Spell() : Action("fire-iii") {}
 			virtual int damage(const Actor* source, const Actor* target) const override { return FireSpellDamage(source, 220); }
 			virtual int mpCost(const Actor* source) const override { return FireSpellManaCost(source, 532); }
 			virtual std::chrono::microseconds castTime() const override { return 3500_ms; }
 			virtual void resolution(Actor* source, Actor* target) const override {
 				source->dispelAura("umbral-ice", source, 3);
-				source->applyAura(elementalAura.get(), source, 3);
+				source->applyAura(&astralFire, source, 3);
 			}
 			virtual const Action* replacement(const Actor* source, const Actor* target) const override {
-				return source->auraCount("firestarter", source) ? firestarterAction.get() : nullptr;
+				return source->auraCount("firestarter", source) ? &firestarterAction : nullptr;
 			};
-			std::unique_ptr<const Aura> elementalAura;
-			std::unique_ptr<const Action> firestarterAction;
+			AstralFire astralFire;
+			FirestarterSpell firestarterAction;
 		};
 	
 		_registerAction<Spell>();
@@ -281,15 +277,15 @@ BlackMage::BlackMage() {
 
 	{
 		struct Spell : Action {
-			Spell() : Action("blizzard-iii"), elementalAura(new UmbralIce()) {}
+			Spell() : Action("blizzard-iii") {}
 			virtual int damage(const Actor* source, const Actor* target) const override { return IceSpellDamage(source, 220); }
 			virtual int mpCost(const Actor* source) const override { return IceSpellManaCost(source, 319); }
 			virtual std::chrono::microseconds castTime() const override { return 3500_ms; }
 			virtual void resolution(Actor* source, Actor* target) const override {
 				source->dispelAura("astral-fire", source, 3);
-				source->applyAura(elementalAura.get(), source, 3);
+				source->applyAura(&umbralIce, source, 3);
 			}
-			std::unique_ptr<const Aura> elementalAura;
+			UmbralIce umbralIce;
 		};
 	
 		_registerAction<Spell>();
@@ -297,17 +293,17 @@ BlackMage::BlackMage() {
 
 	{
 		struct Spell : Action {
-			Spell() : Action("transpose"), umbralIce(new UmbralIce()), astralFire(new AstralFire()) {}
+			Spell() : Action("transpose") {}
 			virtual std::chrono::microseconds cooldown() const override { return 12_s; }
 			virtual void resolution(Actor* source, Actor* target) const override {
 				if (source->dispelAura("astral-fire", source, 3)) {
-					source->applyAura(umbralIce.get(), source);
+					source->applyAura(&umbralIce, source);
 				} else if (source->dispelAura("umbral-ice", source, 3)) {
-					source->applyAura(astralFire.get(), source);
+					source->applyAura(&astralFire, source);
 				}
 			}
-			std::unique_ptr<const Aura> umbralIce;
-			std::unique_ptr<const Aura> astralFire;
+			UmbralIce umbralIce;
+			AstralFire astralFire;
 		};
 	
 		_registerAction<Spell>();
@@ -327,15 +323,15 @@ BlackMage::BlackMage() {
 
 	{
 		struct Spell : Action {
-			Spell() : Action("flare"), elementalAura(new AstralFire()) {}
+			Spell() : Action("flare") {}
 			virtual int damage(const Actor* source, const Actor* target) const override { return FireSpellDamage(source, 260); }
 			virtual int mpCost(const Actor* source) const override { return source->mp(); }
 			virtual std::chrono::microseconds castTime() const override { return 4_s; }
 			virtual void resolution(Actor* source, Actor* target) const override {
 				source->dispelAura("umbral-ice", source, 3);
-				source->applyAura(elementalAura.get(), source, 3);
+				source->applyAura(&astralFire, source, 3);
 			}
-			std::unique_ptr<const Aura> elementalAura;
+			AstralFire astralFire;
 		};
 	
 		_registerAction<Spell>();

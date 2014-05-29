@@ -19,8 +19,9 @@ class Aura {
 		virtual int maximumCount() const { return 1; }
 
 		virtual int tickDamage() const { return 0; }
+		virtual int additionalStrikesPerAutoAttack() const { return 0; }
 
-		virtual void tick(Actor* actor, Actor* source, int count) const {}
+		virtual void tick(Actor* actor, Actor* source, int count, bool isCritical) const {}
 		virtual void expiration(Actor* actor, Actor* source, int count) const {}
 
 		virtual double mpRegenMultiplier() const { return 1.0; }

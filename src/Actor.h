@@ -129,9 +129,12 @@ class Actor {
 		void transformIncomingDamage(Damage* damage) const;
 		double additionalCriticalHitChance() const;
 		
+		int strikesPerAutoAttack() const;
+		
 		double globalCooldownMultiplier() const;
 
 		void triggerCooldown(const std::string& identifier, std::chrono::microseconds duration);
+		void endCooldown(const std::string& identifier);
 		std::chrono::microseconds cooldownRemaining(const std::string& identifier) const;
 
 		bool beginCast(const Action* action, Actor* target);

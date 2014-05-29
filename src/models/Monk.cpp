@@ -99,7 +99,7 @@ Monk::Monk() {
 			}
 			virtual int damage() const override { return 150; }
 			virtual int tpCost() const override { return 60; }
-			virtual double criticalHitChance(double base) const override { return 1.0; }
+			virtual double criticalHitChance(const Actor* source, double base) const override { return 1.0; }
 			virtual bool requirements(const Actor* source) const override {
 				return source->auraCount("opo-opo-form", source) || source->auraCount("perfect-balance", source);
 			}

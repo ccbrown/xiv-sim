@@ -26,7 +26,7 @@ class Action {
 
 		virtual int damage(const Actor* source, const Actor* target) const { return damage(); }
 
-		virtual double criticalHitChance(double base) const { return base; }
+		virtual double criticalHitChance(const Actor* source, double base) const { return base; }
 
 		virtual const std::vector<Aura*>& sourceAuras() const { return _sourceAuras; }
 		virtual const std::vector<Aura*>& targetAuras() const { return _targetAuras; }
