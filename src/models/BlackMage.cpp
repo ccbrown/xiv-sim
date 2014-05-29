@@ -228,7 +228,7 @@ BlackMage::BlackMage() {
 			virtual int damage(const Actor* source, const Actor* target) const override { return FireSpellDamage(source, 150); }
 			virtual int mpCost(const Actor* source) const override { return FireSpellManaCost(source, 319); }
 			virtual std::chrono::microseconds castTime(const Actor* source) const override {
-				return source->auraCount("astral-fire", source) == 3 ? 1_s : 2500_ms;
+				return (source->auraCount("umbral-ice", source) == 3) ? 1_s : 2500_ms;
 			}
 			virtual void resolution(Actor* source, Actor* target) const override {
 				if (!source->dispelAura("umbral-ice", source, 3)) {

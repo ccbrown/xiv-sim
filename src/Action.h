@@ -23,8 +23,6 @@ class Action {
 		virtual std::chrono::microseconds castTime(const Actor* source) const { return castTime(); }
 		virtual std::chrono::microseconds cooldown() const { return 0_us; }
 		virtual bool isOffGlobalCooldown() const { return false; }
-			
-		virtual std::chrono::microseconds animationLock() const { return castTime().count() ? 0_us : 1_s; }
 
 		virtual int damage(const Actor* source, const Actor* target) const { return damage(); }
 

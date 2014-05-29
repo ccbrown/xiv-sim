@@ -101,6 +101,7 @@ void Actor::advanceTime(const std::chrono::microseconds& time) {
 		executeAction(action, target);
 		_lastAutoAttackTime = _time;
 		_globalCooldownStartTime = _castStartTime;
+		_animationLockEndTime = _castStartTime + 1_s;
 	}
 
 	for (auto it = _cooldowns.begin(); it != _cooldowns.end();) {
@@ -353,8 +354,8 @@ void Actor::triggerGlobalCooldown() {
 	_globalCooldownStartTime = _time;
 }
 
-void Actor::triggerAnimationLock(std::chrono::microseconds duration) {
-	_animationLockEndTime = _time + duration;
+void Actor::triggerAnimationLock() {
+	_animationLockEndTime = _time + 1_s;
 }
 
 void Actor::_integrateAuraApplicationCountChange(const Aura* aura, int count) {
