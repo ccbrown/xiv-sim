@@ -3,6 +3,6 @@
 namespace applications {
 
 int SingleJSON(int argc, const char* argv[]);
-int MultiIteration(int argc, const char* argv[]);
+int ThoroughJSON(int argc, const char* argv[]);
 
 }

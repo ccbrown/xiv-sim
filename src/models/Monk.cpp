@@ -348,12 +348,12 @@ std::chrono::microseconds Monk::_baseGlobalCooldown(const Actor* actor) const {
 
 double Monk::_basePotencyMultiplier(const Actor* actor) const {
 	auto& stats = actor->stats();
-	return 0.01 * (stats.weaponDamage * (stats.strength * 0.00389 + stats.determination * 0.0008 + 0.01035) + (stats.strength * 0.08034) + (stats.determination * 0.02622));
+	return 0.01 * (stats.weaponPhysicalDamage * (stats.strength * 0.00389 + stats.determination * 0.0008 + 0.01035) + (stats.strength * 0.08034) + (stats.determination * 0.02622));
 }
 
 double Monk::_baseAutoAttackDamage(const Actor* actor) const {
 	auto& stats = actor->stats();
-	return stats.weaponDelay / 3.0 * (stats.weaponDamage * (stats.strength * 0.00408 + stats.determination * 0.00208 - 0.30991) + (stats.strength * 0.07149) + (stats.determination * 0.03443));
+	return stats.weaponDelay / 3.0 * (stats.weaponPhysicalDamage * (stats.strength * 0.00408 + stats.determination * 0.00208 - 0.30991) + (stats.strength * 0.07149) + (stats.determination * 0.03443));
 }
 
 }

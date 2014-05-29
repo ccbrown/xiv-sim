@@ -233,14 +233,14 @@ std::chrono::microseconds Summoner::_baseGlobalCooldown(const Actor* actor) cons
 
 double Summoner::_basePotencyMultiplier(const Actor* actor) const {
 	auto& stats = actor->stats();
-	return 0.01 * (stats.weaponDamage * stats.intelligence * 0.00587517 + stats.determination * 0.074377 + stats.intelligence * 0.077076);
+	return 0.01 * (stats.weaponMagicDamage * stats.intelligence * 0.00587517 + stats.determination * 0.074377 + stats.intelligence * 0.077076);
 }
 
 // TODO: this number is probably totally wrong (was copied / pasted from monk)
 
 double Summoner::_baseAutoAttackDamage(const Actor* actor) const {
 	auto& stats = actor->stats();
-	return stats.weaponDelay / 3.0 * (stats.weaponDamage * (stats.intelligence * 0.00408 + stats.determination * 0.00208 - 0.30991) + (stats.intelligence * 0.07149) + (stats.determination * 0.03443));
+	return stats.weaponDelay / 3.0 * (stats.weaponMagicDamage * (stats.intelligence * 0.00408 + stats.determination * 0.00208 - 0.30991) + (stats.intelligence * 0.07149) + (stats.determination * 0.03443));
 }
 
 }

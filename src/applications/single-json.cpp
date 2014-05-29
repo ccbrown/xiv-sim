@@ -1,15 +1,11 @@
+#include "ActorConfigurationParser.h"
+
 #include "../Action.h"
 #include "../Actor.h"
 #include "../JITRotation.h"
-#include "../PetRotation.h"
 #include "../Simulation.h"
 
-#include "../models/Bard.h"
-#include "../models/BlackMage.h"
-#include "../models/Dragoon.h"
-#include "../models/Garuda.h"
 #include "../models/Monk.h"
-#include "../models/Summoner.h"
 
 #include <memory>
 #include <cstring>
@@ -21,7 +17,13 @@ namespace applications {
 
 int SingleJSON(int argc, const char* argv[]) {
 	if (argc < 3) {
-		printf("Usage: simulator single-json model rotation configuration\n");
+		printf("Usage: simulator single-json subject rotation length [seed]\n");
+		return 1;
+	}
+	
+	ActorConfigurationParser subjectParser;
+	if (!subjectParser.parseFile(argv[0])) {
+		printf("Unable to read configuration.\n");
 		return 1;
 	}
 	
@@ -31,64 +33,15 @@ int SingleJSON(int argc, const char* argv[]) {
 		return 1;
 	}
 
-	Actor::Configuration subjectConfiguration;
+	auto& subjectConfiguration = subjectParser.configuration();
 	subjectConfiguration.identifier = "player";
 	subjectConfiguration.rotation = &subjectRotation;
 	subjectConfiguration.keepsHistory = true;
 
-	std::unique_ptr<Model> model;
-	std::unique_ptr<Model> petModel;
-	std::unique_ptr<Rotation> petRotation;
-
-	if (!strcmp(argv[0], "monk")) {
-		model.reset(new models::Monk());
-	} else if (!strcmp(argv[0], "dragoon")) {
-		model.reset(new models::Dragoon());
-	} else if (!strcmp(argv[0], "black-mage")) {
-		model.reset(new models::BlackMage());
-	} else if (!strcmp(argv[0], "bard")) {
-		model.reset(new models::Bard());
-	} else if (!strcmp(argv[0], "summoner")) {
-		model.reset(new models::Summoner());
-		
-		petModel.reset(new models::Garuda());
-		petRotation.reset(new PetRotation(petModel->action("wind-blade")));
-	} else {
-		printf("Unknown model.\n");
-		return 1;
-	}
-
-	subjectConfiguration.model = model.get();
-
-	int simulationSeconds = 0;
-	
-	if (sscanf(argv[2], "WDMG=%d WDEL=%lf STR=%d DEX=%d INT=%d PIE=%d CRIT=%d SKS=%d SPS=%d DET=%d LEN=%d"
-		, &subjectConfiguration.stats.weaponDamage
-		, &subjectConfiguration.stats.weaponDelay
-		, &subjectConfiguration.stats.strength
-		, &subjectConfiguration.stats.dexterity
-		, &subjectConfiguration.stats.intelligence
-		, &subjectConfiguration.stats.piety
-		, &subjectConfiguration.stats.criticalHitRate
-		, &subjectConfiguration.stats.skillSpeed
-		, &subjectConfiguration.stats.spellSpeed
-		, &subjectConfiguration.stats.determination
-		, &simulationSeconds
-	) != 11) {
-		printf("Unable to parse configuration.\n");
-		return 1;
-	}
-
-	Actor::Configuration petConfiguration;
-	
-	if (petModel && petRotation) {
+	if (subjectConfiguration.petConfiguration) {
+		auto petConfiguration = *subjectConfiguration.petConfiguration;
 		petConfiguration.identifier = "player-pet";
-		petConfiguration.model = petModel.get();
-		petConfiguration.rotation = petRotation.get();
 		petConfiguration.keepsHistory = subjectConfiguration.keepsHistory;
-		// TODO: exclude food stats from pet stats
-		petConfiguration.stats = subjectConfiguration.stats;
-		subjectConfiguration.petConfiguration = &petConfiguration;
 	}
 
 	models::Monk targetModel;
@@ -97,12 +50,24 @@ int SingleJSON(int argc, const char* argv[]) {
 	targetConfiguration.model = &targetModel;
 	targetConfiguration.keepsHistory = true;
 
+	int simulationSeconds = atoi(argv[2]);
+
 	Simulation::Configuration configuration;
 	configuration.length = std::chrono::seconds(simulationSeconds);
 	configuration.subjectConfiguration = &subjectConfiguration;
 	configuration.targetConfiguration = &targetConfiguration;
 
-	Simulation simulation(&configuration);
+	uint64_t seed = 0;
+
+	if (argc < 4) {
+		std::random_device rd;
+		std::uniform_int_distribution<uint64_t> dist;
+		seed = dist(rd);
+	} else {
+		seed = strtoull(argv[3], nullptr, 0);
+	}
+
+	Simulation simulation(&configuration, seed);
 	simulation.run();
 	
 	Actor::SimulationStats mergedStats;
@@ -117,7 +82,7 @@ int SingleJSON(int argc, const char* argv[]) {
 
 	printf("{");
 
-	printf("\"length\":%" PRId64 ",\"damage\":%d,\"dps\":%f,", configuration.length.count(), mergedStats.damageDealt, mergedStats.damageDealt / (double)simulationSeconds);
+	printf("\"seed\":\"%" PRIu64 "\",\"length\":%" PRId64 ",\"damage\":%d,\"dps\":%f,", seed, configuration.length.count(), mergedStats.damageDealt, mergedStats.damageDealt / (double)simulationSeconds);
 
 	printf("\"subjects\":{");
 
@@ -127,6 +92,22 @@ int SingleJSON(int argc, const char* argv[]) {
 		firstSubject = false;
 
 		printf("\"%s\":{", subject->identifier().c_str());
+
+		auto configuration = subject->configuration();
+
+		printf("\"stats\":{");
+		printf("\"wpdmg\":%d,", configuration->stats.weaponPhysicalDamage);
+		printf("\"wmdmg\":%d,", configuration->stats.weaponMagicDamage);
+		printf("\"wdel\":%f,", configuration->stats.weaponDelay);
+		printf("\"str\":%d,", configuration->stats.strength);
+		printf("\"dex\":%d,", configuration->stats.dexterity);
+		printf("\"int\":%d,", configuration->stats.intelligence);
+		printf("\"pie\":%d,", configuration->stats.piety);
+		printf("\"crt\":%d,", configuration->stats.criticalHitRate);
+		printf("\"det\":%d,", configuration->stats.determination);
+		printf("\"sks\":%d,", configuration->stats.skillSpeed);
+		printf("\"sps\":%d", configuration->stats.spellSpeed);
+		printf("},");
 
 		auto& stats = subject->simulationStats();
 		

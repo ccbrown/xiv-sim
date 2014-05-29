@@ -17,7 +17,8 @@ class Rotation;
 class Actor {
 	public:
 		struct Stats {
-			int weaponDamage = 0;
+			int weaponPhysicalDamage = 0;
+			int weaponMagicDamage = 0;
 			double weaponDelay = 0.0;
 
 			int strength = 0;
@@ -74,8 +75,10 @@ class Actor {
 			const Configuration* petConfiguration = nullptr;
 		};
 
-		Actor(const Configuration* configuration, std::random_device* rng);
+		Actor(const Configuration* configuration, std::mt19937* rng);
 		~Actor();
+
+		const Configuration* configuration() const { return _configuration; }
 
 		const std::string& identifier() { return _configuration->identifier; }
 
@@ -92,7 +95,7 @@ class Actor {
 		Actor* owner() { return _owner; }
 		const Actor* owner() const { return _owner; }
 
-		std::random_device& rng() const { return *_rng; }
+		std::mt19937& rng() const { return *_rng; }
 		const Model* model() const { return _configuration->model; }
 
 		const Stats& stats() const { return _stats; }
@@ -165,7 +168,7 @@ class Actor {
 		
 	private:
 		const Configuration* const _configuration = nullptr;
-		std::random_device* const _rng = nullptr;
+		std::mt19937* const _rng = nullptr;
 
 		Actor* _pet = nullptr;
 		Actor* _owner = nullptr;

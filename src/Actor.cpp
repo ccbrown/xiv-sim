@@ -21,7 +21,7 @@ Actor::Stats& Actor::Stats::operator*=(const Aura::StatsMultiplier& multiplier) 
 	return *this;
 }
 
-Actor::Actor(const Configuration* configuration, std::random_device* rng)
+Actor::Actor(const Configuration* configuration, std::mt19937* rng)
 	: _configuration(configuration)
 	, _rng(rng)
 	, _baseStats(configuration->stats)

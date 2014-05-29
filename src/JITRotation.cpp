@@ -66,6 +66,7 @@ bool JITRotation::initializeWithFile(const char* filename) {
 
 	if (!pp.process_file(filename, source, sourceLength)) {
 		printf("Couldn't preprocess file.\n");
+		free(source);
 		return false;
 	}
 

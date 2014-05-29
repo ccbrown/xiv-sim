@@ -17,7 +17,18 @@ class Simulation {
 			Actor::Configuration* targetConfiguration = nullptr;
 		};
 
-		Simulation(const Configuration* configuration);			
+		template <typename T>
+		Simulation(const Configuration* configuration, T seed) : _configuration(configuration), _rng(seed) {
+			auto subject = new Actor(configuration->subjectConfiguration, &_rng);
+			_subjects.push_back(subject);
+			if (subject->pet()) {
+				_subjects.push_back(subject->pet());
+			}
+		
+			_target = new Actor(configuration->targetConfiguration, &_rng);
+			_subjects.push_back(_target);
+		}
+
 		~Simulation();
 
 		void run();
@@ -26,7 +37,7 @@ class Simulation {
 
 	private:
 		const Configuration* const _configuration = nullptr;
-		std::random_device _rng;
+		std::mt19937 _rng;
 
 		std::vector<Actor*> _subjects;
 		Actor* _target = nullptr;

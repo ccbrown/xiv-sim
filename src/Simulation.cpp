@@ -3,19 +3,6 @@
 #include "Action.h"
 #include "Model.h"
 
-#include <random>
-
-Simulation::Simulation(const Configuration* configuration) : _configuration(configuration) {
-	auto subject = new Actor(configuration->subjectConfiguration, &_rng);
-	_subjects.push_back(subject);
-	if (subject->pet()) {
-		_subjects.push_back(subject->pet());
-	}
-
-	_target = new Actor(configuration->targetConfiguration, &_rng);
-	_subjects.push_back(_target);
-}
-
 Simulation::~Simulation() {
 	for (auto& subject : _subjects) {
 		if (!subject->owner()) {
@@ -87,10 +74,6 @@ void Simulation::_checkActors() {
 				auto damage = _target->acceptDamage(subject->performAutoAttack());
 				subject->integrateDamageStats(damage, "auto-attack");
 			}
-	
-			_schedule([&] {
-				_checkActors();
-			}, subject->autoAttackDelayRemaining());
 		}
 		
 		if (auto action = subject->act(_target)) {

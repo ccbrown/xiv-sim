@@ -66,7 +66,7 @@ std::chrono::microseconds Garuda::_baseGlobalCooldown(const Actor* actor) const 
 
 double Garuda::_basePotencyMultiplier(const Actor* actor) const {
 	auto& stats = actor->stats();
-	return 0.01 * (stats.weaponDamage * stats.intelligence * 0.00587517 + stats.determination * 0.074377 + stats.intelligence * 0.077076);
+	return 0.01 * (stats.weaponMagicDamage * stats.intelligence * 0.00587517 + stats.determination * 0.074377 + stats.intelligence * 0.077076);
 }
 
 }
