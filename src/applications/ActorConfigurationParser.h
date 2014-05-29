@@ -3,6 +3,8 @@
 #include "../Actor.h"
 #include "../Model.h"
 
+#include <memory>
+
 class ActorConfigurationParser {
 	public:
 		bool parseFile(const char* filename);
