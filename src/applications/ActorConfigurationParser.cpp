@@ -10,6 +10,7 @@
 #include "../models/Summoner.h"
 
 #include <cctype>
+#include <cstring>
 
 bool ActorConfigurationParser::parseFile(const char* filename) {
 	FILE* f = fopen(filename, "r");
