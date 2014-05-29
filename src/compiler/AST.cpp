@@ -1,5 +1,7 @@
 #include "AST.h"
 
+#include <inttypes.h>
+
 void ASTNode::print(int indentation) {
 	printf("%*snode\n", indentation * 2, "");
 }
@@ -124,7 +126,7 @@ const void* ASTFloatingPoint::accept(ASTNodeVisitor* visitor) {
 }
 
 void ASTInteger::print(int indentation) {
-	printf("%*sinteger: %llu\n", indentation * 2, "", value);
+	printf("%*sinteger: %" PRId64 "\n", indentation * 2, "", value);
 }
 
 const void* ASTInteger::accept(ASTNodeVisitor* visitor) {
