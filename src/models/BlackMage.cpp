@@ -343,6 +343,7 @@ BlackMage::BlackMage() {
 }
 
 int BlackMage::maximumMP(const Actor* actor) const {
+	// TODO: double check this. was copied / pasted from summoner and it's extremely important that this is accurate
 	return 3012 + (actor->stats().piety - 214) * 7.25;
 }
 

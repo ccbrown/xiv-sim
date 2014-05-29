@@ -4,6 +4,7 @@
 #include "../PetRotation.h"
 #include "../Simulation.h"
 
+#include "../models/Bard.h"
 #include "../models/BlackMage.h"
 #include "../models/Dragoon.h"
 #include "../models/Garuda.h"
@@ -45,6 +46,8 @@ int SingleJSON(int argc, const char* argv[]) {
 		model.reset(new models::Dragoon());
 	} else if (!strcmp(argv[0], "black-mage")) {
 		model.reset(new models::BlackMage());
+	} else if (!strcmp(argv[0], "bard")) {
+		model.reset(new models::Bard());
 	} else if (!strcmp(argv[0], "summoner")) {
 		model.reset(new models::Summoner());
 		
@@ -59,10 +62,11 @@ int SingleJSON(int argc, const char* argv[]) {
 
 	int simulationSeconds = 0;
 	
-	if (sscanf(argv[2], "WDMG=%d WDEL=%lf STR=%d INT=%d PIE=%d CRIT=%d SKS=%d SPS=%d DET=%d LEN=%d"
+	if (sscanf(argv[2], "WDMG=%d WDEL=%lf STR=%d DEX=%d INT=%d PIE=%d CRIT=%d SKS=%d SPS=%d DET=%d LEN=%d"
 		, &subjectConfiguration.stats.weaponDamage
 		, &subjectConfiguration.stats.weaponDelay
 		, &subjectConfiguration.stats.strength
+		, &subjectConfiguration.stats.dexterity
 		, &subjectConfiguration.stats.intelligence
 		, &subjectConfiguration.stats.piety
 		, &subjectConfiguration.stats.criticalHitRate
@@ -70,7 +74,7 @@ int SingleJSON(int argc, const char* argv[]) {
 		, &subjectConfiguration.stats.spellSpeed
 		, &subjectConfiguration.stats.determination
 		, &simulationSeconds
-	) != 10) {
+	) != 11) {
 		printf("Unable to parse configuration.\n");
 		return 1;
 	}
