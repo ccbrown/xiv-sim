@@ -50,6 +50,8 @@ void Simulation::run() {
 }
 
 void Simulation::_advanceTime(std::chrono::microseconds time) {	
+	if (_time == time) { return; }
+
 	_time = time;
 	for (auto& subject : _subjects) {
 		subject->advanceTime(_time);
@@ -60,7 +62,15 @@ void Simulation::_schedule(const std::function<void()>& function, std::chrono::m
 	_scheduledFunctions.push(ScheduledFunction(std::make_shared<std::function<void()>>(function), _time + delay, _nextOrder++));
 }
 
+void Simulation::_scheduleCheck(std::chrono::microseconds delay) {
+	if (_scheduledChecks.insert((_time + delay).count()).second) {
+		_schedule([&] { _checkActors(); }, delay);
+	}
+}
+
 void Simulation::_checkActors() {
+	_scheduledChecks.erase(_time.count());
+
 	for (auto& subject : _subjects) {
 		if (subject == _target) { continue; }
 
@@ -74,7 +84,16 @@ void Simulation::_checkActors() {
 		}
 		
 		if (auto action = subject->act(_target)) {
-			_resolveAction(action, subject, _target);
+			if (action->castTime(subject).count()) {
+				subject->beginCast(action, _target);
+			} else {
+				subject->executeAction(action, _target);
+			}
+		}
+
+		auto delay = subject->timeUntilNextTimeOfInterest();
+		if (delay != std::chrono::microseconds::max()) {
+			_scheduleCheck(delay);
 		}
 	}
 }
@@ -86,34 +105,5 @@ void Simulation::_tick() {
 
 	_checkActors();
 
-	_schedule([&] {
-		_tick();
-	}, 3_s);	
-}
-
-void Simulation::_resolveAction(const Action* action, Actor* subject, Actor* target) {
-	if (action->castTime(subject).count()) {
-		if (subject->beginCast(action, target)) {
-			std::chrono::microseconds remaining;
-			if (subject->currentCast(&remaining)) {
-				_schedule([&] {
-					_checkActors();
-				}, remaining);
-			}
-		}
-	} else if (subject->completeAction(action, target)) {
-		if (!action->isOffGlobalCooldown()) {
-			_schedule([&] {
-				_checkActors();
-			}, subject->globalCooldownRemaining());
-		}
-
-		_schedule([&] {
-			_checkActors();
-		}, subject->animationLockRemaining());
-
-		_schedule([&] {
-			_checkActors();
-		});
-	}
+	_schedule([&] { _tick(); }, 3_s);	
 }

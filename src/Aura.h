@@ -12,14 +12,17 @@ class Aura {
 		virtual ~Aura() = default;
 	
 		virtual const std::string& identifier() const { return _identifier; }
+		virtual bool isHidden() const { return false; }
 	
 		virtual std::chrono::microseconds duration() const = 0;
 		
 		virtual int maximumCount() const { return 1; }
 
 		virtual int tickDamage() const { return 0; }
+
 		virtual void tick(Actor* actor, Actor* source, int count) const {}
-			
+		virtual void expiration(Actor* actor, Actor* source, int count) const {}
+
 		virtual double mpRegenMultiplier() const { return 1.0; }
 
 		virtual double increasedDamage() const { return 0.0; }

@@ -7,6 +7,7 @@
 #include <random>
 #include <string>
 #include <memory>
+#include <unordered_set>
 
 class Simulation {
 	public:
@@ -58,7 +59,9 @@ class Simulation {
 
 		void _schedule(const std::function<void()>& function, std::chrono::microseconds delay = 0_us);
 
+		void _scheduleCheck(std::chrono::microseconds delay = 0_us);
+		std::unordered_set<std::chrono::microseconds::rep> _scheduledChecks;
+
 		void _checkActors();
 		void _tick();
-		void _resolveAction(const Action* action, Actor* subject, Actor* target);
 };

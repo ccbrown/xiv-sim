@@ -81,17 +81,6 @@ Damage Actor::acceptDamage(const Damage& incoming) const {
 }
 
 void Actor::advanceTime(const std::chrono::microseconds& time) {
-	std::chrono::microseconds castTimeRemaining;
-	if (currentCast(&castTimeRemaining) && !castTimeRemaining.count()) {
-		auto action = _castAction;
-		auto target = _castTarget;
-		_castAction = nullptr;
-		_castTarget = nullptr;
-		completeAction(action, target);
-		_lastAutoAttackTime = _time;
-		_globalCooldownStartTime = _castStartTime;
-	}
-
 	if (_configuration->keepsHistory) {
 		if (_simulationStats.tpSamples.empty() || _simulationStats.tpSamples.back().second != _tp) {
 			_simulationStats.tpSamples.emplace_back(_time, _tp);
@@ -103,6 +92,17 @@ void Actor::advanceTime(const std::chrono::microseconds& time) {
 
 	_time = time;
 
+	std::chrono::microseconds castTimeRemaining;
+	if (currentCast(&castTimeRemaining) && !castTimeRemaining.count()) {
+		auto action = _castAction;
+		auto target = _castTarget;
+		_castAction = nullptr;
+		_castTarget = nullptr;
+		executeAction(action, target);
+		_lastAutoAttackTime = _time;
+		_globalCooldownStartTime = _castStartTime;
+	}
+
 	for (auto it = _cooldowns.begin(); it != _cooldowns.end();) {
 		if (_time - it->second.time >= it->second.duration) {
 			it = _cooldowns.erase(it);
@@ -112,15 +112,23 @@ void Actor::advanceTime(const std::chrono::microseconds& time) {
 	}
 
 	bool needsStatUpdate = false;
+	
+	std::vector<std::pair<Actor*, AppliedAura>> expired;
 
 	for (auto it = _auras.begin(); it != _auras.end();) {
 		if (_time - it->second.time >= it->second.duration) {
-			_integrateAuraApplicationCountChange(it->second.aura->identifier().c_str(), 0);
+			auto aura = it->second.aura;
+			expired.emplace_back(it->first.second, std::move(it->second));
+			_integrateAuraApplicationCountChange(aura, 0);
 			it = _auras.erase(it);
 			needsStatUpdate = true;
 		} else {
 			++it;
 		}
+	}
+	
+	for (auto& kv : expired) {
+		kv.second.aura->expiration(this, kv.first, kv.second.count);
 	}
 
 	if (needsStatUpdate) {
@@ -133,7 +141,7 @@ Damage Actor::performAutoAttack() {
 	return _configuration->model->generateAutoAttackDamage(this);
 }
 
-bool Actor::completeAction(const Action* action, Actor* target) {
+bool Actor::executeAction(const Action* action, Actor* target) {
 	if (action->resolve(this, target)) {
 		if (_configuration->keepsHistory) {
 			_simulationStats.actions.push_back(action);
@@ -173,6 +181,40 @@ std::chrono::microseconds Actor::animationLockRemaining() const {
 	return _time >= _animationLockEndTime ? 0_us : (_animationLockEndTime - _time);
 }
 
+std::chrono::microseconds Actor::timeUntilNextTimeOfInterest() const {
+	auto ret = std::chrono::microseconds::max();
+	
+	auto aadel = autoAttackDelayRemaining();
+	if (aadel.count() && aadel < ret) { ret = aadel; }
+	
+	auto gcd = globalCooldownRemaining();
+	if (gcd.count() && gcd < ret) { ret = gcd; }
+
+	auto alock = animationLockRemaining();
+	if (alock.count() && alock < ret) { ret = alock; }
+	
+	std::chrono::microseconds remaining;
+	if (currentCast(&remaining)) {
+		ret = std::min(ret, remaining);
+	}
+	
+	std::chrono::microseconds endTime = std::chrono::microseconds::max();
+
+	for (auto& kv : _cooldowns) {
+		endTime = std::min(kv.second.time + kv.second.duration, endTime);
+	}
+
+	for (auto& kv : _auras) {
+		endTime = std::min(kv.second.time + kv.second.duration, endTime);
+	}
+
+	if (endTime != std::chrono::microseconds::max()) {
+		ret = std::min(endTime - _time, ret);
+	}
+
+	return ret;
+}
+
 void Actor::applyAura(const Aura* aura, Actor* source, int count) {
 	for (auto& kv : _auras) {
 		if (kv.second.aura->providesImmunity(aura)) {
@@ -191,7 +233,7 @@ void Actor::applyAura(const Aura* aura, Actor* source, int count) {
 
 	if (application.count < aura->maximumCount()) {
 		application.count = std::min(aura->maximumCount(), application.count + count);
-		_integrateAuraApplicationCountChange(aura->identifier().c_str(), application.count);
+		_integrateAuraApplicationCountChange(aura, application.count);
 	}
 
 	_updateStats();
@@ -204,7 +246,7 @@ int Actor::dispelAura(const std::string& identifier, Actor* source, int count) {
 	auto dispelled = std::min(it->second.count, count);
 
 	it->second.count = it->second.count - dispelled;
-	_integrateAuraApplicationCountChange(it->second.aura->identifier().c_str(), it->second.count);
+	_integrateAuraApplicationCountChange(it->second.aura, it->second.count);
 	if (!it->second.count) {
 		_auras.erase(it);
 		_updateStats();
@@ -303,6 +345,7 @@ const Action* Actor::currentCast(std::chrono::microseconds* remaining, Actor** t
 			*remaining = std::max(_configuration->model->castTime(_castAction, this) - (_time - _castStartTime), 0_us);
 		}
 	}
+
 	return _castAction;
 }
 
@@ -314,9 +357,9 @@ void Actor::triggerAnimationLock(std::chrono::microseconds duration) {
 	_animationLockEndTime = _time + duration;
 }
 
-void Actor::_integrateAuraApplicationCountChange(const char* identifier, int count) {
-	if (_configuration->keepsHistory) {
-		auto& samples = _simulationStats.auraSamples[identifier];
+void Actor::_integrateAuraApplicationCountChange(const Aura* aura, int count) {
+	if (_configuration->keepsHistory && !aura->isHidden()) {
+		auto& samples = _simulationStats.auraSamples[aura->identifier()];
 		samples.emplace_back(_time, count);
 	}
 }

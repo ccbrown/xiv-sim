@@ -107,13 +107,15 @@ class Actor {
 		void advanceTime(const std::chrono::microseconds& time);
 		Damage performAutoAttack();
 		
-		bool completeAction(const Action* action, Actor* target);
+		bool executeAction(const Action* action, Actor* target);
 
 		const Action* comboAction() const;
 
 		std::chrono::microseconds autoAttackDelayRemaining() const;
 		std::chrono::microseconds globalCooldownRemaining() const;
 		std::chrono::microseconds animationLockRemaining() const;
+		
+		std::chrono::microseconds timeUntilNextTimeOfInterest() const;
 
 		void applyAura(const Aura* aura, Actor* source, int count = 1);
 		int dispelAura(const std::string& identifier, Actor* source, int count = 1);
@@ -199,6 +201,6 @@ class Actor {
 		SimulationStats _simulationStats;
 		std::unordered_map<std::string, EffectSimulationStats> _effectSimulationStats;
 		
-		void _integrateAuraApplicationCountChange(const char* identifier, int count);
+		void _integrateAuraApplicationCountChange(const Aura* aura, int count);
 		Damage _generateTickDamage(const AppliedAura& application) const;
 };
