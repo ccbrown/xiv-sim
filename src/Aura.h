@@ -12,6 +12,7 @@ class Aura {
 		virtual ~Aura() = default;
 	
 		virtual const std::string& identifier() const { return _identifier; }
+
 		virtual bool isHidden() const { return false; }
 	
 		virtual std::chrono::microseconds duration() const = 0;

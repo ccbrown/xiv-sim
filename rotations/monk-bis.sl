@@ -8,13 +8,13 @@ if (!AuraCount(self, "fists-of-fire", self))
 if (!AuraCount(self, "greased-lightning", self) and IsReady(self, "perfect-balance"))
 	use "perfect-balance";
 
-if (GlobalCooldownRemaining(self) > 1.0) {
+if (GlobalCooldownRemaining(self) > 0.5) {
 	if (TP(self) <= 600 and IsReady(self, "invigorate"))
 		use "invigorate";
 	
 	if (IsReady(self, "blood-for-blood"))
 		use "blood-for-blood";
-	
+
 	if (IsReady(self, "internal-release"))
 		use "internal-release";
 

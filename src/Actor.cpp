@@ -23,6 +23,7 @@ Actor::Stats& Actor::Stats::operator*=(const Aura::StatsMultiplier& multiplier) 
 
 Actor::Actor(const Configuration* configuration, std::mt19937* rng)
 	: _configuration(configuration)
+	, _identifierHash(FNV1AHash(configuration->identifier))
 	, _rng(rng)
 	, _baseStats(configuration->stats)
 {
@@ -55,9 +56,9 @@ void Actor::tick() {
 		if (kv.second.aura->tickDamage()) {
 			auto damage = acceptDamage(_generateTickDamage(kv.second));
 			isCritical = damage.isCritical;
-			kv.first.second->integrateDamageStats(damage, kv.first.first.c_str());
+			kv.second.source->integrateDamageStats(damage, kv.second.aura->identifier().c_str());
 		}
-		kv.second.aura->tick(this, kv.first.second, kv.second.count, isCritical);
+		kv.second.aura->tick(this, kv.second.source, kv.second.count, isCritical);
 		mpRegen *= kv.second.aura->mpRegenMultiplier();
 	}
 
@@ -116,12 +117,12 @@ void Actor::advanceTime(const std::chrono::microseconds& time) {
 
 	bool needsStatUpdate = false;
 	
-	std::vector<std::pair<Actor*, AppliedAura>> expired;
+	std::vector<AppliedAura> expired;
 
 	for (auto it = _auras.begin(); it != _auras.end();) {
 		if (_time - it->second.time >= it->second.duration) {
 			auto aura = it->second.aura;
-			expired.emplace_back(it->first.second, std::move(it->second));
+			expired.emplace_back(std::move(it->second));
 			_integrateAuraApplicationCountChange(aura, 0);
 			it = _auras.erase(it);
 			needsStatUpdate = true;
@@ -130,8 +131,8 @@ void Actor::advanceTime(const std::chrono::microseconds& time) {
 		}
 	}
 	
-	for (auto& kv : expired) {
-		kv.second.aura->expiration(this, kv.first, kv.second.count);
+	for (auto& aura : expired) {
+		aura.aura->expiration(this, aura.source, aura.count);
 	}
 
 	if (needsStatUpdate) {
@@ -225,9 +226,10 @@ void Actor::applyAura(const Aura* aura, Actor* source, int count) {
 		}
 	}
 	
-	auto& application = _auras[std::make_pair(aura->identifier(), source)];
+	auto& application = _auras[_appliedAuraKey(aura->identifier(), source)];
 
 	application.aura = aura;
+	application.source = source;
 	application.time = _time;
 	application.duration = aura->duration();
 	
@@ -243,7 +245,7 @@ void Actor::applyAura(const Aura* aura, Actor* source, int count) {
 }
 
 int Actor::dispelAura(const std::string& identifier, Actor* source, int count) {
-	auto it = _auras.find(std::make_pair(identifier, source));
+	auto it = _auras.find(_appliedAuraKey(identifier, source));
 	if (it == _auras.end()) { return 0; }
 
 	auto dispelled = std::min(it->second.count, count);
@@ -259,7 +261,7 @@ int Actor::dispelAura(const std::string& identifier, Actor* source, int count) {
 }
 
 void Actor::extendAura(const std::string& identifier, Actor* source, const std::chrono::microseconds& extension) {
-	auto it = _auras.find(std::make_pair(identifier, source));
+	auto it = _auras.find(_appliedAuraKey(identifier, source));
 	if (it == _auras.end()) { return; }
 
 	it->second.duration = it->second.duration - (_time - it->second.time) + extension;
@@ -267,13 +269,13 @@ void Actor::extendAura(const std::string& identifier, Actor* source, const std::
 }
 
 int Actor::auraCount(const std::string& identifier, const Actor* source) const {
-	auto it = _auras.find(std::make_pair(identifier, const_cast<Actor*>(source)));
+	auto it = _auras.find(_appliedAuraKey(identifier, source));
 	if (it == _auras.end()) { return 0; }
 	return it->second.count;
 }
 
 std::chrono::microseconds Actor::auraTimeRemaining(const std::string& identifier, const Actor* source) const {
-	auto it = _auras.find(std::make_pair(identifier, const_cast<Actor*>(source)));
+	auto it = _auras.find(_appliedAuraKey(identifier, source));
 	if (it == _auras.end()) { return 0_us; }
 	return (it->second.duration - (_time - it->second.time));
 }
@@ -370,6 +372,17 @@ void Actor::triggerGlobalCooldown() {
 
 void Actor::triggerAnimationLock() {
 	_animationLockEndTime = _time + 1_s;
+}
+
+uint64_t Actor::_appliedAuraKey(const std::string& auraIdentifier, const Actor* source) const {
+	uint64_t h1 = 14695981039346656037ull;
+	for (auto& c : auraIdentifier) {
+		h1 = (h1 ^ c) * 1099511628211ull;
+	}
+
+	uint64_t h2 = source->identifierHash();
+
+	return ((h1 << 32) | (h1 >> 32)) ^ h2;
 }
 
 void Actor::_integrateAuraApplicationCountChange(const Aura* aura, int count) {

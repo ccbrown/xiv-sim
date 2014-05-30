@@ -1,4 +1,5 @@
 #include "ActorConfigurationParser.h"
+#include "json.h"
 
 #include "../Action.h"
 #include "../Actor.h"
@@ -82,7 +83,9 @@ int SingleJSON(int argc, const char* argv[]) {
 
 	printf("{");
 
-	printf("\"seed\":\"%" PRIu64 "\",\"length\":%" PRId64 ",\"damage\":%d,\"dps\":%f,", seed, configuration.length.count(), mergedStats.damageDealt, mergedStats.damageDealt / (double)simulationSeconds);
+	JSONPrint("seed"); printf(":"); JSONPrint(seed); printf(",");
+	JSONPrint("length"); printf(":"); JSONPrint(configuration.length); printf(",");
+	JSONPrint("damage"); printf(":"); JSONPrint(mergedStats.damageDealt); printf(",");
 
 	printf("\"subjects\":{");
 
@@ -91,96 +94,20 @@ int SingleJSON(int argc, const char* argv[]) {
 		if (!firstSubject) { printf(","); }
 		firstSubject = false;
 
-		printf("\"%s\":{", subject->identifier().c_str());
-
-		auto configuration = subject->configuration();
-
-		printf("\"stats\":{");
-		printf("\"wpdmg\":%d,", configuration->stats.weaponPhysicalDamage);
-		printf("\"wmdmg\":%d,", configuration->stats.weaponMagicDamage);
-		printf("\"wdel\":%f,", configuration->stats.weaponDelay);
-		printf("\"str\":%d,", configuration->stats.strength);
-		printf("\"dex\":%d,", configuration->stats.dexterity);
-		printf("\"int\":%d,", configuration->stats.intelligence);
-		printf("\"pie\":%d,", configuration->stats.piety);
-		printf("\"crt\":%d,", configuration->stats.criticalHitRate);
-		printf("\"det\":%d,", configuration->stats.determination);
-		printf("\"sks\":%d,", configuration->stats.skillSpeed);
-		printf("\"sps\":%d", configuration->stats.spellSpeed);
-		printf("},");
-
-		auto& stats = subject->simulationStats();
+		JSONPrint(subject->identifier());
+		printf(":");
 		
-		printf("\"damage\":%d,\"dps\":%f,", stats.damageDealt, stats.damageDealt / (double)simulationSeconds);
-		
-		auto& effectStats = subject->effectSimulationStats();
+		auto& simStats = subject->simulationStats();
 
-		{
-			printf("\"effects\":[");
-			bool first = true;
-			for (auto& kv : effectStats) {
-				if (!first) { printf(","); }
-				printf("{\"id\":\"%s\",\"damage\":%d,\"dps\":%f,\"count\":%d,\"crits\":%d,\"avg-damage\":%f}", kv.first.c_str(), kv.second.damageDealt, kv.second.damageDealt / (double)simulationSeconds, kv.second.count, kv.second.criticalHits, kv.second.damageDealt / (double)kv.second.count);
-				first = false;
-			}
-			printf("],");
-		}
-	
-		{
-			printf("\"tp-samples\":[");
-			bool first = true;
-			for (auto& sample : stats.tpSamples) {
-				if (!first) { printf(","); }
-				printf("[%" PRId64 ",%d]", sample.first.count(), sample.second);
-				first = false;
-			}
-			printf("],");
-		}
-	
-		{
-			printf("\"mp-samples\":[");
-			bool first = true;
-			for (auto& sample : stats.mpSamples) {
-				if (!first) { printf(","); }
-				printf("[%" PRId64 ",%d]", sample.first.count(), sample.second);
-				first = false;
-			}
-			printf("],");
-		}
-	
-		{
-			printf("\"auras\":{");
-			bool first = true;
-			for (auto& aura : stats.auraSamples) {
-				if (!first) { printf(","); }
-				printf("\"%s\":", aura.first.c_str());
-				printf("[");
-				bool firstSample = true;
-				for (auto& sample : aura.second) {
-					if (!firstSample) {
-						printf(",");
-					}
-					printf("[%" PRId64 ",%d]", sample.first.count(), sample.second);
-					firstSample = false;
-				}
-				printf("]");
-				first = false;
-			}
-			printf("},");
-		}
-
-		{
-			printf("\"actions\":[");
-			bool first = true;
-			for (auto& action : stats.actions) {
-				if (!first) { printf(","); }
-				printf("\"%s\"", action->identifier().c_str());
-				first = false;
-			}
-			printf("]");
-		}
-
-		printf("}");
+		JSONPrintDict(
+			"stats", subject->configuration()->stats,
+			"damage", simStats.damageDealt,
+			"effects", subject->effectSimulationStats(),
+			"tp-samples", simStats.tpSamples,
+			"mp-samples", simStats.mpSamples,
+			"actions", simStats.actions,
+			"auras", simStats.auraSamples
+		);
 	}
 
 	printf("}");

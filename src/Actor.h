@@ -8,7 +8,10 @@
 #include <random>
 #include <string>
 #include <utility>
+#include <map>
 #include <unordered_map>
+
+#include <stdint.h>
 
 class Action;
 class Model;
@@ -35,9 +38,9 @@ class Actor {
 		};
 
 		struct EffectSimulationStats {
-			int count = 0;
-			int criticalHits = 0;
-			int damageDealt = 0;
+			uint64_t count = 0;
+			uint64_t criticalHits = 0;
+			uint64_t damageDealt = 0;
 			
 			EffectSimulationStats& operator+=(const EffectSimulationStats& other) {
 				count += other.count;
@@ -48,7 +51,7 @@ class Actor {
 		};
 
 		struct SimulationStats {
-			int damageDealt = 0;
+			uint64_t damageDealt = 0;
 
 			std::vector<std::pair<std::chrono::microseconds, int>> tpSamples;
 			std::vector<std::pair<std::chrono::microseconds, int>> mpSamples;
@@ -80,7 +83,8 @@ class Actor {
 
 		const Configuration* configuration() const { return _configuration; }
 
-		const std::string& identifier() { return _configuration->identifier; }
+		uint64_t identifierHash() const { return _identifierHash; }
+		const std::string& identifier() const { return _configuration->identifier; }
 
 		const Action* act(const Actor* target);
 		
@@ -156,6 +160,7 @@ class Actor {
 
 		struct AppliedAura {
 			const Aura* aura = nullptr;
+			Actor* source = nullptr;
 			int count = 0;
 			std::chrono::microseconds time = 0_us;
 			std::chrono::microseconds duration = 0_us;
@@ -163,11 +168,10 @@ class Actor {
 			double tickCriticalHitChance = 0.0;
 			Stats providedStats;
 		};
-		
-		const std::unordered_map<std::pair<std::string, Actor*>, AppliedAura>& auras() const { return _auras; }
-		
+
 	private:
 		const Configuration* const _configuration = nullptr;
+		const uint64_t _identifierHash = 0;
 		std::mt19937* const _rng = nullptr;
 
 		Actor* _pet = nullptr;
@@ -202,7 +206,9 @@ class Actor {
 		int _mp = 0;
 
 		std::unordered_map<std::string, Cooldown> _cooldowns;
-		std::unordered_map<std::pair<std::string, Actor*>, AppliedAura> _auras;
+
+		uint64_t _appliedAuraKey(const std::string& auraIdentifier, const Actor* source) const;
+		std::map<uint64_t, AppliedAura> _auras;
 
 		SimulationStats _simulationStats;
 		std::unordered_map<std::string, EffectSimulationStats> _effectSimulationStats;

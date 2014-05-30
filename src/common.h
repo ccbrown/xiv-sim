@@ -3,6 +3,8 @@
 #include <chrono>
 #include <string>
 
+#include <stdint.h>
+
 inline constexpr std::chrono::hours operator"" _h(unsigned long long n) {
 	return std::chrono::hours(n);
 }
@@ -31,20 +33,14 @@ inline std::string operator"" _s(const char* str, size_t sz) {
 	return std::string(str, sz);
 }
 
-template <class T>
-inline void hash_combine(std::size_t& seed, const T& v) {
-	std::hash<T> hasher;
-	seed ^= hasher(v) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
+inline uint64_t FNV1AHash(const char* str) {
+	uint64_t ret = 14695981039346656037ull;
+	for (auto ptr = str; *ptr; ++ptr) {
+		ret = (ret ^ *(unsigned char*)ptr) * 1099511628211ull;
+	}
+	return ret;
 }
 
-namespace std {
-	template<typename S, typename T>
-	struct hash<pair<S, T>> {
-		inline size_t operator()(const pair<S, T> & v) const {
-			size_t seed = 0;
-			::hash_combine(seed, v.first);
-			::hash_combine(seed, v.second);
-			return seed;
-		}
-	};
+inline uint64_t FNV1AHash(const std::string& str) {
+	return FNV1AHash(str.c_str());
 }

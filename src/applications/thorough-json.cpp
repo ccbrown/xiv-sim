@@ -1,4 +1,5 @@
 #include "ActorConfigurationParser.h"
+#include "json.h"
 
 #include "../Actor.h"
 #include "../JITRotation.h"
@@ -122,28 +123,70 @@ int ThoroughJSON(int argc, const char* argv[]) {
 	targetConfiguration.identifier = "target";
 	targetConfiguration.model = &targetModel;
 
+	printf("{");
+
 	SimulationStats unmodifiedStats;
-	PerformSimulations(3000, &subjectConfiguration, &targetConfiguration, &unmodifiedStats);
+	PerformSimulations(100000, &subjectConfiguration, &targetConfiguration, &unmodifiedStats);
 
-	{
-		auto simulationTime = std::chrono::duration<double>(unmodifiedStats.time).count();
+	JSONPrint("iterations"); printf(":"); JSONPrint(unmodifiedStats.iterations); printf(",");
+	JSONPrint("time"); printf(":"); JSONPrint(unmodifiedStats.time); printf(",");
+	JSONPrint("damage"); printf(":"); JSONPrint(unmodifiedStats.general.damageDealt); printf(",");
+	JSONPrint("best-dps"); printf(":"); JSONPrint(unmodifiedStats.bestDPS); printf(",");
+	JSONPrint("best-seed"); printf(":"); JSONPrint(unmodifiedStats.bestSeed); printf(",");
+	JSONPrint("worst-dps"); printf(":"); JSONPrint(unmodifiedStats.worstDPS); printf(",");
+	JSONPrint("worst-seed"); printf(":"); JSONPrint(unmodifiedStats.worstSeed); printf(",");
+	JSONPrint("effects"); printf(":"); JSONPrint(unmodifiedStats.effects); printf(",");
+	
+	const std::unordered_map<std::string, int*> scalingStats({
+		{"str", &subjectConfiguration.stats.strength},
+		{"dex", &subjectConfiguration.stats.dexterity},
+		{"int", &subjectConfiguration.stats.intelligence},
+		{"pie", &subjectConfiguration.stats.piety},
+		{"crt", &subjectConfiguration.stats.criticalHitRate},
+		{"det", &subjectConfiguration.stats.determination},
+		{"sks", &subjectConfiguration.stats.skillSpeed},
+		{"sps", &subjectConfiguration.stats.spellSpeed}
+	});
+	
+	JSONPrint("scaling"); printf(":{");
 
-		printf("Iterations: %d\n", unmodifiedStats.iterations);
+	auto petConfiguration = subjectParser.petConfiguration();
 
-		printf("\n");
-
-		printf("Average DPS: %.3f\n", unmodifiedStats.general.damageDealt / simulationTime);
-		printf("Worst DPS: %.3f (seed = %" PRIu64 ")\n", unmodifiedStats.worstDPS, unmodifiedStats.worstSeed);
-		printf("Best DPS: %.3f (seed = %" PRIu64 ")\n", unmodifiedStats.bestDPS, unmodifiedStats.bestSeed);
-
-		printf("\n");
+	bool first = true;
+	for (auto& kv : scalingStats) {
+		if (!*kv.second) { continue; }
 		
-		printf("EFFECT                              DAMAGE           DPS         COUNT         CRITS           AVG\n");
-		for (auto& kv : unmodifiedStats.effects) {
-			auto& stats = kv.second;
-			printf("%-28s  %12d  %12.3f  %12d  %12d  %12.3f\n", kv.first.c_str(), stats.damageDealt, stats.damageDealt / simulationTime, stats.count, stats.criticalHits, stats.damageDealt / (double)stats.count);
+		auto original = *kv.second;
+
+		// scale up
+		*kv.second = original + 1;
+		if (petConfiguration) {
+			petConfiguration->stats = subjectConfiguration.stats;
+		}
+		
+		// simulate
+		SimulationStats scaleStats;
+		PerformSimulations(100000, &subjectConfiguration, &targetConfiguration, &scaleStats);
+		
+		if (!first) { printf(","); }
+		JSONPrint(kv.first); printf(":");
+		JSONPrintDict(
+			"iterations", scaleStats.iterations,
+			"time", scaleStats.time,
+			"damage", scaleStats.general.damageDealt
+		);
+		first = false;
+
+		// scale back down
+		*kv.second = original;
+		if (petConfiguration) {
+			petConfiguration->stats = subjectConfiguration.stats;
 		}
 	}
+	
+	printf("}");
+
+	printf("}");
 
 	return 0;
 }

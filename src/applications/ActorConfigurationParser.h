@@ -11,6 +11,7 @@ class ActorConfigurationParser {
 		bool parse(const char* str, size_t length);
 		
 		Actor::Configuration& configuration() { return _configuration; }
+		Actor::Configuration* petConfiguration() { return _petConfiguration.get(); }
 		
 	private:
 		Actor::Configuration _configuration;
