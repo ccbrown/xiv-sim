@@ -165,9 +165,10 @@ int ThoroughJSON(int argc, const char* argv[]) {
 		if (!*kv.second) { continue; }
 		
 		auto original = *kv.second;
+		auto amount = 5;
 
 		// scale up
-		*kv.second = original + 1;
+		*kv.second = original + amount;
 		if (petConfiguration) {
 			petConfiguration->stats = subjectConfiguration.stats;
 		}
@@ -179,6 +180,7 @@ int ThoroughJSON(int argc, const char* argv[]) {
 		if (!first) { printf(","); }
 		JSONPrint(kv.first); printf(":");
 		JSONPrintDict(
+			"amount", amount,
 			"iterations", scaleStats.iterations,
 			"time", scaleStats.time,
 			"damage", scaleStats.general.damageDealt
