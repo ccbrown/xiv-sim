@@ -11,6 +11,7 @@ namespace models {
 
 class Base : public Model {
 	public:
+		Base(const char* identifier) : Model(identifier) {}
 		virtual ~Base();
 	
 		const Action* action(const char* identifier) const override;

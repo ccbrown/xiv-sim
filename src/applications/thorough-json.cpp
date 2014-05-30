@@ -48,8 +48,10 @@ struct SimulationStats {
 	int iterations = 0;
 	uint64_t worstSeed = 0;
 	double worstDPS = 0.0;
+	std::chrono::microseconds worstTime = 0_us;
 	uint64_t bestSeed = 0;
 	double bestDPS = 0.0;
+	std::chrono::microseconds bestTime = 0_us;
 	std::chrono::microseconds time = 0_us;
 	Actor::SimulationStats general;
 	std::map<std::string, Actor::EffectSimulationStats> effects;
@@ -82,10 +84,12 @@ void PerformSimulations(int iterations, Actor::Configuration* subjectConfigurati
 		if (!stats->worstDPS || dps < stats->worstDPS) {
 			stats->worstSeed = results.seed;
 			stats->worstDPS = dps;
+			stats->worstTime = results.configuration.length;
 		}
 		if (!stats->bestDPS || dps > stats->bestDPS) {
 			stats->bestSeed = results.seed;
 			stats->bestDPS = dps;
+			stats->bestTime = results.configuration.length;
 		}
 	}
 }
@@ -132,9 +136,11 @@ int ThoroughJSON(int argc, const char* argv[]) {
 	JSONPrint("time"); printf(":"); JSONPrint(unmodifiedStats.time); printf(",");
 	JSONPrint("damage"); printf(":"); JSONPrint(unmodifiedStats.general.damageDealt); printf(",");
 	JSONPrint("best-dps"); printf(":"); JSONPrint(unmodifiedStats.bestDPS); printf(",");
-	JSONPrint("best-seed"); printf(":"); JSONPrint(unmodifiedStats.bestSeed); printf(",");
+	JSONPrint("best-seed"); printf(":"); JSONPrint(std::to_string(unmodifiedStats.bestSeed)); printf(",");
+	JSONPrint("best-time"); printf(":"); JSONPrint(unmodifiedStats.bestTime); printf(",");
 	JSONPrint("worst-dps"); printf(":"); JSONPrint(unmodifiedStats.worstDPS); printf(",");
-	JSONPrint("worst-seed"); printf(":"); JSONPrint(unmodifiedStats.worstSeed); printf(",");
+	JSONPrint("worst-seed"); printf(":"); JSONPrint(std::to_string(unmodifiedStats.worstSeed)); printf(",");
+	JSONPrint("worst-time"); printf(":"); JSONPrint(unmodifiedStats.worstTime); printf(",");
 	JSONPrint("effects"); printf(":"); JSONPrint(unmodifiedStats.effects); printf(",");
 	
 	const std::unordered_map<std::string, int*> scalingStats({

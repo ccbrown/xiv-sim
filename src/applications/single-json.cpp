@@ -83,8 +83,8 @@ int SingleJSON(int argc, const char* argv[]) {
 
 	printf("{");
 
-	JSONPrint("seed"); printf(":"); JSONPrint(seed); printf(",");
-	JSONPrint("length"); printf(":"); JSONPrint(configuration.length); printf(",");
+	JSONPrint("seed"); printf(":"); JSONPrint(std::to_string(seed)); printf(",");
+	JSONPrint("time"); printf(":"); JSONPrint(configuration.length); printf(",");
 	JSONPrint("damage"); printf(":"); JSONPrint(mergedStats.damageDealt); printf(",");
 
 	printf("\"subjects\":{");
@@ -100,6 +100,8 @@ int SingleJSON(int argc, const char* argv[]) {
 		auto& simStats = subject->simulationStats();
 
 		JSONPrintDict(
+			"model", subject->model()->identifier(),
+			"owner", subject->owner() ? subject->owner()->identifier().c_str() : nullptr,
 			"stats", subject->configuration()->stats,
 			"damage", simStats.damageDealt,
 			"effects", subject->effectSimulationStats(),

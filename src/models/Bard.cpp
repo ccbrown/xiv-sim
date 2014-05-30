@@ -6,7 +6,7 @@
 
 namespace models {
 
-Bard::Bard() {
+Bard::Bard() : Base("bard") {
 	{
 		struct Skill : Action {
 			struct Buff : Aura {

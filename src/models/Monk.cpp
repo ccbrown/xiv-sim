@@ -6,7 +6,7 @@
 
 namespace models {
 
-Monk::Monk() {
+Monk::Monk() : Base("monk") {
 	{
 		struct Skill : Action {			
 			struct Buff : Aura {

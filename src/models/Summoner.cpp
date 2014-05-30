@@ -6,7 +6,7 @@
 
 namespace models {
 
-Summoner::Summoner() {
+Summoner::Summoner() : Base("summoner") {
 	{
 		struct Spell : Action {
 			struct DoT : Aura {

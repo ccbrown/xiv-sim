@@ -3,6 +3,7 @@
 #include "Damage.h"
 
 #include <chrono>
+#include <string>
 
 class Action;
 class Actor;
@@ -10,7 +11,10 @@ class Aura;
 
 class Model {
 	public:
+		Model(const char* identifier) : _identifier(identifier) {}
 		virtual ~Model() = default;
+
+		const std::string& identifier() const { return _identifier; }
 
 		virtual const Action* action(const char* identifier) const = 0;
 
@@ -27,4 +31,7 @@ class Model {
 		virtual std::chrono::microseconds castTime(const Action* action, const Actor* actor) const = 0;
 
 		virtual int maximumMP(const Actor* actor) const = 0;
+		
+	private:
+		std::string _identifier;
 };

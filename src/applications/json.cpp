@@ -5,8 +5,12 @@
 namespace applications {
 
 void JSONPrint(const char* string) {
-	// TODO: make sure the string is properly escaped
-	printf("\"%s\"", string);
+	if (string) {
+		// TODO: make sure the string is properly escaped
+		printf("\"%s\"", string);
+	} else {
+		printf("null");
+	}
 }
 
 void JSONPrint(const std::string& string) {

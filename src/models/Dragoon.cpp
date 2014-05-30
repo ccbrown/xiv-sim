@@ -6,7 +6,7 @@
 
 namespace models {
 
-Dragoon::Dragoon() {
+Dragoon::Dragoon() : Base("dragoon") {
 	{
 		struct Skill : Action {
 			struct Buff : Aura {

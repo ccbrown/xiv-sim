@@ -8,7 +8,7 @@
 
 namespace models {
 
-BlackMage::BlackMage() {
+BlackMage::BlackMage() : Base("black-mage") {
 	{
 		struct Skill : Action {
 			struct Buff : Aura {

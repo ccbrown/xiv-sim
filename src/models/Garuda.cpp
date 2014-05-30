@@ -5,7 +5,7 @@
 
 namespace models {
 
-Garuda::Garuda() {
+Garuda::Garuda() : Base("garuda") {
 	{
 		struct Spell : Action {
 			Spell() : Action("wind-blade") {}
