@@ -17,6 +17,7 @@ On a fresh Ubuntu machine, the steps should go about like this:
 * Add the toolchain PPA: `sudo add-apt-repository ppa:ubuntu-toolchain-r/test`
 * Install the rest of the prerequisites: `sudo apt-get install git make llvm-3.4-dev clang-3.4 libz-dev`
 * Download the source: `git clone https://github.com/ccbrown/xiv-sim.git`
+* Enter the source directory: `cd xiv-sim`
 * Build: `CXX=c++ LLVM_CONFIG=llvm-config-3.4 make` (You can put those two variables in your profile to reduce the build command to simply `make`.)
 
 How to Use
