@@ -10,7 +10,7 @@ if (AuraCount(self, "firestarter", self) and AuraCount(self, "umbral-ice", self)
 if (MP(self) > 3000 and !AuraCount(self, "astral-fire", self))
 	use "fire-iii";
 
-if (AuraCount(self, "thundercloud", self))
+if (AuraCount(self, "thundercloud", self) and MP(self) >= 319 + 80)
 	use "thunder-iii";
 
 if (AuraTimeRemaining(target, "thunder-dot", self) < 2.0 and (AuraCount(self, "umbral-ice", self) or MP(self) >= 319 + 80))
