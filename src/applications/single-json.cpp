@@ -8,6 +8,7 @@
 
 #include "../models/Monk.h"
 
+#include <chrono>
 #include <memory>
 #include <cstring>
 #include <map>
@@ -51,10 +52,10 @@ int SingleJSON(int argc, const char* argv[]) {
 	targetConfiguration.model = &targetModel;
 	targetConfiguration.keepsHistory = true;
 
-	int simulationSeconds = atoi(argv[2]);
+	std::chrono::duration<double> simulationSeconds(strtod(argv[2], nullptr));
 
 	Simulation::Configuration configuration;
-	configuration.length = std::chrono::seconds(simulationSeconds);
+	configuration.length = std::chrono::duration_cast<std::chrono::microseconds>(simulationSeconds);
 	configuration.subjectConfiguration = &subjectConfiguration;
 	configuration.targetConfiguration = &targetConfiguration;
 
