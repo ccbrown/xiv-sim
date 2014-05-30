@@ -5,7 +5,7 @@
 
 int main(int argc, const char* argv[]) {
 	if (argc < 2) {
-		printf("Usage: %s [single-json|multi-iteration]\n", argv[0]);
+		printf("Usage: %s [single-json|thorough-json]\n", argv[0]);
 		return 1;
 	}
 	
