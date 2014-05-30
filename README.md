@@ -19,4 +19,4 @@ Runs a single 660 second simulation and spits out the detailed results formatted
 
 `time ./simulator thorough-json subjects/monk-bis.conf rotations/monk.sl`
 
-Runs several hundred thousand simulation and spits out the results formatted via JSON.
+Runs several hundred thousand simulations and spits out the results formatted via JSON.
