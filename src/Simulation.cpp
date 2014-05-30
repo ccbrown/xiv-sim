@@ -4,10 +4,14 @@
 #include "Model.h"
 
 Simulation::~Simulation() {
+	std::vector<Actor*> toDelete;
 	for (auto& subject : _subjects) {
 		if (!subject->owner()) {
-			delete subject;
+			toDelete.push_back(subject);
 		}
+	}
+	for (auto& actor : toDelete) {
+		delete actor;
 	}
 }
 

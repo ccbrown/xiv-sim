@@ -144,6 +144,8 @@ int ThoroughJSON(int argc, const char* argv[]) {
 	JSONPrint("effects"); printf(":"); JSONPrint(unmodifiedStats.effects); printf(",");
 	
 	const std::unordered_map<std::string, int*> scalingStats({
+		{"wpdmg", &subjectConfiguration.stats.weaponPhysicalDamage},
+		{"wmdmg", &subjectConfiguration.stats.weaponMagicDamage},
 		{"str", &subjectConfiguration.stats.strength},
 		{"dex", &subjectConfiguration.stats.dexterity},
 		{"int", &subjectConfiguration.stats.intelligence},
