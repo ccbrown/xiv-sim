@@ -29,13 +29,10 @@ if (AuraCount(self, "power-surge", self) and IsReady(self, "jump"))
 if (AuraTimeRemaining(self, "heavy-thrust", self) < 4.0)
 	use "heavy-thrust-flank";
 
-if (AuraTimeRemaining(target, "fracture-dot", self) < 4.0)
-	use "fracture";
-
-if (AuraTimeRemaining(target, "phlebotomize-dot", self) < 4.0)
+if (AuraTimeRemaining(target, "phlebotomize-dot", self) < 5.0)
 	use "phlebotomize";
 
-if (AuraTimeRemaining(target, "chaos-thrust-dot", self) < 5.0)
+if (AuraTimeRemaining(target, "chaos-thrust-dot", self) < 6.0)
 	use "impulse-drive-rear";
 
 if (IsReady(self, "power-surge"))

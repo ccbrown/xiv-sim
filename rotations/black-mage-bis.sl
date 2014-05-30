@@ -7,10 +7,10 @@ if (AuraCount(self, "firestarter", self) and AuraCount(self, "astral-fire", self
 if (AuraCount(self, "firestarter", self) and AuraCount(self, "umbral-ice", self) and MP(self) > 3000)
 	use "transpose";
 
-if (MP(self) > 3000 and !AuraCount(self, "astral-fire", self))
+if (MP(self) > 3000 and AuraCount(self, "astral-fire", self) < 3)
 	use "fire-iii";
 
-if (AuraCount(self, "thundercloud", self) and MP(self) >= 319 + 80)
+if (AuraCount(self, "thundercloud", self) and MP(self) >= 319 + 80 and (AuraCount(self, "umbral-ice", self) or AuraTimeRemaining(self, "astral-fire", self) > 5.0))
 	use "thunder-iii";
 
 if (AuraTimeRemaining(target, "thunder-dot", self) < 2.0 and (AuraCount(self, "umbral-ice", self) or MP(self) >= 319 + 80))
