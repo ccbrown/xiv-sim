@@ -165,6 +165,9 @@ const void* LLVMCodeGenerator::visit(ASTFloatingPoint* node) {
 }
 
 const void* LLVMCodeGenerator::visit(ASTInteger* node) {
+	if (node->type->type() == SLTypeTypeBool) {
+		return node->value ? llvm::ConstantInt::getTrue(_context) : llvm::ConstantInt::getFalse(_context);
+	}
 	return llvm::ConstantInt::get(_context, llvm::APInt(64, node->value));
 }
 

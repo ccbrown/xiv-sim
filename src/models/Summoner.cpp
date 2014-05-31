@@ -168,6 +168,7 @@ Summoner::Summoner() : Base("summoner") {
 			virtual bool requirements(const Actor* source) const override {
 				return source->auraCount("aetherflow", source);
 			}
+			virtual bool isOffGlobalCooldown() const override { return true; }
 		};
 		
 		_registerAction<Spell>();

@@ -28,6 +28,7 @@ Parser::Parser() {
 	_keywords.insert("const");
 	_keywords.insert("__end");
 	_keywords.insert("extern");
+	_keywords.insert("false");
 	_keywords.insert("use");
 	_keywords.insert("return");
 	_keywords.insert("import");
@@ -35,6 +36,7 @@ Parser::Parser() {
 	_keywords.insert("else");
 	_keywords.insert("__hidden");
 	_keywords.insert("static");
+	_keywords.insert("true");
 	_keywords.insert("namespace");
 	_keywords.insert("nullptr");
 	_keywords.insert("typename");
@@ -182,8 +184,12 @@ bool Parser::_peek(ParserTokenType type, TokenIterator* next) {
 			return _peek(ptt_keyword) && tok->value() == "if";
 		case ptt_keyword_else:
 			return _peek(ptt_keyword) && tok->value() == "else";
+		case ptt_keyword_false:
+			return _peek(ptt_keyword) && tok->value() == "false";
 		case ptt_keyword_static:
 			return _peek(ptt_keyword) && tok->value() == "static";
+		case ptt_keyword_true:
+			return _peek(ptt_keyword) && tok->value() == "true";
 		case ptt_keyword_namespace:
 			return _peek(ptt_keyword) && tok->value() == "namespace";
 		case ptt_keyword_nullptr:
@@ -1093,6 +1099,12 @@ ASTExpression* Parser::_parse_primary() {
 		// string literal
 		TokenPtr tok = _consume_token();
 		return new ASTConstantArray(tok->value().c_str(), tok->value().size() + 1, SLType::ModifiedType(SLType::Int8Type(), SLTypeModifierUnsigned | SLTypeModifierConstant));
+	} else if (_peek(ptt_keyword_true)) {
+		_consume(1); // true
+		return new ASTInteger(1, SLType::BoolType());
+	} else if (_peek(ptt_keyword_false)) {
+		_consume(1); // false
+		return new ASTInteger(0, SLType::BoolType());
 	} else if (_peek(ptt_open_paren)) {
 		// parenthesized expression
 		_consume(1); // (

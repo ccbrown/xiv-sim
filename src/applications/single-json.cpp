@@ -42,10 +42,9 @@ int SingleJSON(int argc, const char* argv[]) {
 	subjectConfiguration.rotation = &subjectRotation;
 	subjectConfiguration.keepsHistory = true;
 
-	if (subjectConfiguration.petConfiguration) {
-		auto petConfiguration = *subjectConfiguration.petConfiguration;
-		petConfiguration.identifier = "player-pet";
-		petConfiguration.keepsHistory = subjectConfiguration.keepsHistory;
+	if (auto petConfiguration = subjectParser.petConfiguration()) {
+		petConfiguration->identifier = "player-pet";
+		petConfiguration->keepsHistory = subjectConfiguration.keepsHistory;
 	}
 
 	models::Monk targetModel;

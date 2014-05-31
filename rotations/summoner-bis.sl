@@ -8,16 +8,25 @@ else if (!CooldownRemaining(garuda, "contagion") and AuraTimeRemaining(target, "
 if (!CooldownRemaining(self, "raging-strikes"))
 	use "raging-strikes";
 
-if (GlobalCooldownRemaining(self) > 1.0) {
-	if (!CooldownRemaining(self, "aetherflow"))
-		use "aetherflow";
+var needsWeave = false;
 
-	if (!CooldownRemaining(self, "rouse"))
+if (!CooldownRemaining(self, "aetherflow"))
+	if (GlobalCooldownRemaining(self) > 1.0)
+		use "aetherflow";
+	else
+		needsWeave = true;
+
+if (!CooldownRemaining(self, "rouse"))
+	if (GlobalCooldownRemaining(self) > 1.0)
 		use "rouse";
-	
-	if (!CooldownRemaining(self, "spur"))
+	else
+		needsWeave = true;
+
+if (!CooldownRemaining(self, "spur") and AuraCount(Pet(self), "rouse", self))
+	if (GlobalCooldownRemaining(self) > 1.0)
 		use "spur";
-}
+	else
+		needsWeave = true;
 
 if (!AuraCount(target, "bio-dot", self))
 	use "bio";
@@ -32,6 +41,12 @@ if (AuraTimeRemaining(target, "shadow-flare-dot", self) < 2.0)
 	use "shadow-flare";
 
 if (AuraCount(self, "aetherflow", self) && !CooldownRemaining(self, "fester"))
-	use "fester";
+	if (GlobalCooldownRemaining(self) > 1.0)
+		use "fester";
+	else
+		needsWeave = true;
+
+if (needsWeave)
+	use "ruin-ii";
 
 use "ruin";
