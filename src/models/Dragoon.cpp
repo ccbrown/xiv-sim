@@ -256,6 +256,8 @@ Dragoon::Dragoon() : Base("dragoon") {
 				source->dispelAura("life-surge", source);
 				source->dispelAura("power-surge", source);
 			}
+			virtual bool isOffGlobalCooldown() const override { return true; }
+
 		};
 	
 		_registerAction<Skill>();
@@ -286,6 +288,8 @@ Dragoon::Dragoon() : Base("dragoon") {
 			virtual void resolution(Actor* source, Actor* target) const override {
 				source->dispelAura("life-surge", source);
 			}
+			virtual bool isOffGlobalCooldown() const override { return true; }
+
 		};
 	
 		_registerAction<Skill>();
