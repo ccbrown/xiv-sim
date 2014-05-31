@@ -56,6 +56,17 @@ Bard::Bard() : Base("bard") {
 
 	{
 		struct Skill : Action {
+			Skill() : Action("blunt-arrow") {}
+			virtual int damage() const override { return 50; }
+			virtual bool isOffGlobalCooldown() const { return true; }
+			virtual std::chrono::microseconds cooldown() const override { return 30_s; }
+		};
+	
+		_registerAction<Skill>();
+	}
+
+	{
+		struct Skill : Action {
 			struct DoT : Aura {
 				DoT() : Aura("windbite-dot") {}
 				virtual std::chrono::microseconds duration() const override { return 18_s; }
