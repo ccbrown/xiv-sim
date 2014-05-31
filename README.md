@@ -15,6 +15,8 @@ On a fresh Ubuntu machine, the steps should go about like this:
 * Install the `add-apt-repository` command: `sudo apt-get install python-software-properties`
 * Add the LLVM repository. Go to http://llvm.org/apt/ to figure out which repo is right for your system, then run `sudo add-apt-repository "deb http://llvm.org/apt/precise/ llvm-toolchain-precise-3.4 main"` with the correct repository.
 * Add the toolchain PPA: `sudo add-apt-repository ppa:ubuntu-toolchain-r/test`
+* Install the GPG key for LLVM: `wget -O - http://llvm.org/apt/llvm-snapshot.gpg.key|sudo apt-key add -`
+* Update your sources: `sudo apt-get update`
 * Install the rest of the prerequisites: `sudo apt-get install git make llvm-3.4-dev clang-3.4 libz-dev`
 * Download the source: `git clone https://github.com/ccbrown/xiv-sim.git`
 * Enter the source directory: `cd xiv-sim`
