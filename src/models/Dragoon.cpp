@@ -155,7 +155,7 @@ Dragoon::Dragoon() : Base("dragoon") {
 		struct Skill : Action {
 			struct Debuff : Aura {
 				Debuff() : Aura("disembowel-combo") {}
-				virtual std::chrono::microseconds duration() const override { return 20_s; }
+				virtual std::chrono::microseconds duration() const override { return 30_s; }
 				virtual void transformIncomingDamage(Damage* damage) const override {
 					if (damage->type == DamageTypePiercing) {
 						damage->amount *= 1.0 / 0.9;
@@ -183,7 +183,7 @@ Dragoon::Dragoon() : Base("dragoon") {
 		struct Skill : Action {
 			struct DoT : Aura {
 				DoT() : Aura("chaos-thrust-dot") {}
-				virtual std::chrono::microseconds duration() const override { return 20_s; }
+				virtual std::chrono::microseconds duration() const override { return 30_s; }
 				virtual int tickDamage() const override { return 30; }
 			};
 			
@@ -251,7 +251,7 @@ Dragoon::Dragoon() : Base("dragoon") {
 			virtual int damage(const Actor* source, const Actor* target) const override {
 				return source->auraCount("power-surge", source) ? 300 : 200;
 			}
-			virtual std::chrono::microseconds cooldown() const override { return 60_s; }
+			virtual std::chrono::microseconds cooldown() const override { return 40_s; }
 			virtual void resolution(Actor* source, Actor* target) const override {
 				source->dispelAura("life-surge", source);
 				source->dispelAura("power-surge", source);
