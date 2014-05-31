@@ -257,7 +257,6 @@ Dragoon::Dragoon() : Base("dragoon") {
 				source->dispelAura("power-surge", source);
 			}
 			virtual bool isOffGlobalCooldown() const override { return true; }
-
 		};
 	
 		_registerAction<Skill>();
@@ -289,9 +288,31 @@ Dragoon::Dragoon() : Base("dragoon") {
 				source->dispelAura("life-surge", source);
 			}
 			virtual bool isOffGlobalCooldown() const override { return true; }
-
 		};
 	
+		_registerAction<Skill>();
+	}
+
+	{
+		struct Skill : Action {
+			Skill() : Action("leg-sweep") {}
+			virtual int damage() const override { return 130; }
+			virtual std::chrono::microseconds cooldown() const override { return 30_s; }
+			virtual bool isOffGlobalCooldown() const override { return true; }
+		};
+		
+		_registerAction<Skill>();
+	}
+
+	{
+		struct Skill : Action {
+			Skill() : Action("spineshatter-dive") {}
+			virtual int damage() const override { return 170; }
+			virtual std::chrono::microseconds cooldown() const override { return 90_s; }
+			virtual bool isOffGlobalCooldown() const override { return true; }
+
+		};
+
 		_registerAction<Skill>();
 	}
 }
