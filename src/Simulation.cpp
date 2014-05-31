@@ -3,6 +3,8 @@
 #include "Action.h"
 #include "Model.h"
 
+#include "common.h"
+
 Simulation::~Simulation() {
 	std::vector<Actor*> toDelete;
 	for (auto& subject : _subjects) {
@@ -16,7 +18,7 @@ Simulation::~Simulation() {
 }
 
 void Simulation::run() {
-	std::uniform_int_distribution<std::chrono::microseconds::rep> distribution(0, 3000000);
+	PortableUniformIntDistribution<std::chrono::microseconds::rep> distribution(0, 3000000);
 	std::chrono::microseconds dotTickOffset(distribution(_rng));
 
 	_schedule([&] {

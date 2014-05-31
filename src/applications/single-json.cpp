@@ -6,6 +6,8 @@
 #include "../JITRotation.h"
 #include "../Simulation.h"
 
+#include "../common.h"
+
 #include "../models/Monk.h"
 
 #include <chrono>
@@ -63,7 +65,7 @@ int SingleJSON(int argc, const char* argv[]) {
 
 	if (argc < 4) {
 		std::random_device rd;
-		std::uniform_int_distribution<uint64_t> dist;
+		PortableUniformIntDistribution<uint64_t> dist;
 		seed = dist(rd);
 	} else {
 		seed = strtoull(argv[3], nullptr, 0);

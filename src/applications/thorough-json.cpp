@@ -27,7 +27,7 @@ static TrialResults Trial(const Simulation::Configuration&& configuration) {
 
 	{
 		std::random_device rd;
-		std::uniform_int_distribution<uint64_t> dist;
+		PortableUniformIntDistribution<uint64_t> dist;
 		ret.seed = dist(rd);
 	}
 	
