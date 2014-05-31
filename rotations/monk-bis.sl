@@ -18,13 +18,11 @@ if (GlobalCooldownRemaining(self) > 0.5) {
 	if (IsReady(self, "internal-release"))
 		use "internal-release";
 
-	if (AuraCount(self, "greased-lightning", self) == 3 and AuraCount(self, "twin-snakes", self)) {
-		if (IsReady(self, "steel-peak"))
-			use "steel-peak";
-	
-		if (IsReady(self, "howling-fist"))
-			use "howling-fist";
-	}
+	if (IsReady(self, "steel-peak"))
+		use "steel-peak";
+
+	if (IsReady(self, "howling-fist"))
+		use "howling-fist";
 }
 
 if (AuraTimeRemaining(target, "demolish-dot", self) < 4.0 and isCoeurlForm)
