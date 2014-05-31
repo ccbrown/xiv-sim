@@ -19,6 +19,9 @@ if (GlobalCooldownRemaining(self) > 1.0) {
 
 	if (IsReady(self, "hawks-eye"))
 		use "hawks-eye";
+
+	if (IsReady(self, "repelling-shot"))
+		use "repelling-shot";
 }
 
 if (AuraTimeRemaining(target, "windbite-dot", self) < 2.0)

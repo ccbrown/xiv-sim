@@ -1,11 +1,13 @@
-if (TP(self) < 500 and IsReady(self, "invigorate"))
-	use "invigorate";
-
-if (IsReady(self, "blood-for-blood"))
-	use "blood-for-blood";
-
-if (IsReady(self, "internal-release"))
-	use "internal-release";
+if (GlobalCooldownRemaining(self) > 0.5) {
+	if (TP(self) < 500 and IsReady(self, "invigorate"))
+		use "invigorate";
+	
+	if (IsReady(self, "blood-for-blood"))
+		use "blood-for-blood";
+	
+	if (IsReady(self, "internal-release"))
+		use "internal-release";
+}
 
 if (IsReady(self, "full-thrust-combo")) {
 	if (IsReady(self, "life-surge"))

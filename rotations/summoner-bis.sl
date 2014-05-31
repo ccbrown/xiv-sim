@@ -28,10 +28,10 @@ if (AuraTimeRemaining(target, "miasma-dot", self) < 2.0)
 if (AuraTimeRemaining(target, "bio-ii-dot", self) < 2.0)
 	use "bio-ii";
 
+if (AuraTimeRemaining(target, "shadow-flare-dot", self) < 2.0)
+	use "shadow-flare";
+
 if (AuraCount(self, "aetherflow", self) && !CooldownRemaining(self, "fester"))
 	use "fester";
-
-if (MP(self) > 500)
-	use "ruin-ii";
 
 use "ruin";
