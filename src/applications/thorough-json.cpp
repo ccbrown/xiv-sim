@@ -60,36 +60,40 @@ struct SimulationStats {
 void PerformSimulations(int iterations, Actor::Configuration* subjectConfiguration, Actor::Configuration* targetConfiguration, SimulationStats* stats) {
 	stats->iterations = iterations;
 	
-	std::vector<std::future<TrialResults>> futures;
+	int remaining = iterations;
 
-	for (int i = 0; i < iterations; ++i) {
-		Simulation::Configuration configuration;
-		configuration.length = std::chrono::duration_cast<std::chrono::microseconds>(7_min + (i % 100) / 50.0 * 6_min);
-		configuration.subjectConfiguration = subjectConfiguration;
-		configuration.targetConfiguration = targetConfiguration;
-		
-		futures.emplace_back(std::async(std::launch::async, Trial, std::move(configuration)));
-	}
+	while (remaining) {
+		std::vector<std::future<TrialResults>> futures;
 	
-	for (auto& future : futures) {
-		auto results = future.get();
-		
-		stats->general += results.overallStats;
-		for (auto& kv : results.effectStats) {
-			stats->effects[kv.first] += kv.second;
+		for (int i = 0; remaining && i < 5000; ++i, --remaining) {
+			Simulation::Configuration configuration;
+			configuration.length = std::chrono::duration_cast<std::chrono::microseconds>(7_min + (i % 100) / 50.0 * 6_min);
+			configuration.subjectConfiguration = subjectConfiguration;
+			configuration.targetConfiguration = targetConfiguration;
+			
+			futures.emplace_back(std::async(std::launch::async, Trial, std::move(configuration)));
 		}
-		stats->time += results.configuration.length;
 
-		auto dps = results.overallStats.damageDealt / std::chrono::duration<double>(results.configuration.length).count();
-		if (!stats->worstDPS || dps < stats->worstDPS) {
-			stats->worstSeed = results.seed;
-			stats->worstDPS = dps;
-			stats->worstTime = results.configuration.length;
-		}
-		if (!stats->bestDPS || dps > stats->bestDPS) {
-			stats->bestSeed = results.seed;
-			stats->bestDPS = dps;
-			stats->bestTime = results.configuration.length;
+		for (auto& future : futures) {
+			auto results = future.get();
+			
+			stats->general += results.overallStats;
+			for (auto& kv : results.effectStats) {
+				stats->effects[kv.first] += kv.second;
+			}
+			stats->time += results.configuration.length;
+	
+			auto dps = results.overallStats.damageDealt / std::chrono::duration<double>(results.configuration.length).count();
+			if (!stats->worstDPS || dps < stats->worstDPS) {
+				stats->worstSeed = results.seed;
+				stats->worstDPS = dps;
+				stats->worstTime = results.configuration.length;
+			}
+			if (!stats->bestDPS || dps > stats->bestDPS) {
+				stats->bestSeed = results.seed;
+				stats->bestDPS = dps;
+				stats->bestTime = results.configuration.length;
+			}
 		}
 	}
 }
