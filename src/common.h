@@ -81,7 +81,7 @@ struct PortableUniformIntDistribution {
 				result <<= needed;
 				result |= (g() & ((1 << needed) - 1));
 			}
-			if (result <= range) {
+			if (result <= range || !range) {
 				return a + result;
 			}
 		}
