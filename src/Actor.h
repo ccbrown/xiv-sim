@@ -119,6 +119,7 @@ class Actor {
 		const Action* comboAction() const;
 
 		std::chrono::microseconds autoAttackDelayRemaining() const;
+		std::chrono::microseconds globalCooldown() const;
 		std::chrono::microseconds globalCooldownRemaining() const;
 		std::chrono::microseconds animationLockRemaining() const;
 		

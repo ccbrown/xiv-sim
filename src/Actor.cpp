@@ -174,10 +174,14 @@ std::chrono::microseconds Actor::autoAttackDelayRemaining() const {
 	return elapsed < interval ? interval - elapsed : 0_us;
 }
 
+std::chrono::microseconds Actor::globalCooldown() const {
+	return _configuration->model->globalCooldown(this);
+}
+
 std::chrono::microseconds Actor::globalCooldownRemaining() const {
 	// TODO: make sure this matches ffxiv for changes to skill / spell speed mid-gcd
 	auto elapsed = _time - _globalCooldownStartTime;
-	auto gcd = _configuration->model->globalCooldown(this);
+	auto gcd = globalCooldown();
 	return elapsed < gcd ? gcd - elapsed : 0_us;
 }
 

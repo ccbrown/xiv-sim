@@ -21,6 +21,7 @@ bool JITRotation::initializeWithFile(const char* filename) {
 		"const Actor* Pet(const Actor* owner);\n"
 		"uint64 TP(const Actor* actor);\n"
 		"uint64 MP(const Actor* actor);\n"
+		"double GlobalCooldown(const Actor* actor);\n"
 		"uint8 IsReady(const Actor* actor, const uint8* identifier);\n"
 		"void Command(const Actor* actor, const uint8* identifier);\n"
 		"__end __hidden const uint8* NextAction(const Actor* self, const Actor* target) {\n"
@@ -125,6 +126,7 @@ bool JITRotation::initializeWithFile(const char* filename) {
 	engine->addGlobalMapping(module->getFunction("^Pet"), (void*)&JITRotation::ActorPet);
 	engine->addGlobalMapping(module->getFunction("^TP"), (void*)&JITRotation::ActorTP);
 	engine->addGlobalMapping(module->getFunction("^MP"), (void*)&JITRotation::ActorMP);
+	engine->addGlobalMapping(module->getFunction("^GlobalCooldown"), (void*)&JITRotation::ActorGlobalCooldown);
 	engine->addGlobalMapping(module->getFunction("^IsReady"), (void*)&JITRotation::ActionIsReady);
 	engine->addGlobalMapping(module->getFunction("^Command"), (void*)&JITRotation::ActorCommand);
 
@@ -164,6 +166,10 @@ uint64_t JITRotation::ActorTP(const Actor* actor) {
 
 uint64_t JITRotation::ActorMP(const Actor* actor) {
 	return actor->mp();
+}
+
+double JITRotation::ActorGlobalCooldown(const Actor* actor) {
+	return std::chrono::duration<double>(actor->globalCooldown()).count();
 }
 
 uint8_t JITRotation::ActionIsReady(const Actor* actor, const char* identifier) {
