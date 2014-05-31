@@ -67,7 +67,7 @@ void PerformSimulations(int iterations, Actor::Configuration* subjectConfigurati
 	
 		for (int i = 0; remaining && i < 5000; ++i, --remaining) {
 			Simulation::Configuration configuration;
-			configuration.length = std::chrono::duration_cast<std::chrono::microseconds>(7_min + (i % 100) / 50.0 * 6_min);
+			configuration.length = std::chrono::duration_cast<std::chrono::microseconds>(7_min + (i % 50) / 50.0 * 6_min);
 			configuration.subjectConfiguration = subjectConfiguration;
 			configuration.targetConfiguration = targetConfiguration;
 			
