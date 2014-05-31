@@ -297,7 +297,7 @@ Dragoon::Dragoon() : Base("dragoon") {
 		struct Skill : Action {
 			Skill() : Action("leg-sweep") {}
 			virtual int damage() const override { return 130; }
-			virtual std::chrono::microseconds cooldown() const override { return 30_s; }
+			virtual std::chrono::microseconds cooldown() const override { return 20_s; }
 			virtual bool isOffGlobalCooldown() const override { return true; }
 		};
 		
