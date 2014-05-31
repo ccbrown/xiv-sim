@@ -68,7 +68,7 @@ void PerformSimulations(int iterations, Actor::Configuration* subjectConfigurati
 		configuration.subjectConfiguration = subjectConfiguration;
 		configuration.targetConfiguration = targetConfiguration;
 		
-		futures.emplace_back(std::async(Trial, std::move(configuration)));
+		futures.emplace_back(std::async(std::launch::async, Trial, std::move(configuration)));
 	}
 	
 	for (auto& future : futures) {
