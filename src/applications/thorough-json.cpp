@@ -5,7 +5,7 @@
 #include "../JITRotation.h"
 #include "../Simulation.h"
 
-#include "../models/Monk.h"
+#include "../models/Dragoon.h"
 
 #include <future>
 #include <vector>
@@ -137,7 +137,7 @@ int ThoroughJSON(int argc, const char* argv[]) {
 		petConfiguration.keepsHistory = subjectConfiguration.keepsHistory;
 	}
 
-	models::Monk targetModel;
+	models::Dragoon targetModel;
 	Actor::Configuration targetConfiguration;
 	targetConfiguration.identifier = "target";
 	targetConfiguration.model = &targetModel;

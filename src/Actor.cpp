@@ -40,6 +40,10 @@ Actor::~Actor() {
 	delete _pet;
 }
 
+void Actor::prepareForBattle() {
+	_configuration->model->prepareForBattle(this);
+}
+
 void Actor::act(Actor* target) {
 	auto action = _configuration->rotation ? _configuration->rotation->nextAction(this, target) : nullptr;
 	if (!action) { return; }

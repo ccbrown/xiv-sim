@@ -8,15 +8,9 @@ namespace models {
 
 Monk::Monk() : Base("monk") {
 	{
-		struct Skill : Action {			
-			struct Buff : Aura {
-				Buff() : Aura("fists-of-fire") {}
-				virtual std::chrono::microseconds duration() const override { return std::chrono::microseconds::max(); }
-				virtual double increasedDamage() const override { return 0.05; }
-			};
-	
+		struct Skill : Action {				
 			Skill() : Action("fists-of-fire") {
-				_sourceAuras.push_back(new Buff());
+				_sourceAuras.push_back(new FistsOfFire());
 			}
 			virtual bool isOffGlobalCooldown() const override { return true; }
 		};
@@ -328,6 +322,10 @@ Monk::Monk() : Base("monk") {
 		
 		_registerAction<Skill>();
 	}
+}
+
+void Monk::prepareForBattle(Actor* actor) const {
+	actor->applyAura(&fistsOfFire, actor);
 }
 
 int Monk::maximumMP(const Actor* actor) const {

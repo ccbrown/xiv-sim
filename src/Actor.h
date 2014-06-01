@@ -87,6 +87,7 @@ class Actor {
 		uint64_t identifierHash() const { return _identifierHash; }
 		const std::string& identifier() const { return _configuration->identifier; }
 
+		void prepareForBattle();
 		void act(Actor* target);
 		void tick();
 		

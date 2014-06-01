@@ -2,7 +2,6 @@
 
 #include "../Action.h"
 #include "../Actor.h"
-#include "../Aura.h"
 
 namespace models {
 
@@ -154,16 +153,10 @@ Summoner::Summoner() : Base("summoner") {
 
 	{
 		struct Spell : Action {
-			struct Buff : Aura {
-				Buff() : Aura("aetherflow") {}
-				virtual int maximumCount() const override { return 3; }
-				virtual std::chrono::microseconds duration() const override { return std::chrono::microseconds::max(); }
-			};
-
 			Spell() : Action("aetherflow") {
-				_sourceAuras.push_back(new Buff());
-				_sourceAuras.push_back(new Buff());
-				_sourceAuras.push_back(new Buff());
+				_sourceAuras.push_back(new Aetherflow());
+				_sourceAuras.push_back(new Aetherflow());
+				_sourceAuras.push_back(new Aetherflow());
 			}
 			virtual bool isOffGlobalCooldown() const override { return true; }
 			virtual std::chrono::microseconds cooldown() const override { return 60_s; }
@@ -232,6 +225,10 @@ Summoner::Summoner() : Base("summoner") {
 
 		_registerAction<Spell>();
 	}
+}
+
+void Summoner::prepareForBattle(Actor* actor) const {
+	actor->applyAura(&aetherflow, actor, 3);
 }
 
 int Summoner::maximumMP(const Actor* actor) const {

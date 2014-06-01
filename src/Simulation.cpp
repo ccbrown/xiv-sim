@@ -21,6 +21,10 @@ void Simulation::run() {
 	PortableUniformIntDistribution<std::chrono::microseconds::rep> distribution(0, 3000000);
 	std::chrono::microseconds dotTickOffset(distribution(_rng));
 
+	for (auto& subject : _subjects) {
+		subject->prepareForBattle();
+	}
+
 	_schedule([&] {
 		_shouldStop = true;
 	}, _configuration->length);

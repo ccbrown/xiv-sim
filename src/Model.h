@@ -15,6 +15,8 @@ class Model {
 		virtual ~Model() = default;
 
 		const std::string& identifier() const { return _identifier; }
+			
+		virtual void prepareForBattle(Actor* actor) const = 0;
 
 		virtual const Action* action(const char* identifier) const = 0;
 

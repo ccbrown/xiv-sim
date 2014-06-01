@@ -8,7 +8,7 @@
 
 #include "../common.h"
 
-#include "../models/Monk.h"
+#include "../models/Dragoon.h"
 
 #include <chrono>
 #include <memory>
@@ -80,7 +80,7 @@ int SingleJSON(int argc, const char* argv[]) {
 		return 1;
 	}
 
-	models::Monk targetModel;
+	models::Dragoon targetModel;
 	Actor::Configuration targetConfiguration;
 	targetConfiguration.identifier = "target";
 	targetConfiguration.model = &targetModel;

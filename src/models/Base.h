@@ -13,8 +13,10 @@ class Base : public Model {
 	public:
 		Base(const char* identifier) : Model(identifier) {}
 		virtual ~Base();
-	
-		const Action* action(const char* identifier) const override;
+
+		virtual void prepareForBattle(Actor* actor) const override {}
+
+		virtual const Action* action(const char* identifier) const override;
 
 		virtual std::chrono::microseconds globalCooldown(const Actor* actor) const override;
 
