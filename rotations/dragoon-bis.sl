@@ -1,16 +1,16 @@
 if (GlobalCooldownRemaining(self) > 0.5) {
 
-	if (TP(self) < 500 and IsReady(self, "invigorate"))
+	if (TP(self) < 460 and IsReady(self, "invigorate"))
 		use "invigorate";
 	
 	if (IsReady(self, "internal-release"))
 		use "internal-release";
 		
-	if (IsReady(self, "blood-for-blood"))
+	if (IsReady(self, "blood-for-blood") and !(IsReady(self, "full-thrust-combo") and AuraTimeRemaining(target, "chaos-thrust-dot", self) < 15.0))
 		use "blood-for-blood";
 	
-	if (IsReady(self, "power-surge") and AuraTimeRemaining(self, "blood-for-blood", self) > 3.0 and IsReady(self, "jump"))
-		use "power-surge";
+	if (IsReady(self, "power-surge") and AuraTimeRemaining(self, "blood-for-blood", self) > 3.0)
+                use "power-surge";
 		
 	if (IsReady(self, "life-surge") and IsReady(self, "full-thrust-combo") and AuraTimeRemaining(self, "blood-for-blood", self) > 1.0)
 		use "life-surge";
