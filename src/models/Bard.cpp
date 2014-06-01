@@ -14,12 +14,10 @@ Bard::Bard() : Base("bard") {
 				virtual std::chrono::microseconds duration() const override { return std::chrono::microseconds::max(); }
 				virtual double increasedDamage() const override { return -0.20; }
 				virtual bool shouldCancel(Actor* actor, Actor* source, int count) const override {
-					return actor == source && actor->mp() < 133;
+					return actor->mp() < 133;
 				}
 				virtual void tick(Actor* actor, Actor* source, int count, bool isCritical) const override {
-					if (actor == source) {
-						actor->setMP(actor->mp() - 133);
-					}
+					actor->setMP(actor->mp() - 133);
 					actor->setTP(actor->tp() + 30);
 				}
 			};
