@@ -41,6 +41,8 @@ int SingleJSON(int argc, const char* argv[]) {
 		} else if (!strcmp(argv[i - 1], "--seed")) {
 			seed = strtoull(argv[i], nullptr, 0);
 			hasSeed = true;
+		} else if (!strcmp(argv[i], "--length") || !strcmp(argv[i], "--seed")) {
+			continue;
 		} else if (parsers.size() == rotations.size()) {
 			// subject
 			parsers.emplace_back(new ActorConfigurationParser());
