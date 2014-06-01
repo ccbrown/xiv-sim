@@ -37,8 +37,8 @@ BlackMage::BlackMage() : Base("black-mage") {
 
 		struct DoT : Aura {
 			DoT() : Aura("thunder-dot") {}
-			virtual std::chrono::microseconds duration() const override { return 12_s; }
-			virtual int tickDamage() const override { return 40; }
+			virtual std::chrono::microseconds duration() const override { return 18_s; }
+			virtual int tickDamage() const override { return 35; }
 			virtual void tick(Actor* actor, Actor* source, int count, bool isCritical) const override {
 				std::uniform_real_distribution<double> distribution(0.0, 1.0);				
 				if (distribution(actor->rng()) < 0.05) {
@@ -82,8 +82,8 @@ BlackMage::BlackMage() : Base("black-mage") {
 
 		struct DoT : Aura {
 			DoT() : Aura("thunder-dot") {}
-			virtual std::chrono::microseconds duration() const override { return 15_s; }
-			virtual int tickDamage() const override { return 40; }
+			virtual std::chrono::microseconds duration() const override { return 21_s; }
+			virtual int tickDamage() const override { return 35; }
 			virtual void tick(Actor* actor, Actor* source, int count, bool isCritical) const override {
 				std::uniform_real_distribution<double> distribution(0.0, 1.0);				
 				if (distribution(actor->rng()) < 0.05) {
@@ -127,8 +127,8 @@ BlackMage::BlackMage() : Base("black-mage") {
 
 		struct DoT : Aura {
 			DoT() : Aura("thunder-dot") {}
-			virtual std::chrono::microseconds duration() const override { return 18_s; }
-			virtual int tickDamage() const override { return 40; }
+			virtual std::chrono::microseconds duration() const override { return 24_s; }
+			virtual int tickDamage() const override { return 35; }
 			virtual void tick(Actor* actor, Actor* source, int count, bool isCritical) const override {
 				std::uniform_real_distribution<double> distribution(0.0, 1.0);				
 				if (distribution(actor->rng()) < 0.05) {
