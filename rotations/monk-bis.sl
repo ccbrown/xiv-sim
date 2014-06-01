@@ -5,6 +5,9 @@ var isCoeurlForm = AuraCount(self, "coeurl-form", self) or AuraCount(self, "perf
 if (!AuraCount(self, "fists-of-fire", self))
 	use "fists-of-fire";
 
+if (TP(self) >= 300 and !AuraCount(target, "touch-of-death-dot", self) and !AuraCount(self, "perfect-balance", self))
+	use "touch-of-death";
+
 if (!AuraCount(self, "greased-lightning", self) and IsReady(self, "perfect-balance"))
 	use "perfect-balance";
 
@@ -27,9 +30,6 @@ if (GlobalCooldownRemaining(self) > 0.5) {
 
 if (AuraTimeRemaining(target, "demolish-dot", self) < 4.0 and isCoeurlForm)
 	use "demolish-rear";
-
-if (TP(self) >= 300 and !AuraCount(target, "touch-of-death-dot", self))
-	use "touch-of-death";
 
 if ((AuraTimeRemaining(self, "greased-lightning", self) < 4.0 or AuraCount(self, "greased-lightning", self) < 3) and isCoeurlForm) {
 	if (AuraTimeRemaining(target, "demolish-dot", self) < 4.0)
