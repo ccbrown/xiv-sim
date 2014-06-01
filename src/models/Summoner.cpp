@@ -135,6 +135,24 @@ Summoner::Summoner() : Base("summoner") {
 	}
 
 	{
+		struct Skill : Action {
+			struct Buff : Aura {
+				Buff() : Aura("swiftcast") {}
+				virtual std::chrono::microseconds duration() const override { return 10_s; }
+				// implementation in Actor
+			};
+			
+			Skill() : Action("swiftcast") {
+				_sourceAuras.push_back(new Buff());
+			}
+			virtual bool isOffGlobalCooldown() const override { return true; }
+			virtual std::chrono::microseconds cooldown() const override { return 60_s; }
+		};
+		
+		_registerAction<Skill>();
+	}
+
+	{
 		struct Spell : Action {
 			struct Buff : Aura {
 				Buff() : Aura("aetherflow") {}

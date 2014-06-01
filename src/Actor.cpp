@@ -40,13 +40,24 @@ Actor::~Actor() {
 	delete _pet;
 }
 
-const Action* Actor::act(const Actor* target) {
+void Actor::act(Actor* target) {
 	auto action = _configuration->rotation ? _configuration->rotation->nextAction(this, target) : nullptr;
-	if (!action) { return nullptr; }
+	if (!action) { return; }
+
 	if (auto replacement = action->replacement(this, target)) {
-		return replacement;
+		action = replacement;
 	}
-	return action;
+
+	if (!action->isUsable(this)) { return; }
+
+	// TODO: get this out of here
+	bool swift = dispelAura("swiftcast", this);
+
+	if (!swift && action->castTime(this).count()) {
+		_beginCast(action, target);
+	} else {
+		_executeAction(action, target);
+	}
 }
 
 void Actor::tick() {
@@ -125,7 +136,7 @@ void Actor::advanceTime(const std::chrono::microseconds& time) {
 		auto target = _castTarget;
 		_castAction = nullptr;
 		_castTarget = nullptr;
-		executeAction(action, target);
+		_executeAction(action, target);
 		_lastAutoAttackTime = _time;
 		_globalCooldownStartTime = _castStartTime;
 		_animationLockEndTime = _castStartTime + 1_s;
@@ -167,20 +178,6 @@ void Actor::advanceTime(const std::chrono::microseconds& time) {
 Damage Actor::performAutoAttack() {
 	_lastAutoAttackTime = _time;
 	return _configuration->model->generateAutoAttackDamage(this);
-}
-
-bool Actor::executeAction(const Action* action, Actor* target) {
-	if (action->resolve(this, target)) {
-		if (_configuration->keepsHistory) {
-			_simulationStats.actions.push_back(action);
-		}
-		if (!action->isOffGlobalCooldown()) {
-			_comboAction = action;
-			_comboActionTime = _time;
-		}
-		return true;
-	}
-	return false;
 }
 
 const Action* Actor::comboAction() const {
@@ -372,18 +369,6 @@ std::chrono::microseconds Actor::cooldownRemaining(const std::string& identifier
 	return it == _cooldowns.end() ? 0_us : ((it->second.time + it->second.duration) - _time);
 }
 
-bool Actor::beginCast(const Action* action, Actor* target) {
-	if (!action->isUsable(this)) { return false; }
-		
-	if (currentCast() || globalCooldownRemaining().count() || animationLockRemaining().count()) { return false; }
-
-	_castAction = action;
-	_castTarget = target;
-	_castStartTime = _time;
-
-	return true;
-}
-
 const Action* Actor::currentCast(std::chrono::microseconds* remaining, Actor** target) const {
 	if (_castAction) {
 		if (target) {
@@ -451,4 +436,29 @@ void Actor::_updateStats() {
 			_stats *= kv.second.aura->statsMultiplier();
 		}
 	}
+}
+
+bool Actor::_beginCast(const Action* action, Actor* target) {
+	if (!action->isUsable(this)) { return false; }
+		
+	if (currentCast() || globalCooldownRemaining().count() || animationLockRemaining().count()) { return false; }
+
+	_castAction = action;
+	_castTarget = target;
+	_castStartTime = _time;
+
+	return true;
+}
+
+bool Actor::_executeAction(const Action* action, Actor* target) {
+	if (!action->resolve(this, target)) { return false; }
+
+	if (_configuration->keepsHistory) {
+		_simulationStats.actions.push_back(action);
+	}
+	if (!action->isOffGlobalCooldown()) {
+		_comboAction = action;
+		_comboActionTime = _time;
+	}
+	return true;
 }

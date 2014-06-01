@@ -82,13 +82,7 @@ void Simulation::_checkActors() {
 			}
 		}
 		
-		if (auto action = subject->act(_target)) {
-			if (action->castTime(subject).count()) {
-				subject->beginCast(action, _target);
-			} else {
-				subject->executeAction(action, _target);
-			}
-		}
+		subject->act(_target);
 	}
 }
 

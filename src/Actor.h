@@ -87,8 +87,7 @@ class Actor {
 		uint64_t identifierHash() const { return _identifierHash; }
 		const std::string& identifier() const { return _configuration->identifier; }
 
-		const Action* act(const Actor* target);
-		
+		void act(Actor* target);
 		void tick();
 		
 		const std::chrono::microseconds& time() const { return _time; }
@@ -119,8 +118,6 @@ class Actor {
 
 		void advanceTime(const std::chrono::microseconds& time);
 		Damage performAutoAttack();
-		
-		bool executeAction(const Action* action, Actor* target);
 
 		const Action* comboAction() const;
 
@@ -151,7 +148,6 @@ class Actor {
 		void endCooldown(const std::string& identifier);
 		std::chrono::microseconds cooldownRemaining(const std::string& identifier) const;
 
-		bool beginCast(const Action* action, Actor* target);
 		const Action* currentCast(std::chrono::microseconds* remaining = nullptr, Actor** target = nullptr) const;
 
 		void triggerGlobalCooldown();
@@ -224,4 +220,7 @@ class Actor {
 		Damage _generateTickDamage(const AppliedAura& application) const;
 		
 		std::unordered_set<Actor*> _allies;
+
+		bool _beginCast(const Action* action, Actor* target);
+		bool _executeAction(const Action* action, Actor* target);
 };
