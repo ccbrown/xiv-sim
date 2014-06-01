@@ -10,6 +10,32 @@ Bard::Bard() : Base("bard") {
 	{
 		struct Skill : Action {
 			struct Buff : Aura {
+				Buff() : Aura("armys-paeon") {}
+				virtual std::chrono::microseconds duration() const override { return std::chrono::microseconds::max(); }
+				virtual double increasedDamage() const override { return -0.20; }
+				virtual bool shouldCancel(Actor* actor, Actor* source, int count) const override {
+					return actor == source && actor->mp() < 133;
+				}
+				virtual void tick(Actor* actor, Actor* source, int count, bool isCritical) const override {
+					if (actor == source) {
+						actor->setMP(actor->mp() - 133);
+					}
+					actor->setTP(actor->tp() + 30);
+				}
+			};
+			
+			Skill() : Action("armys-paeon") {
+				_sourceAuras.push_back(new Buff());
+			}
+			virtual std::chrono::microseconds castTime() const override { return 3_s; }
+		};
+
+		_registerAction<Skill>();
+	}
+	
+	{
+		struct Skill : Action {
+			struct Buff : Aura {
 				Buff() : Aura("raging-strikes") {}
 				virtual std::chrono::microseconds duration() const override { return 20_s; }
 				virtual double increasedDamage() const override { return 0.20; }

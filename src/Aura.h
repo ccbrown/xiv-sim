@@ -22,6 +22,8 @@ class Aura {
 		virtual int tickDamage() const { return 0; }
 		virtual int additionalStrikesPerAutoAttack() const { return 0; }
 
+		virtual bool shouldCancel(Actor* actor, Actor* source, int count) const { return false; }
+
 		virtual void tick(Actor* actor, Actor* source, int count, bool isCritical) const {}
 		virtual void expiration(Actor* actor, Actor* source, int count) const {}
 

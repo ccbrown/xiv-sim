@@ -126,8 +126,8 @@ class Actor {
 		std::chrono::microseconds timeUntilNextTimeOfInterest() const;
 
 		void applyAura(const Aura* aura, Actor* source, int count = 1);
-		int dispelAura(const std::string& identifier, Actor* source, int count = 1);
-		void extendAura(const std::string& identifier, Actor* source, const std::chrono::microseconds& extension);
+		int dispelAura(const std::string& identifier, const Actor* source, int count = 1);
+		void extendAura(const std::string& identifier, const Actor* source, const std::chrono::microseconds& extension);
 
 		int auraCount(const std::string& identifier, const Actor* source) const;
 		std::chrono::microseconds auraTimeRemaining(const std::string& identifier, const Actor* source) const;
@@ -152,10 +152,10 @@ class Actor {
 		void triggerAnimationLock();
 
 		int tp() const { return _tp; }
-		void setTP(int tp) { _tp = std::min(tp, 1000); }
+		void setTP(int tp) { _tp = std::max(std::min(tp, 1000), 0); }
 
 		int mp() const { return _mp; }
-		void setMP(int mp) { _mp = std::min(mp, maximumMP()); }
+		void setMP(int mp) { _mp = std::max(std::min(mp, maximumMP()), 0); }
 			
 		int maximumMP() const;
 

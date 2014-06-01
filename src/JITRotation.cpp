@@ -18,13 +18,14 @@ bool JITRotation::initializeWithFile(const char* filename) {
 		"double GlobalCooldownRemaining(const Actor* actor);\n"
 		"double CooldownRemaining(const Actor* actor, const uint8* identifier);\n"
 		"double AuraTimeRemaining(const Actor* actor, const uint8* identifier, const Actor* source);\n"
-		"const Actor* Pet(const Actor* owner);\n"
+		"Actor* Pet(Actor* owner);\n"
 		"uint64 TP(const Actor* actor);\n"
 		"uint64 MP(const Actor* actor);\n"
 		"double GlobalCooldown(const Actor* actor);\n"
+		"void RemoveAura(Actor* actor, const uint8* identifier, const Actor* source);\n"
 		"uint8 IsReady(const Actor* actor, const uint8* identifier);\n"
-		"void Command(const Actor* actor, const uint8* identifier);\n"
-		"__end __hidden const uint8* NextAction(const Actor* self, const Actor* target) {\n"
+		"void Command(Actor* actor, const uint8* identifier);\n"
+		"__end __hidden const uint8* NextAction(Actor* self, const Actor* target) {\n"
 	;
 	
 	const char footer[] = "\n}";
@@ -127,6 +128,7 @@ bool JITRotation::initializeWithFile(const char* filename) {
 	engine->addGlobalMapping(module->getFunction("^TP"), (void*)&JITRotation::ActorTP);
 	engine->addGlobalMapping(module->getFunction("^MP"), (void*)&JITRotation::ActorMP);
 	engine->addGlobalMapping(module->getFunction("^GlobalCooldown"), (void*)&JITRotation::ActorGlobalCooldown);
+	engine->addGlobalMapping(module->getFunction("^RemoveAura"), (void*)&JITRotation::ActorRemoveAura);
 	engine->addGlobalMapping(module->getFunction("^IsReady"), (void*)&JITRotation::ActionIsReady);
 	engine->addGlobalMapping(module->getFunction("^Command"), (void*)&JITRotation::ActorCommand);
 
@@ -156,7 +158,7 @@ double JITRotation::ActorAuraTimeRemaining(const Actor* actor, const char* ident
 	return std::chrono::duration<double>(actor->auraTimeRemaining(identifier, source)).count();
 }
 
-const Actor* JITRotation::ActorPet(const Actor* actor) {
+Actor* JITRotation::ActorPet(Actor* actor) {
 	return actor->pet();
 }
 
@@ -170,6 +172,10 @@ uint64_t JITRotation::ActorMP(const Actor* actor) {
 
 double JITRotation::ActorGlobalCooldown(const Actor* actor) {
 	return std::chrono::duration<double>(actor->globalCooldown()).count();
+}
+
+void JITRotation::ActorRemoveAura(Actor* actor, const char* identifier, const Actor* source) {
+	actor->dispelAura(identifier, source, INT_MAX);
 }
 
 uint8_t JITRotation::ActionIsReady(const Actor* actor, const char* identifier) {

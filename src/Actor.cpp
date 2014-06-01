@@ -49,6 +49,18 @@ const Action* Actor::act(const Actor* target) {
 }
 
 void Actor::tick() {
+	bool checkAuras = true;
+	while (checkAuras) {
+		checkAuras = false;
+		for (auto& kv : _auras) {
+			if (kv.second.aura->shouldCancel(this, kv.second.source, kv.second.count)) {
+				dispelAura(kv.second.aura->identifier(), kv.second.source);
+				checkAuras = true;
+				break;
+			}
+		}
+	}
+	
 	auto mpRegen = maximumMP() * 0.02;
 	
 	for (auto& kv : _auras) {
@@ -62,8 +74,8 @@ void Actor::tick() {
 		mpRegen *= kv.second.aura->mpRegenMultiplier();
 	}
 
-	setTP(std::min(tp() + 60, 1000));
-	setMP(std::min(mp() + (int)(mpRegen), maximumMP()));
+	setTP(tp() + 60);
+	setMP(mp() + (int)(mpRegen));
 }
 
 void Actor::integrateDamageStats(const Damage& damage, const char* effect) {
@@ -248,7 +260,7 @@ void Actor::applyAura(const Aura* aura, Actor* source, int count) {
 	_updateStats();
 }
 
-int Actor::dispelAura(const std::string& identifier, Actor* source, int count) {
+int Actor::dispelAura(const std::string& identifier, const Actor* source, int count) {
 	auto it = _auras.find(_appliedAuraKey(identifier, source));
 	if (it == _auras.end()) { return 0; }
 
@@ -264,7 +276,7 @@ int Actor::dispelAura(const std::string& identifier, Actor* source, int count) {
 	return dispelled;
 }
 
-void Actor::extendAura(const std::string& identifier, Actor* source, const std::chrono::microseconds& extension) {
+void Actor::extendAura(const std::string& identifier, const Actor* source, const std::chrono::microseconds& extension) {
 	auto it = _auras.find(_appliedAuraKey(identifier, source));
 	if (it == _auras.end()) { return; }
 
