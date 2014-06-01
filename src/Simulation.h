@@ -7,22 +7,29 @@
 #include <random>
 #include <string>
 #include <memory>
+#include <vector>
 #include <unordered_set>
 
 class Simulation {
 	public:
 		struct Configuration {
 			std::chrono::microseconds length;
-			Actor::Configuration* subjectConfiguration = nullptr;
+			std::vector<Actor::Configuration*> subjectConfigurations;
 			Actor::Configuration* targetConfiguration = nullptr;
 		};
 
 		template <typename T>
 		Simulation(const Configuration* configuration, T seed) : _configuration(configuration), _rng(seed) {
-			auto subject = new Actor(configuration->subjectConfiguration, &_rng);
-			_subjects.push_back(subject);
-			if (subject->pet()) {
-				_subjects.push_back(subject->pet());
+			for (auto& subjectConfiguration : configuration->subjectConfigurations) {
+				auto subject = new Actor(subjectConfiguration, &_rng);
+				if (!_subjects.empty()) {
+					subject->addAlly(_subjects.front());
+				}
+				_subjects.push_back(subject);
+				if (subject->pet()) {
+					
+					_subjects.push_back(subject->pet());
+				}
 			}
 		
 			_target = new Actor(configuration->targetConfiguration, &_rng);

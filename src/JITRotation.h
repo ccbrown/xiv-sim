@@ -21,6 +21,7 @@ class JITRotation : public Rotation {
 		static uint64_t ActorTP(const Actor* actor);
 		static uint64_t ActorMP(const Actor* actor);
 		static double ActorGlobalCooldown(const Actor* actor);
+		static double ActorTime(const Actor* actor);
 		static void ActorRemoveAura(Actor* actor, const char* identifier, const Actor* source);
 		static uint8_t ActionIsReady(const Actor* actor, const char* identifier);
 		static void ActorCommand(Actor* actor, const char* identifier);

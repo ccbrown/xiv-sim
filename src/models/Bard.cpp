@@ -9,8 +9,8 @@ namespace models {
 Bard::Bard() : Base("bard") {
 	{
 		struct Skill : Action {
-			struct Buff : Aura {
-				Buff() : Aura("armys-paeon") {}
+			struct SelfBuff : Aura {
+				SelfBuff() : Aura("armys-paeon") {}
 				virtual std::chrono::microseconds duration() const override { return std::chrono::microseconds::max(); }
 				virtual double increasedDamage() const override { return -0.20; }
 				virtual bool shouldCancel(Actor* actor, Actor* source, int count) const override {
@@ -20,12 +20,32 @@ Bard::Bard() : Base("bard") {
 					actor->setMP(actor->mp() - 133);
 					actor->setTP(actor->tp() + 30);
 				}
+				virtual void afterEffect(Actor* actor, Actor* source, int count) const override {
+					for (auto ally : actor->allies()) {
+						ally->dispelAura("armys-paeon", source);
+					}
+				}
 			};
-			
+
+			struct AllyBuff : Aura {
+				AllyBuff() : Aura("armys-paeon") {}
+				virtual std::chrono::microseconds duration() const override { return std::chrono::microseconds::max(); }
+				virtual void tick(Actor* actor, Actor* source, int count, bool isCritical) const override {
+					actor->setTP(actor->tp() + 30);
+				}
+			};
+
 			Skill() : Action("armys-paeon") {
-				_sourceAuras.push_back(new Buff());
+				_sourceAuras.push_back(new SelfBuff());
+			}
+			virtual void resolution(Actor* source, Actor* target) const override {
+				for (auto ally : source->allies()) {
+					ally->applyAura(&allyBuff, source);
+				}
 			}
 			virtual std::chrono::microseconds castTime() const override { return 3_s; }
+				
+			AllyBuff allyBuff;
 		};
 
 		_registerAction<Skill>();

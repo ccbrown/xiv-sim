@@ -57,7 +57,7 @@ struct SimulationStats {
 	std::map<std::string, Actor::EffectSimulationStats> effects;
 };
 
-void PerformSimulations(int iterations, Actor::Configuration* subjectConfiguration, Actor::Configuration* targetConfiguration, SimulationStats* stats) {
+void PerformSimulations(int iterations, const std::vector<Actor::Configuration*>& subjectConfigurations, Actor::Configuration* targetConfiguration, std::chrono::microseconds minTime, std::chrono::microseconds maxTime, SimulationStats* stats) {
 	stats->iterations = iterations;
 	
 	int remaining = iterations;
@@ -67,8 +67,8 @@ void PerformSimulations(int iterations, Actor::Configuration* subjectConfigurati
 	
 		for (int i = 0; remaining && i < 5000; ++i, --remaining) {
 			Simulation::Configuration configuration;
-			configuration.length = std::chrono::duration_cast<std::chrono::microseconds>(7_min + (i % 50) / 50.0 * 6_min);
-			configuration.subjectConfiguration = subjectConfiguration;
+			configuration.length = std::chrono::duration_cast<std::chrono::microseconds>(minTime + (i % 50) / 50.0 * (maxTime - minTime));
+			configuration.subjectConfigurations = subjectConfigurations;
 			configuration.targetConfiguration = targetConfiguration;
 			
 			futures.emplace_back(std::async(std::launch::async, Trial, std::move(configuration)));
@@ -116,9 +116,12 @@ int ThoroughJSON(int argc, const char* argv[]) {
 		return 1;
 	}
 
+	std::vector<Actor::Configuration*> subjectConfigurations;
+
 	auto& subjectConfiguration = subjectParser.configuration();
 	subjectConfiguration.identifier = "player";
 	subjectConfiguration.rotation = &subjectRotation;
+	subjectConfigurations.push_back(&subjectConfiguration);
 
 	if (subjectConfiguration.petConfiguration) {
 		auto petConfiguration = *subjectConfiguration.petConfiguration;
@@ -134,7 +137,7 @@ int ThoroughJSON(int argc, const char* argv[]) {
 	printf("{");
 
 	SimulationStats unmodifiedStats;
-	PerformSimulations(100000, &subjectConfiguration, &targetConfiguration, &unmodifiedStats);
+	PerformSimulations(100000, subjectConfigurations, &targetConfiguration, 6_min, 12_min, &unmodifiedStats);
 
 	JSONPrint("iterations"); printf(":"); JSONPrint(unmodifiedStats.iterations); printf(",");
 	JSONPrint("time"); printf(":"); JSONPrint(unmodifiedStats.time); printf(",");
@@ -179,7 +182,7 @@ int ThoroughJSON(int argc, const char* argv[]) {
 		
 		// simulate
 		SimulationStats scaleStats;
-		PerformSimulations(100000, &subjectConfiguration, &targetConfiguration, &scaleStats);
+		PerformSimulations(100000, subjectConfigurations, &targetConfiguration, 6_min, 12_min, &scaleStats);
 		
 		if (!first) { printf(","); }
 		JSONPrint(kv.first); printf(":");

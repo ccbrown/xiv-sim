@@ -31,6 +31,7 @@ Actor::Actor(const Configuration* configuration, std::mt19937* rng)
 	if (configuration->petConfiguration) {
 		_pet = new Actor(configuration->petConfiguration, rng);
 		_pet->_owner = this;
+		_pet->addAlly(this);
 	}
 	_mp = maximumMP();
 }
@@ -76,6 +77,17 @@ void Actor::tick() {
 
 	setTP(tp() + 60);
 	setMP(mp() + (int)(mpRegen));
+}
+
+void Actor::addAlly(Actor* actor) {
+	if (actor == this) { return; }
+	
+	if (!_allies.insert(actor).second) { return; }
+	actor->_allies.insert(this);
+
+	for (auto ally : actor->allies()) {
+		addAlly(ally);
+	}
 }
 
 void Actor::integrateDamageStats(const Damage& damage, const char* effect) {
@@ -144,7 +156,7 @@ void Actor::advanceTime(const std::chrono::microseconds& time) {
 	}
 	
 	for (auto& aura : expired) {
-		aura.aura->expiration(this, aura.source, aura.count);
+		aura.aura->afterEffect(this, aura.source, aura.count);
 	}
 
 	if (needsStatUpdate) {
@@ -269,10 +281,13 @@ int Actor::dispelAura(const std::string& identifier, const Actor* source, int co
 	it->second.count = it->second.count - dispelled;
 	_integrateAuraApplicationCountChange(it->second.aura, it->second.count);
 	if (!it->second.count) {
+		auto application = std::move(it->second);
 		_auras.erase(it);
 		_updateStats();
+		
+		application.aura->afterEffect(this, application.source, dispelled);
 	}
-	
+
 	return dispelled;
 }
 

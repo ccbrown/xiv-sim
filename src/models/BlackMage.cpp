@@ -215,7 +215,7 @@ BlackMage::BlackMage() : Base("black-mage") {
 			IncomingFirestarter() : Aura("incoming-firestarter") {}
 			virtual bool isHidden() const override { return true; }
 			virtual std::chrono::microseconds duration() const override { return 200_ms; }
-			virtual void expiration(Actor* actor, Actor* source, int count) const override {
+			virtual void afterEffect(Actor* actor, Actor* source, int count) const override {
 				actor->applyAura(&firestarter, source, count);
 			}
 			Firestarter firestarter;

@@ -14,37 +14,68 @@
 #include <memory>
 #include <cstring>
 #include <map>
+#include <vector>
 
 #include <inttypes.h>
 
 namespace applications {
 
 int SingleJSON(int argc, const char* argv[]) {
-	if (argc < 3) {
-		printf("Usage: simulator single-json subject rotation length [seed]\n");
-		return 1;
+	#define USAGE "Usage: simulator single-json --length length [--seed seed] subject rotation ...\n"
+
+	uint64_t seed = 0;
+	bool hasSeed = false;
+
+	Simulation::Configuration configuration;
+	std::vector<std::unique_ptr<ActorConfigurationParser>> parsers;
+	std::vector<std::unique_ptr<JITRotation>> rotations;
+
+	for (int i = 0; i < argc; ++i) {
+		if (i == 0) {
+			if (strcmp(argv[i], "--length") && strcmp(argv[i], "--seed")) {
+				printf(USAGE);
+				return 1;
+			}
+		} else if (!strcmp(argv[i - 1], "--length")) {
+			configuration.length = std::chrono::duration_cast<decltype(configuration.length)>(std::chrono::duration<double>(strtod(argv[i], nullptr)));
+		} else if (!strcmp(argv[i - 1], "--seed")) {
+			seed = strtoull(argv[i], nullptr, 0);
+			hasSeed = true;
+		} else if (parsers.size() == rotations.size()) {
+			// subject
+			parsers.emplace_back(new ActorConfigurationParser());
+			auto& parser = parsers.back();
+			if (!parser->parseFile(argv[i])) {
+				printf("Unable to read configuration.\n");
+				return 1;
+			}
+		} else {
+			// rotation
+			rotations.emplace_back(new JITRotation());
+			auto& rotation = rotations.back();
+			if (!rotation->initializeWithFile(argv[i])) {
+				printf("Unable to read rotation.\n");
+				return 1;
+			}
+
+			auto& parser = parsers.back();
+			auto& subjectConfiguration = parser->configuration();
+			subjectConfiguration.identifier = "player-" + std::to_string(parsers.size());
+			subjectConfiguration.rotation = rotation.get();
+			subjectConfiguration.keepsHistory = true;
+
+			if (auto petConfiguration = parser->petConfiguration()) {
+				petConfiguration->identifier = subjectConfiguration.identifier + "-pet";
+				petConfiguration->keepsHistory = subjectConfiguration.keepsHistory;
+			}
+
+			configuration.subjectConfigurations.push_back(&subjectConfiguration);
+		}
 	}
 	
-	ActorConfigurationParser subjectParser;
-	if (!subjectParser.parseFile(argv[0])) {
-		printf("Unable to read configuration.\n");
+	if (!configuration.length.count() || configuration.subjectConfigurations.empty() || parsers.size() != rotations.size()) {
+		printf(USAGE);
 		return 1;
-	}
-	
-	JITRotation subjectRotation;
-	if (!subjectRotation.initializeWithFile(argv[1])) {
-		printf("Unable to read rotation.\n");
-		return 1;
-	}
-
-	auto& subjectConfiguration = subjectParser.configuration();
-	subjectConfiguration.identifier = "player";
-	subjectConfiguration.rotation = &subjectRotation;
-	subjectConfiguration.keepsHistory = true;
-
-	if (auto petConfiguration = subjectParser.petConfiguration()) {
-		petConfiguration->identifier = "player-pet";
-		petConfiguration->keepsHistory = subjectConfiguration.keepsHistory;
 	}
 
 	models::Monk targetModel;
@@ -53,21 +84,12 @@ int SingleJSON(int argc, const char* argv[]) {
 	targetConfiguration.model = &targetModel;
 	targetConfiguration.keepsHistory = true;
 
-	std::chrono::duration<double> simulationSeconds(strtod(argv[2], nullptr));
-
-	Simulation::Configuration configuration;
-	configuration.length = std::chrono::duration_cast<std::chrono::microseconds>(simulationSeconds);
-	configuration.subjectConfiguration = &subjectConfiguration;
 	configuration.targetConfiguration = &targetConfiguration;
 
-	uint64_t seed = 0;
-
-	if (argc < 4) {
+	if (!hasSeed) {
 		std::random_device rd;
 		PortableUniformIntDistribution<uint64_t> dist;
 		seed = dist(rd);
-	} else {
-		seed = strtoull(argv[3], nullptr, 0);
 	}
 
 	Simulation simulation(&configuration, seed);
@@ -103,6 +125,7 @@ int SingleJSON(int argc, const char* argv[]) {
 
 		JSONPrintDict(
 			"model", subject->model()->identifier(),
+			"pet", subject->pet() ? subject->pet()->identifier().c_str() : nullptr,
 			"owner", subject->owner() ? subject->owner()->identifier().c_str() : nullptr,
 			"stats", subject->configuration()->stats,
 			"damage", simStats.damageDealt,

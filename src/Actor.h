@@ -10,6 +10,7 @@
 #include <utility>
 #include <map>
 #include <unordered_map>
+#include <unordered_set>
 
 #include <stdint.h>
 
@@ -90,8 +91,13 @@ class Actor {
 		
 		void tick();
 		
+		const std::chrono::microseconds& time() const { return _time; }
+		
 		Actor* pet() { return _pet; }
 		const Actor* pet() const { return _pet; }
+			
+		const std::unordered_set<Actor*>& allies() { return _allies; }
+		void addAlly(Actor* actor);
 			
 		void setCommand(const Action* action) { _command = action; }
 		const Action* command() const { return _command; }
@@ -216,4 +222,6 @@ class Actor {
 		
 		void _integrateAuraApplicationCountChange(const Aura* aura, int count);
 		Damage _generateTickDamage(const AppliedAura& application) const;
+		
+		std::unordered_set<Actor*> _allies;
 };
