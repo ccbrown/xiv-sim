@@ -98,9 +98,9 @@ void PerformSimulations(int iterations, const std::vector<Actor::Configuration*>
 	}
 }
 
-int ThoroughJSON(int argc, const char* argv[]) {
-	if (argc < 2) {
-		printf("Usage: simulator single-json subject rotation\n");
+int ThoroughJSON(int argc, const char* argv[]) {	
+	if (argc < 4) {
+		printf("Usage: simulator thorough-json subject rotation min-length max-length\n");
 		return 1;
 	}
 
@@ -113,6 +113,14 @@ int ThoroughJSON(int argc, const char* argv[]) {
 	JITRotation subjectRotation;
 	if (!subjectRotation.initializeWithFile(argv[1])) {
 		printf("Unable to read rotation.\n");
+		return 1;
+	}
+	
+	auto minLength = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::duration<double>(strtod(argv[2], nullptr)));
+	auto maxLength = std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::duration<double>(strtod(argv[3], nullptr)));
+
+	if (minLength <= 0_us || maxLength <= minLength) {
+		printf("Invalid lengths.");
 		return 1;
 	}
 
@@ -137,9 +145,11 @@ int ThoroughJSON(int argc, const char* argv[]) {
 	printf("{");
 
 	SimulationStats unmodifiedStats;
-	PerformSimulations(100000, subjectConfigurations, &targetConfiguration, 6_min, 12_min, &unmodifiedStats);
+	PerformSimulations(100000, subjectConfigurations, &targetConfiguration, minLength, maxLength, &unmodifiedStats);
 
 	JSONPrint("iterations"); printf(":"); JSONPrint(unmodifiedStats.iterations); printf(",");
+	JSONPrint("min-time"); printf(":"); JSONPrint(minLength); printf(",");
+	JSONPrint("max-time"); printf(":"); JSONPrint(maxLength); printf(",");
 	JSONPrint("time"); printf(":"); JSONPrint(unmodifiedStats.time); printf(",");
 	JSONPrint("damage"); printf(":"); JSONPrint(unmodifiedStats.general.damageDealt); printf(",");
 	JSONPrint("best-dps"); printf(":"); JSONPrint(unmodifiedStats.bestDPS); printf(",");
@@ -182,7 +192,7 @@ int ThoroughJSON(int argc, const char* argv[]) {
 		
 		// simulate
 		SimulationStats scaleStats;
-		PerformSimulations(100000, subjectConfigurations, &targetConfiguration, 6_min, 12_min, &scaleStats);
+		PerformSimulations(100000, subjectConfigurations, &targetConfiguration, minLength, maxLength, &scaleStats);
 		
 		if (!first) { printf(","); }
 		JSONPrint(kv.first); printf(":");
