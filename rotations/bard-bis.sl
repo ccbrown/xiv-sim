@@ -8,6 +8,9 @@ if (GlobalCooldownRemaining(self) > 1.0) {
 	if (TP(self) <= 600 and IsReady(self, "invigorate"))
 		use "invigorate";
 	
+	if (IsReady(self, "raging-strikes"))
+		use "raging-strikes";
+
 	if (IsReady(self, "blood-for-blood"))
 		use "blood-for-blood";
 

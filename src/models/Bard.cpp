@@ -10,6 +10,24 @@ Bard::Bard() : Base("bard") {
 	{
 		struct Skill : Action {
 			struct Buff : Aura {
+				Buff() : Aura("raging-strikes") {}
+				virtual std::chrono::microseconds duration() const override { return 20_s; }
+				virtual double increasedDamage() const override { return 0.20; }
+			};
+			
+			Skill() : Action("raging-strikes") {
+				_sourceAuras.push_back(new Buff());
+			}
+			virtual bool isOffGlobalCooldown() const override { return true; }
+			virtual std::chrono::microseconds cooldown() const override { return 120_s; }
+		};
+		
+		_registerAction<Skill>();
+	}
+	
+	{
+		struct Skill : Action {
+			struct Buff : Aura {
 				Buff() : Aura("straight-shot") {}
 				virtual std::chrono::microseconds duration() const override { return 20_s; }
 				virtual double additionalCriticalHitChance() const override { return 0.1; }
