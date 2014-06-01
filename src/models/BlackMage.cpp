@@ -250,6 +250,7 @@ BlackMage::BlackMage() : Base("black-mage") {
 			virtual int damage(const Actor* source, const Actor* target) const override { return FireSpellDamage(source, 220); }
 			virtual void resolution(Actor* source, Actor* target) const override {
 				source->dispelAura("firestarter", source);
+				source->dispelAura("incoming-firestarter", source);
 				source->dispelAura("umbral-ice", source, 3);
 				source->applyAura(&astralFire, source, 3);
 			}
