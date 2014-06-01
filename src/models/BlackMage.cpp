@@ -208,16 +208,17 @@ BlackMage::BlackMage() : Base("black-mage") {
 			virtual std::chrono::microseconds duration() const override { return 12_s; }
 		};
 
-		// this is a bit of a hack. we currently don't simulate latency or travel times for spells, but
-		// for firestarter that's actually especially significant. emulate it by waiting a bit before 
-		// applying firestarter
-		struct IncomingFirestarter : Aura {
-			IncomingFirestarter() : Aura("incoming-firestarter") {}
+		struct PossibleFirestarter : Aura {
+			PossibleFirestarter() : Aura("possible-firestarter") {}
 			virtual bool isHidden() const override { return true; }
-			virtual std::chrono::microseconds duration() const override { return 200_ms; }
+			virtual std::chrono::microseconds duration() const override { return 300_ms; }
 			virtual void afterEffect(Actor* actor, Actor* source, int count) const override {
-				actor->applyAura(&firestarter, source, count);
+				std::uniform_real_distribution<double> distribution(0.0, 1.0);
+				if (distribution(source->rng()) < 0.40) {
+					source->applyAura(&firestarter, source);
+				}
 			}
+			
 			Firestarter firestarter;
 		};
 
@@ -232,13 +233,10 @@ BlackMage::BlackMage() : Base("black-mage") {
 				if (!source->dispelAura("umbral-ice", source, 3)) {
 					source->applyAura(&astralFire, source);
 				}
-				std::uniform_real_distribution<double> distribution(0.0, 1.0);				
-				if (distribution(source->rng()) < 0.40) {
-					source->applyAura(&incomingFirestarter, source);
-				}
+				source->applyAura(&possibleFirestarter, source);
 			}
 			AstralFire astralFire;
-			IncomingFirestarter incomingFirestarter;
+			PossibleFirestarter possibleFirestarter;
 		};
 	
 		_registerAction<Spell>();
@@ -249,8 +247,8 @@ BlackMage::BlackMage() : Base("black-mage") {
 			FirestarterSpell() : Action("fire-iii-firestarter") {}
 			virtual int damage(const Actor* source, const Actor* target) const override { return FireSpellDamage(source, 220); }
 			virtual void resolution(Actor* source, Actor* target) const override {
+				source->dispelAura("possible-firestarter", source);
 				source->dispelAura("firestarter", source);
-				source->dispelAura("incoming-firestarter", source);
 				source->dispelAura("umbral-ice", source, 3);
 				source->applyAura(&astralFire, source, 3);
 			}
