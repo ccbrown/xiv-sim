@@ -30,7 +30,6 @@ static TrialResults Trial(const Simulation::Configuration&& configuration) {
 		PortableUniformIntDistribution<uint64_t> dist;
 		ret.seed = dist(rd);
 	}
-	
 
 	Simulation simulation(&ret.configuration, ret.seed);
 	simulation.run();
@@ -41,6 +40,7 @@ static TrialResults Trial(const Simulation::Configuration&& configuration) {
 			ret.effectStats[kv.first] += kv.second;
 		}
 	}
+
 	return ret;
 }
 

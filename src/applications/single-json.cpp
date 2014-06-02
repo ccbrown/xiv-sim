@@ -79,7 +79,7 @@ int SingleJSON(int argc, const char* argv[]) {
 		}
 	}
 	
-	if (!configuration.length.count() || configuration.subjectConfigurations.empty() || parsers.size() != rotations.size()) {
+	if (!configuration.length.count() || configuration.subjectConfigurations.empty() || ids.size() != parsers.size() || parsers.size() != rotations.size()) {
 		printf(USAGE);
 		return 1;
 	}
