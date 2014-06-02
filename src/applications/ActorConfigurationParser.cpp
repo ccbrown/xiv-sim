@@ -93,8 +93,16 @@ bool ActorConfigurationParser::parse(const char* str, size_t length) {
 						_configuration.stats.determination = std::stoi(value);
 					} else if (key == "skill speed") {
 						_configuration.stats.skillSpeed = std::stoi(value);
+						if (_configuration.stats.skillSpeed < 0 || _configuration.stats.skillSpeed > 1000) {
+							printf("Skill speed out of bounds.\n");
+							return false;
+						}
 					} else if (key == "spell speed") {
 						_configuration.stats.spellSpeed = std::stoi(value);
+						if (_configuration.stats.spellSpeed < 0 || _configuration.stats.spellSpeed > 1000) {
+							printf("Spell speed out of bounds.\n");
+							return false;
+						}
 					} else if (key == "model") {
 						if (value == "monk") {
 							_model.reset(new models::Monk());
