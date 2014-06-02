@@ -38,7 +38,7 @@ Parser::Parser() {
 	_keywords.insert("static");
 	_keywords.insert("true");
 	_keywords.insert("namespace");
-	_keywords.insert("nullptr");
+	_keywords.insert("null");
 	_keywords.insert("typename");
 	_keywords.insert("and");
 	_keywords.insert("or");
@@ -192,8 +192,8 @@ bool Parser::_peek(ParserTokenType type, TokenIterator* next) {
 			return _peek(ptt_keyword) && tok->value() == "true";
 		case ptt_keyword_namespace:
 			return _peek(ptt_keyword) && tok->value() == "namespace";
-		case ptt_keyword_nullptr:
-			return _peek(ptt_keyword) && tok->value() == "nullptr";
+		case ptt_keyword_null:
+			return _peek(ptt_keyword) && tok->value() == "null";
 		case ptt_keyword_typename:
 			return _peek(ptt_keyword) && tok->value() == "typename";
 		case ptt_number:
@@ -1073,7 +1073,7 @@ ASTExpression* Parser::_parse_primary() {
 		return new ASTVariableRef(var);
 	} else if (auto func = _try_parse_function()) {
 		return new ASTFunctionRef(func);
-	} else if (_peek(ptt_keyword_nullptr)) {
+	} else if (_peek(ptt_keyword_null)) {
 		// null pointer
 		_consume(1); // nullptr
 		return new ASTNullPointer(SLType::NullPointerType());

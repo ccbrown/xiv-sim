@@ -22,4 +22,4 @@ if (AuraTimeRemaining(self, "astral-fire", self) > 4.5 and MP(self) >= 319 * 2 +
 if (AuraCount(self, "astral-fire", self))
 	use "blizzard-iii";
 
-return nullptr;
+return null;
