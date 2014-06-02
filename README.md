@@ -25,10 +25,10 @@ On a fresh Ubuntu machine, the steps should go about like this:
 How to Use
 ==========
 
-`time ./simulator single-json subjects/monk-bis.conf rotations/monk.sl 660`
+`time ./simulator single-json --length 660 subjects/monk-bis.conf rotations/monk.sl`
 
 Runs a single 660 second simulation and spits out the detailed results formatted via JSON.
 
-`time ./simulator thorough-json subjects/monk-bis.conf rotations/monk.sl`
+`time ./simulator thorough-json subjects/monk-bis.conf rotations/monk.sl 360 660`
 
-Runs several hundred thousand simulations and spits out the results formatted via JSON.
+Runs several hundred thousand simulations of lengths from 360 to 660 seconds and spits out the results formatted via JSON.

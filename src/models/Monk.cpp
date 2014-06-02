@@ -322,6 +322,16 @@ Monk::Monk() : Base("monk") {
 		
 		_registerAction<Skill>();
 	}
+
+	{
+		struct Skill : Action {
+			Skill() : Action("impulse-drive-rear") {}
+			virtual int damage() const override { return 180; }
+			virtual int tpCost() const override { return 70; }
+		};
+		
+		_registerAction<Skill>();
+	}
 }
 
 void Monk::prepareForBattle(Actor* actor) const {
