@@ -89,6 +89,7 @@ class Actor {
 
 		void prepareForBattle();
 		void act(Actor* target);
+		void pretick();
 		void tick();
 		
 		const std::chrono::microseconds& time() const { return _time; }
@@ -121,6 +122,9 @@ class Actor {
 		Damage performAutoAttack();
 
 		const Action* comboAction() const;
+
+		bool isAutoAttacking() const { return _isAutoAttacking; }
+		void stopAutoAttack() { _isAutoAttacking = false; }
 
 		std::chrono::microseconds autoAttackDelayRemaining() const;
 		std::chrono::microseconds globalCooldown() const;
@@ -177,6 +181,8 @@ class Actor {
 		const Configuration* const _configuration = nullptr;
 		const uint64_t _identifierHash = 0;
 		std::mt19937* const _rng = nullptr;
+		
+		bool _isAutoAttacking = true;
 
 		Actor* _pet = nullptr;
 		Actor* _owner = nullptr;

@@ -21,12 +21,13 @@
 namespace applications {
 
 int SingleJSON(int argc, const char* argv[]) {
-	#define USAGE "Usage: simulator single-json --length length [--seed seed] subject rotation ...\n"
+	#define USAGE "Usage: simulator single-json --length length [--seed seed] id subject rotation ...\n"
 
 	uint64_t seed = 0;
 	bool hasSeed = false;
 
 	Simulation::Configuration configuration;
+	std::vector<std::string> ids;
 	std::vector<std::unique_ptr<ActorConfigurationParser>> parsers;
 	std::vector<std::unique_ptr<JITRotation>> rotations;
 
@@ -43,7 +44,10 @@ int SingleJSON(int argc, const char* argv[]) {
 			hasSeed = true;
 		} else if (!strcmp(argv[i], "--length") || !strcmp(argv[i], "--seed")) {
 			continue;
-		} else if (parsers.size() == rotations.size()) {
+		} else if (ids.size() <= rotations.size()) {
+			// id
+			ids.emplace_back(argv[i]);
+		} else if (parsers.size() <= rotations.size()) {
 			// subject
 			parsers.emplace_back(new ActorConfigurationParser());
 			auto& parser = parsers.back();
@@ -62,7 +66,7 @@ int SingleJSON(int argc, const char* argv[]) {
 
 			auto& parser = parsers.back();
 			auto& subjectConfiguration = parser->configuration();
-			subjectConfiguration.identifier = "player-" + std::to_string(parsers.size());
+			subjectConfiguration.identifier = ids.back();
 			subjectConfiguration.rotation = rotation.get();
 			subjectConfiguration.keepsHistory = true;
 

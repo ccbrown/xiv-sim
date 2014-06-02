@@ -64,7 +64,7 @@ void Actor::act(Actor* target) {
 	}
 }
 
-void Actor::tick() {
+void Actor::pretick() {
 	bool checkAuras = true;
 	while (checkAuras) {
 		checkAuras = false;
@@ -76,7 +76,9 @@ void Actor::tick() {
 			}
 		}
 	}
-	
+}
+
+void Actor::tick() {
 	auto mpRegen = maximumMP() * 0.02;
 	
 	for (auto& kv : _auras) {
@@ -123,6 +125,8 @@ Damage Actor::acceptDamage(const Damage& incoming) const {
 }
 
 void Actor::advanceTime(const std::chrono::microseconds& time) {
+	assert(time >= _time);
+
 	if (_configuration->keepsHistory) {
 		if (_simulationStats.tpSamples.empty() || _simulationStats.tpSamples.back().second != _tp) {
 			_simulationStats.tpSamples.emplace_back(_time, _tp);
@@ -217,8 +221,10 @@ std::chrono::microseconds Actor::animationLockRemaining() const {
 std::chrono::microseconds Actor::timeUntilNextTimeOfInterest() const {
 	auto ret = std::chrono::microseconds::max();
 	
-	auto aadel = autoAttackDelayRemaining();
-	if (aadel.count() && aadel < ret) { ret = aadel; }
+	if (isAutoAttacking()) {
+		auto aadel = autoAttackDelayRemaining();
+		if (aadel.count() && aadel < ret) { ret = aadel; }
+	}
 	
 	auto gcd = globalCooldownRemaining();
 	if (gcd.count() && gcd < ret) { ret = gcd; }
@@ -238,7 +244,9 @@ std::chrono::microseconds Actor::timeUntilNextTimeOfInterest() const {
 	}
 
 	for (auto& kv : _auras) {
-		endTime = std::min(kv.second.time + kv.second.duration, endTime);
+		if (kv.second.duration != std::chrono::microseconds::max()) {
+			endTime = std::min(kv.second.time + kv.second.duration, endTime);
+		}
 	}
 
 	if (endTime != std::chrono::microseconds::max()) {

@@ -25,4 +25,5 @@ class JITRotation : public Rotation {
 		static void ActorRemoveAura(Actor* actor, const char* identifier, const Actor* source);
 		static uint8_t ActionIsReady(const Actor* actor, const char* identifier);
 		static void ActorCommand(Actor* actor, const char* identifier);
+		static void ActorStopAutoAttack(Actor* actor);
 };

@@ -26,6 +26,7 @@ bool JITRotation::initializeWithFile(const char* filename) {
 		"void RemoveAura(Actor* actor, const uint8* identifier, const Actor* source);\n"
 		"uint8 IsReady(const Actor* actor, const uint8* identifier);\n"
 		"void Command(Actor* actor, const uint8* identifier);\n"
+		"void StopAutoAttack(Actor* actor);\n"
 		"__end __hidden const uint8* NextAction(Actor* self, const Actor* target) {\n"
 	;
 	
@@ -133,6 +134,7 @@ bool JITRotation::initializeWithFile(const char* filename) {
 	engine->addGlobalMapping(module->getFunction("^RemoveAura"), (void*)&JITRotation::ActorRemoveAura);
 	engine->addGlobalMapping(module->getFunction("^IsReady"), (void*)&JITRotation::ActionIsReady);
 	engine->addGlobalMapping(module->getFunction("^Command"), (void*)&JITRotation::ActorCommand);
+	engine->addGlobalMapping(module->getFunction("^StopAutoAttack"), (void*)&JITRotation::ActorStopAutoAttack);
 
 	_jitNextAction = decltype(_jitNextAction)((std::intptr_t)engine->getPointerToFunction(module->getFunction("^NextAction")));
 
@@ -190,4 +192,8 @@ uint8_t JITRotation::ActionIsReady(const Actor* actor, const char* identifier) {
 
 void JITRotation::ActorCommand(Actor* actor, const char* identifier) {
 	actor->setCommand(actor->model()->action(identifier));
+}
+
+void JITRotation::ActorStopAutoAttack(Actor* actor) {
+	actor->stopAutoAttack();
 }

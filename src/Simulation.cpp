@@ -30,12 +30,12 @@ void Simulation::run() {
 	}, _configuration->length);
 
 	_schedule([&] {
-		_tick();
-	}, dotTickOffset);
-
-	_schedule([&] {
 		_checkActors();
 	});
+
+	_schedule([&] {
+		_tick();
+	}, dotTickOffset);
 
 	while (!_shouldStop && !_scheduledFunctions.empty()) {
 		auto& top = _scheduledFunctions.top();
@@ -78,19 +78,23 @@ void Simulation::_checkActors() {
 
 	for (auto& subject : _subjects) {
 		if (subject == _target) { continue; }
+		
+		subject->act(_target);
 
-		if (!subject->currentCast() && !subject->autoAttackDelayRemaining().count()) {
+		if (!subject->currentCast() && subject->isAutoAttacking() && !subject->autoAttackDelayRemaining().count()) {
 			for (int i = 0; i < subject->strikesPerAutoAttack(); ++i) {
 				auto damage = _target->acceptDamage(subject->performAutoAttack());
 				subject->integrateDamageStats(damage, "auto-attack");
 			}
 		}
-		
-		subject->act(_target);
 	}
 }
 
 void Simulation::_tick() {
+	for (auto& subject : _subjects) {
+		subject->pretick();		
+	}
+
 	for (auto& subject : _subjects) {
 		subject->tick();		
 	}
