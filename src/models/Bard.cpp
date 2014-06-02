@@ -108,7 +108,6 @@ Bard::Bard() : Base("bard") {
 		struct Skill : Action {
 			Skill() : Action("repelling-shot") {}
 			virtual int damage() const override { return 80; }
-			virtual int tpCost() const override { return 150; }
 			virtual bool isOffGlobalCooldown() const { return true; }
 			virtual std::chrono::microseconds cooldown() const override { return 30_s; }
 		};
@@ -169,7 +168,7 @@ Bard::Bard() : Base("bard") {
 				_targetAuras.push_back(new DoT());
 			}
 			virtual int damage() const override { return 100; }
-			virtual int tpCost() const override { return 70; }
+			virtual int tpCost() const override { return 80; }
 		};
 	
 		_registerAction<Skill>();
