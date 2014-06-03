@@ -39,6 +39,7 @@ Parser::Parser() {
 	_keywords.insert("true");
 	_keywords.insert("namespace");
 	_keywords.insert("null");
+	_keywords.insert("nullptr");
 	_keywords.insert("typename");
 	_keywords.insert("and");
 	_keywords.insert("or");
@@ -194,6 +195,8 @@ bool Parser::_peek(ParserTokenType type, TokenIterator* next) {
 			return _peek(ptt_keyword) && tok->value() == "namespace";
 		case ptt_keyword_null:
 			return _peek(ptt_keyword) && tok->value() == "null";
+		case ptt_keyword_nullptr:
+			return _peek(ptt_keyword) && tok->value() == "nullptr";
 		case ptt_keyword_typename:
 			return _peek(ptt_keyword) && tok->value() == "typename";
 		case ptt_number:
@@ -1074,6 +1077,10 @@ ASTExpression* Parser::_parse_primary() {
 	} else if (auto func = _try_parse_function()) {
 		return new ASTFunctionRef(func);
 	} else if (_peek(ptt_keyword_null)) {
+		// null
+		_consume(1); // null
+		return new ASTInteger(0, SLType::Int8Type());
+	} else if (_peek(ptt_keyword_nullptr)) {
 		// null pointer
 		_consume(1); // nullptr
 		return new ASTNullPointer(SLType::NullPointerType());
@@ -1098,7 +1105,14 @@ ASTExpression* Parser::_parse_primary() {
 	} else if (_peek(ptt_string_literal)) {
 		// string literal
 		TokenPtr tok = _consume_token();
-		return new ASTConstantArray(tok->value().c_str(), tok->value().size() + 1, SLType::ModifiedType(SLType::Int8Type(), SLTypeModifierUnsigned | SLTypeModifierConstant));
+		// this is a bit of a cheat. in our language, we only use string literals as identifiers for actions and auras and whatnot.
+		// so instead of actually creating a string literal, just create the FNV1A hash
+		// TODO: add a special type for this hash that literals are convertible to?
+		uint64_t hash = 14695981039346656037ull;
+		for (auto ptr = tok->value().c_str(); *ptr; ++ptr) {
+			hash = (hash ^ *(unsigned char*)ptr) * 1099511628211ull;
+		}
+		return new ASTInteger(hash, SLType::ModifiedType(SLType::Int64Type(), SLTypeModifierUnsigned));
 	} else if (_peek(ptt_keyword_true)) {
 		_consume(1); // true
 		return new ASTInteger(1, SLType::BoolType());

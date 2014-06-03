@@ -14,8 +14,8 @@ Base::~Base() {
 	}
 }
 
-const Action* Base::action(const char* identifier) const {
-	auto it = _actions.find(identifier);
+const Action* Base::action(FNV1AHash identifierHash) const {
+	auto it = _actions.find(identifierHash);
 	return it == _actions.end() ? nullptr : it->second;
 }
 

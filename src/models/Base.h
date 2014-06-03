@@ -16,7 +16,7 @@ class Base : public Model {
 
 		virtual void prepareForBattle(Actor* actor) const override {}
 
-		virtual const Action* action(const char* identifier) const override;
+		virtual const Action* action(FNV1AHash identifierHash) const override;
 
 		virtual std::chrono::microseconds globalCooldown(const Actor* actor) const override;
 
@@ -32,12 +32,12 @@ class Base : public Model {
 		virtual std::chrono::microseconds castTime(const Action* action, const Actor* actor) const override;
 
 	protected:
-		std::unordered_map<std::string, Action*> _actions;
+		std::unordered_map<FNV1AHash, Action*> _actions;
 		
 		template <typename T>
 		void _registerAction() {
 			auto a = new T();
-			_actions[a->identifier()] = a;
+			_actions[a->identifierHash()] = a;
 		}
 		
 		virtual DamageType _defaultDamageType() const = 0;

@@ -299,6 +299,9 @@ Dragoon::Dragoon() : Base("dragoon") {
 			virtual int damage() const override { return 130; }
 			virtual std::chrono::microseconds cooldown() const override { return 20_s; }
 			virtual bool isOffGlobalCooldown() const override { return true; }
+			virtual void resolution(Actor* source, Actor* target) const override {
+				source->dispelAura("life-surge", source);
+			}
 		};
 		
 		_registerAction<Skill>();
@@ -310,7 +313,9 @@ Dragoon::Dragoon() : Base("dragoon") {
 			virtual int damage() const override { return 170; }
 			virtual std::chrono::microseconds cooldown() const override { return 90_s; }
 			virtual bool isOffGlobalCooldown() const override { return true; }
-
+			virtual void resolution(Actor* source, Actor* target) const override {
+				source->dispelAura("life-surge", source);
+			}
 		};
 
 		_registerAction<Skill>();

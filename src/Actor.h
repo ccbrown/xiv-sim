@@ -84,7 +84,7 @@ class Actor {
 
 		const Configuration* configuration() const { return _configuration; }
 
-		uint64_t identifierHash() const { return _identifierHash; }
+		FNV1AHash identifierHash() const { return _identifierHash; }
 		const std::string& identifier() const { return _configuration->identifier; }
 
 		void prepareForBattle();
@@ -134,11 +134,11 @@ class Actor {
 		std::chrono::microseconds timeUntilNextTimeOfInterest() const;
 
 		void applyAura(const Aura* aura, Actor* source, int count = 1);
-		int dispelAura(const std::string& identifier, const Actor* source, int count = 1);
-		void extendAura(const std::string& identifier, const Actor* source, const std::chrono::microseconds& extension);
+		int dispelAura(FNV1AHash identifierHash, const Actor* source, int count = 1);
+		void extendAura(FNV1AHash identifierHash, const Actor* source, const std::chrono::microseconds& extension);
 
-		int auraCount(const std::string& identifier, const Actor* source) const;
-		std::chrono::microseconds auraTimeRemaining(const std::string& identifier, const Actor* source) const;
+		int auraCount(FNV1AHash identifierHash, const Actor* source) const;
+		std::chrono::microseconds auraTimeRemaining(FNV1AHash identifierHash, const Actor* source) const;
 
 		double damageMultiplier() const;
 		double autoAttackSpeedMultiplier() const;
@@ -149,9 +149,9 @@ class Actor {
 		
 		double globalCooldownMultiplier() const;
 
-		void triggerCooldown(const std::string& identifier, std::chrono::microseconds duration);
-		void endCooldown(const std::string& identifier);
-		std::chrono::microseconds cooldownRemaining(const std::string& identifier) const;
+		void triggerCooldown(FNV1AHash identifierHash, std::chrono::microseconds duration);
+		void endCooldown(FNV1AHash identifierHash);
+		std::chrono::microseconds cooldownRemaining(FNV1AHash identifierHash) const;
 
 		const Action* currentCast(std::chrono::microseconds* remaining = nullptr, Actor** target = nullptr) const;
 
@@ -168,7 +168,7 @@ class Actor {
 
 	private:
 		const Configuration* const _configuration = nullptr;
-		const uint64_t _identifierHash = 0;
+		const FNV1AHash _identifierHash;
 		std::mt19937* const _rng = nullptr;
 		
 		bool _isAutoAttacking = true;
@@ -204,7 +204,7 @@ class Actor {
 		int _tp = 1000;
 		int _mp = 0;
 
-		std::unordered_map<std::string, Cooldown> _cooldowns;
+		std::unordered_map<FNV1AHash, Cooldown> _cooldowns;
 
 		struct AuraApplication {
 			const Aura* aura = nullptr;
@@ -219,10 +219,10 @@ class Actor {
 
 		struct AppliedAura {
 			bool isSharedBetweenSources = false;
-			std::map<uint64_t, AuraApplication> applications;
+			std::map<FNV1AHash, AuraApplication> applications;
 		};
 
-		std::map<uint64_t, AppliedAura> _auras;
+		std::map<FNV1AHash, AppliedAura> _auras;
 
 		SimulationStats _simulationStats;
 		std::unordered_map<std::string, EffectSimulationStats> _effectSimulationStats;

@@ -11,13 +11,14 @@ class Aura;
 
 class Action {
 	public:
-		Action(const char* identifier) : _identifier(identifier) {}
+		Action(const char* identifier) : _identifier(identifier), _identifierHash(identifier) {}
 		virtual ~Action();
 
 		bool isReady(const Actor* source) const;
 		bool isUsable(const Actor* source) const;
 		bool resolve(Actor* source, Actor* target) const;
 
+		FNV1AHash identifierHash() const { return _identifierHash; }
 		virtual const std::string& identifier() const { return _identifier; }
 
 		virtual std::chrono::microseconds castTime(const Actor* source) const { return castTime(); }
@@ -41,6 +42,7 @@ class Action {
 
 	protected:
 		const std::string _identifier;
+		const FNV1AHash _identifierHash;
 	
 		std::vector<Aura*> _sourceAuras;
 		std::vector<Aura*> _targetAuras;

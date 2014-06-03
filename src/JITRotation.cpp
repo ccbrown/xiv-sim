@@ -4,6 +4,8 @@
 #include "Action.h"
 #include "Model.h"
 
+#include "common.h"
+
 #include "compiler/Preprocessor.h"
 #include "compiler/Parser.h"
 #include "compiler/LLVMCodeGenerator.h"
@@ -12,22 +14,23 @@
 #include <llvm/ExecutionEngine/JIT.h>
 
 bool JITRotation::initializeWithFile(const char* filename) {
+	// note: string literals in rotation scripts are actually compiled as their FNV1A hash instead
 	const char header[] =
 		"class Actor;\n"
-		"uint64 AuraCount(const Actor* actor, const uint8* identifier, const Actor* source);\n"
+		"uint64 AuraCount(const Actor* actor, uint64 identifier, const Actor* source);\n"
 		"double GlobalCooldownRemaining(const Actor* actor);\n"
-		"double CooldownRemaining(const Actor* actor, const uint8* identifier);\n"
-		"double AuraTimeRemaining(const Actor* actor, const uint8* identifier, const Actor* source);\n"
+		"double CooldownRemaining(const Actor* actor, uint64 identifier);\n"
+		"double AuraTimeRemaining(const Actor* actor, uint64 identifier, const Actor* source);\n"
 		"Actor* Pet(Actor* owner);\n"
 		"uint64 TP(const Actor* actor);\n"
 		"uint64 MP(const Actor* actor);\n"
 		"double GlobalCooldown(const Actor* actor);\n"
 		"double Time(const Actor* actor);\n"
-		"void RemoveAura(Actor* actor, const uint8* identifier, const Actor* source);\n"
-		"uint8 IsReady(const Actor* actor, const uint8* identifier);\n"
-		"void Command(Actor* actor, const uint8* identifier);\n"
+		"void RemoveAura(Actor* actor, uint64 identifier, const Actor* source);\n"
+		"uint8 IsReady(const Actor* actor, uint64 identifier);\n"
+		"void Command(Actor* actor, uint64 identifier);\n"
 		"void StopAutoAttack(Actor* actor);\n"
-		"__end __hidden const uint8* NextAction(Actor* self, const Actor* target) {\n"
+		"__end __hidden const uint64 NextAction(Actor* self, const Actor* target) {\n"
 	;
 	
 	const char footer[] = "\n}";
@@ -142,24 +145,24 @@ bool JITRotation::initializeWithFile(const char* filename) {
 }
 
 const Action* JITRotation::nextAction(Actor* subject, const Actor* target) const {
-	auto identifier = _jitNextAction(subject, target);
-	return identifier ? subject->model()->action(identifier) : nullptr;
+	auto identifierHash = _jitNextAction(subject, target);
+	return identifierHash ? subject->model()->action(identifierHash) : nullptr;
 }
 
-uint64_t JITRotation::ActorAuraCount(const Actor* actor, const char* identifier, const Actor* source) {
-	return actor->auraCount(identifier, source);
+uint64_t JITRotation::ActorAuraCount(const Actor* actor, uint64_t identifierHash, const Actor* source) {
+	return actor->auraCount(identifierHash, source);
 }
 
 double JITRotation::ActorGlobalCooldownRemaining(const Actor* actor) {
 	return std::chrono::duration<double>(actor->globalCooldownRemaining()).count();
 }
 
-double JITRotation::ActorCooldownRemaining(const Actor* actor, const char* identifier) {
-	return std::chrono::duration<double>(actor->cooldownRemaining(identifier)).count();
+double JITRotation::ActorCooldownRemaining(const Actor* actor, uint64_t identifierHash) {
+	return std::chrono::duration<double>(actor->cooldownRemaining(identifierHash)).count();
 }
 
-double JITRotation::ActorAuraTimeRemaining(const Actor* actor, const char* identifier, const Actor* source) {
-	return std::chrono::duration<double>(actor->auraTimeRemaining(identifier, source)).count();
+double JITRotation::ActorAuraTimeRemaining(const Actor* actor, uint64_t identifierHash, const Actor* source) {
+	return std::chrono::duration<double>(actor->auraTimeRemaining(identifierHash, source)).count();
 }
 
 Actor* JITRotation::ActorPet(Actor* actor) {
@@ -182,16 +185,16 @@ double JITRotation::ActorTime(const Actor* actor) {
 	return std::chrono::duration<double>(actor->time()).count();
 }
 
-void JITRotation::ActorRemoveAura(Actor* actor, const char* identifier, const Actor* source) {
-	actor->dispelAura(identifier, source, INT_MAX);
+void JITRotation::ActorRemoveAura(Actor* actor, uint64_t identifierHash, const Actor* source) {
+	actor->dispelAura(identifierHash, source, INT_MAX);
 }
 
-uint8_t JITRotation::ActionIsReady(const Actor* actor, const char* identifier) {
-	return actor->model()->action(identifier)->isReady(actor);
+uint8_t JITRotation::ActionIsReady(const Actor* actor, uint64_t identifierHash) {
+	return actor->model()->action(identifierHash)->isReady(actor);
 }
 
-void JITRotation::ActorCommand(Actor* actor, const char* identifier) {
-	actor->setCommand(actor->model()->action(identifier));
+void JITRotation::ActorCommand(Actor* actor, uint64_t identifierHash) {
+	actor->setCommand(actor->model()->action(identifierHash));
 }
 
 void JITRotation::ActorStopAutoAttack(Actor* actor) {

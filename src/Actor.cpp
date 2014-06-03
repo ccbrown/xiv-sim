@@ -23,7 +23,7 @@ Actor::Stats& Actor::Stats::operator*=(const Aura::StatsMultiplier& multiplier) 
 
 Actor::Actor(const Configuration* configuration, std::mt19937* rng)
 	: _configuration(configuration)
-	, _identifierHash(FNV1AHash(configuration->identifier))
+	, _identifierHash(configuration->identifier)
 	, _rng(rng)
 	, _baseStats(configuration->stats)
 {
@@ -71,7 +71,7 @@ void Actor::pretick() {
 		for (auto& akv : _auras) {
 			for (auto& kv : akv.second.applications) {
 				if (kv.second.aura->shouldCancel(this, kv.second.source, kv.second.count)) {
-					dispelAura(kv.second.aura->identifier(), kv.second.source);
+					dispelAura(kv.second.aura->identifierHash(), kv.second.source);
 					checkAuras = true;
 					break;
 				}
@@ -276,7 +276,7 @@ void Actor::applyAura(const Aura* aura, Actor* source, int count) {
 	auto& appliedAura = _auras[aura->identifierHash()];
 	appliedAura.isSharedBetweenSources = aura->isSharedBetweenSources();
 
-	auto& application = appliedAura.applications[appliedAura.isSharedBetweenSources ? 0 : source->identifierHash()];
+	auto& application = appliedAura.applications[appliedAura.isSharedBetweenSources ? FNV1AHash() : source->identifierHash()];
 
 	application.aura = aura;
 	application.source = source;
@@ -295,11 +295,11 @@ void Actor::applyAura(const Aura* aura, Actor* source, int count) {
 	_updateStats();
 }
 
-int Actor::dispelAura(const std::string& identifier, const Actor* source, int count) {
-	auto ait = _auras.find(FNV1AHash(identifier));
+int Actor::dispelAura(FNV1AHash identifierHash, const Actor* source, int count) {
+	auto ait = _auras.find(identifierHash);
 	if (ait == _auras.end()) { return 0; }
 
-	auto it = ait->second.applications.find(ait->second.isSharedBetweenSources ? 0 : source->identifierHash());
+	auto it = ait->second.applications.find(ait->second.isSharedBetweenSources ? FNV1AHash() : source->identifierHash());
 	if (it == ait->second.applications.end()) { return 0; }
 
 	auto dispelled = std::min(it->second.count, count);
@@ -319,32 +319,32 @@ int Actor::dispelAura(const std::string& identifier, const Actor* source, int co
 	return dispelled;
 }
 
-void Actor::extendAura(const std::string& identifier, const Actor* source, const std::chrono::microseconds& extension) {
-	auto ait = _auras.find(FNV1AHash(identifier));
+void Actor::extendAura(FNV1AHash identifierHash, const Actor* source, const std::chrono::microseconds& extension) {
+	auto ait = _auras.find(identifierHash);
 	if (ait == _auras.end()) { return; }
 
-	auto it = ait->second.applications.find(ait->second.isSharedBetweenSources ? 0 : source->identifierHash());
+	auto it = ait->second.applications.find(ait->second.isSharedBetweenSources ? FNV1AHash() : source->identifierHash());
 	if (it == ait->second.applications.end()) { return; }
 
 	it->second.duration = it->second.duration - (_time - it->second.time) + extension;
 	it->second.time = _time;
 }
 
-int Actor::auraCount(const std::string& identifier, const Actor* source) const {
-	auto ait = _auras.find(FNV1AHash(identifier));
+int Actor::auraCount(FNV1AHash identifierHash, const Actor* source) const {
+	auto ait = _auras.find(identifierHash);
 	if (ait == _auras.end()) { return 0; }
 
-	auto it = ait->second.applications.find(ait->second.isSharedBetweenSources ? 0 : source->identifierHash());
+	auto it = ait->second.applications.find(ait->second.isSharedBetweenSources ? FNV1AHash() : source->identifierHash());
 	if (it == ait->second.applications.end()) { return 0; }
 
 	return it->second.count;
 }
 
-std::chrono::microseconds Actor::auraTimeRemaining(const std::string& identifier, const Actor* source) const {
-	auto ait = _auras.find(FNV1AHash(identifier));
+std::chrono::microseconds Actor::auraTimeRemaining(FNV1AHash identifierHash, const Actor* source) const {
+	auto ait = _auras.find(identifierHash);
 	if (ait == _auras.end()) { return 0_us; }
 
-	auto it = ait->second.applications.find(ait->second.isSharedBetweenSources ? 0 : source->identifierHash());
+	auto it = ait->second.applications.find(ait->second.isSharedBetweenSources ? FNV1AHash() : source->identifierHash());
 	if (it == ait->second.applications.end()) { return 0_us; }
 
 	return (it->second.duration - (_time - it->second.time));
@@ -408,18 +408,18 @@ double Actor::globalCooldownMultiplier() const {
 	return ret;
 }
 
-void Actor::triggerCooldown(const std::string& identifier, std::chrono::microseconds duration) {
-	auto& cooldown = _cooldowns[identifier];
+void Actor::triggerCooldown(FNV1AHash identifierHash, std::chrono::microseconds duration) {
+	auto& cooldown = _cooldowns[identifierHash];
 	cooldown.duration = std::max((cooldown.time + cooldown.duration) - _time, duration);
 	cooldown.time = _time;
 }
 
-void Actor::endCooldown(const std::string& identifier) {
-	_cooldowns.erase(identifier);
+void Actor::endCooldown(FNV1AHash identifierHash) {
+	_cooldowns.erase(identifierHash);
 }
 
-std::chrono::microseconds Actor::cooldownRemaining(const std::string& identifier) const {
-	auto it = _cooldowns.find(identifier);
+std::chrono::microseconds Actor::cooldownRemaining(FNV1AHash identifierHash) const {
+	auto it = _cooldowns.find(identifierHash);
 	return it == _cooldowns.end() ? 0_us : ((it->second.time + it->second.duration) - _time);
 }
 

@@ -36,16 +36,51 @@ inline std::string operator"" _s(const char* str, size_t sz) {
 	return std::string(str, sz);
 }
 
-inline uint64_t FNV1AHash(const char* str) {
-	uint64_t ret = 14695981039346656037ull;
-	for (auto ptr = str; *ptr; ++ptr) {
-		ret = (ret ^ *(unsigned char*)ptr) * 1099511628211ull;
-	}
-	return ret;
+template <int N>
+inline constexpr uint64_t FNV1AHashLiteralImpl(const char* str) {
+	return (FNV1AHashLiteralImpl<N - 1>(str) ^ ((unsigned char*)str)[N - 1]) * 1099511628211ull;
 }
 
-inline uint64_t FNV1AHash(const std::string& str) {
-	return FNV1AHash(str.c_str());
+template <>
+inline constexpr uint64_t FNV1AHashLiteralImpl<0>(const char* str) {
+	return 14695981039346656037ull;
+}
+
+struct FNV1AHash {
+	constexpr FNV1AHash() = default;
+	
+	constexpr FNV1AHash(uint64_t n) : hash(n) {}
+
+	template <int N>
+	constexpr FNV1AHash(const char(&str)[N]) : hash(FNV1AHashLiteralImpl<N - 1>(str)) {}
+
+	/**
+	* This is only a template function so string literals will pick the above constexpr constructor.
+	*/
+	template <typename T>
+	explicit FNV1AHash(T str) {
+		typename std::enable_if<std::is_same<T, const char*>::value, const char*>::type ptr = str;
+
+		hash = 14695981039346656037ull;
+		while (*ptr) {
+			hash = (hash ^ *(unsigned char*)ptr) * 1099511628211ull;
+			++ptr;
+		}
+	}
+
+	explicit FNV1AHash(const std::string& str) : FNV1AHash(str.c_str()) {}
+
+	bool operator<(const FNV1AHash& other) const { return hash < other.hash; }
+	bool operator==(const FNV1AHash& other) const { return hash == other.hash; }
+
+	uint64_t hash = 0;
+};
+
+namespace std {
+	template<>
+	struct hash<FNV1AHash> {
+		std::size_t operator()(FNV1AHash fnv) const { return fnv.hash; }
+	};
 }
 
 template <typename IntType = int>

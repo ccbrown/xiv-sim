@@ -70,6 +70,7 @@ class Parser {
 			ptt_keyword_true,
 			ptt_keyword_namespace,
 			ptt_keyword_null,
+			ptt_keyword_nullptr,
 			ptt_keyword_typename,
 		};
 		

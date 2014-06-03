@@ -10,10 +10,10 @@ struct Damage;
 
 class Aura {
 	public:
-		Aura(const char* identifier) : _identifier(identifier), _identifierHash(FNV1AHash(identifier)) {}
+		Aura(const char* identifier) : _identifier(identifier), _identifierHash(identifier) {}
 		virtual ~Aura() = default;
 	
-		uint64_t identifierHash() const { return _identifierHash; }
+		FNV1AHash identifierHash() const { return _identifierHash; }
 		virtual const std::string& identifier() const { return _identifier; }
 
 		virtual bool isHidden() const { return false; }
@@ -60,5 +60,5 @@ class Aura {
 
 	private:
 		const std::string _identifier;
-		const uint64_t _identifierHash = 0;
+		const FNV1AHash _identifierHash;
 };

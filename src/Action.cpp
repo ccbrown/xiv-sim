@@ -9,7 +9,7 @@ Action::~Action() {
 }
 
 bool Action::isReady(const Actor* source) const {
-	if (cooldown().count() && source->cooldownRemaining(identifier()).count()) { return false; }
+	if (cooldown().count() && source->cooldownRemaining(identifierHash()).count()) { return false; }
 			
 	return requirements(source);
 }
@@ -30,7 +30,7 @@ bool Action::resolve(Actor* source, Actor* target) const {
 	if (!isUsable(source)) { return false; }
 
 	if (cooldown().count()) {
-		source->triggerCooldown(identifier(), cooldown());
+		source->triggerCooldown(identifierHash(), cooldown());
 	}
 
 	if (!isOffGlobalCooldown()) {

@@ -122,7 +122,7 @@ struct ASTConstantArray : ASTExpression {
 	void* data;
 	size_t size;
 	
-	ASTConstantArray(const void* data, size_t size, SLTypePtr type) : ASTExpression(SLType::PointerType(type), true) {
+	ASTConstantArray(const void* data, size_t size, SLTypePtr type) : ASTExpression(type, true) {
 		this->data = malloc(size);
 		memcpy(this->data, data, size);
 		this->size = size;

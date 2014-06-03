@@ -1,5 +1,6 @@
 #pragma once
 
+#include "common.h"
 #include "Damage.h"
 
 #include <chrono>
@@ -18,7 +19,7 @@ class Model {
 			
 		virtual void prepareForBattle(Actor* actor) const = 0;
 
-		virtual const Action* action(const char* identifier) const = 0;
+		virtual const Action* action(FNV1AHash identifierHash) const = 0;
 
 		virtual Damage generateDamage(const Action* action, const Actor* source, const Actor* target) const = 0;
 		virtual Damage generateAutoAttackDamage(Actor* actor) const = 0;
