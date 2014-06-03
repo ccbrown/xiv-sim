@@ -9,8 +9,17 @@ namespace models {
 Bard::Bard() : Base("bard") {
 	{
 		struct Skill : Action {
+			struct AllyBuff : Aura {
+				AllyBuff() : Aura("armys-paeon") {}
+				virtual std::chrono::microseconds duration() const override { return std::chrono::microseconds::max(); }
+				virtual void tick(Actor* actor, Actor* source, int count, bool isCritical) const override {
+					actor->setTP(actor->tp() + 30);
+				}
+			};
+			
 			struct SelfBuff : Aura {
-				SelfBuff() : Aura("armys-paeon") {}
+				SelfBuff() : Aura("armys-paeon-source") {}
+				virtual bool isHidden() const override { return true; }
 				virtual std::chrono::microseconds duration() const override { return std::chrono::microseconds::max(); }
 				virtual double increasedDamage() const override { return -0.20; }
 				virtual bool shouldCancel(Actor* actor, Actor* source, int count) const override {
@@ -18,21 +27,26 @@ Bard::Bard() : Base("bard") {
 				}
 				virtual void tick(Actor* actor, Actor* source, int count, bool isCritical) const override {
 					actor->setMP(actor->mp() - 133);
-					actor->setTP(actor->tp() + 30);
 				}
 				virtual void afterEffect(Actor* actor, Actor* source, int count) const override {
+					Actor* newSource = nullptr;
 					for (auto ally : actor->allies()) {
-						ally->dispelAura("armys-paeon", source);
+						if (ally->auraCount("armys-paeon-source", ally)) {
+							newSource = ally;
+							break;
+						}
+					}
+
+					for (auto ally : actor->allies()) {
+						if (newSource) {
+							ally->applyAura(&allyBuff, newSource);
+						} else {
+							ally->dispelAura("armys-paeon", source);
+						}
 					}
 				}
-			};
-
-			struct AllyBuff : Aura {
-				AllyBuff() : Aura("armys-paeon") {}
-				virtual std::chrono::microseconds duration() const override { return std::chrono::microseconds::max(); }
-				virtual void tick(Actor* actor, Actor* source, int count, bool isCritical) const override {
-					actor->setTP(actor->tp() + 30);
-				}
+				
+				AllyBuff allyBuff;
 			};
 
 			Skill() : Action("armys-paeon") {

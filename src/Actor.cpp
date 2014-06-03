@@ -68,12 +68,15 @@ void Actor::pretick() {
 	bool checkAuras = true;
 	while (checkAuras) {
 		checkAuras = false;
-		for (auto& kv : _auras) {
-			if (kv.second.aura->shouldCancel(this, kv.second.source, kv.second.count)) {
-				dispelAura(kv.second.aura->identifier(), kv.second.source);
-				checkAuras = true;
-				break;
+		for (auto& akv : _auras) {
+			for (auto& kv : akv.second.applications) {
+				if (kv.second.aura->shouldCancel(this, kv.second.source, kv.second.count)) {
+					dispelAura(kv.second.aura->identifier(), kv.second.source);
+					checkAuras = true;
+					break;
+				}
 			}
+			if (checkAuras) { break; }
 		}
 	}
 }
@@ -81,15 +84,17 @@ void Actor::pretick() {
 void Actor::tick() {
 	auto mpRegen = maximumMP() * 0.02;
 	
-	for (auto& kv : _auras) {
-		bool isCritical = false;
-		if (kv.second.aura->tickDamage()) {
-			auto damage = acceptDamage(_generateTickDamage(kv.second));
-			isCritical = damage.isCritical;
-			kv.second.source->integrateDamageStats(damage, kv.second.aura->identifier().c_str());
+	for (auto& akv : _auras) {
+		for (auto& kv : akv.second.applications) {
+			bool isCritical = false;
+			if (kv.second.aura->tickDamage()) {
+				auto damage = acceptDamage(_generateTickDamage(kv.second));
+				isCritical = damage.isCritical;
+				kv.second.source->integrateDamageStats(damage, kv.second.aura->identifier().c_str());
+			}
+			kv.second.aura->tick(this, kv.second.source, kv.second.count, isCritical);
+			mpRegen *= kv.second.aura->mpRegenMultiplier();
 		}
-		kv.second.aura->tick(this, kv.second.source, kv.second.count, isCritical);
-		mpRegen *= kv.second.aura->mpRegenMultiplier();
 	}
 
 	setTP(tp() + 60);
@@ -160,17 +165,18 @@ void Actor::advanceTime(const std::chrono::microseconds& time) {
 
 	bool needsStatUpdate = false;
 	
-	std::vector<AppliedAura> expired;
+	std::vector<AuraApplication> expired;
 
-	for (auto it = _auras.begin(); it != _auras.end();) {
-		if (_time - it->second.time >= it->second.duration) {
-			auto aura = it->second.aura;
-			expired.emplace_back(std::move(it->second));
-			_integrateAuraApplicationCountChange(aura, 0);
-			it = _auras.erase(it);
-			needsStatUpdate = true;
-		} else {
-			++it;
+	for (auto& akv : _auras) {
+		for (auto it = akv.second.applications.begin(); it != akv.second.applications.end();) {
+			if (_time - it->second.time >= it->second.duration) {
+				_integrateAuraApplicationCountChange(it->second.aura, it->second.count, 0);
+				expired.emplace_back(std::move(it->second));
+				it = akv.second.applications.erase(it);
+				needsStatUpdate = true;
+			} else {
+				++it;
+			}
 		}
 	}
 	
@@ -243,9 +249,11 @@ std::chrono::microseconds Actor::timeUntilNextTimeOfInterest() const {
 		endTime = std::min(kv.second.time + kv.second.duration, endTime);
 	}
 
-	for (auto& kv : _auras) {
-		if (kv.second.duration != std::chrono::microseconds::max()) {
-			endTime = std::min(kv.second.time + kv.second.duration, endTime);
+	for (auto& akv : _auras) {
+		for (auto& kv : akv.second.applications) {
+			if (kv.second.duration != std::chrono::microseconds::max()) {
+				endTime = std::min(kv.second.time + kv.second.duration, endTime);
+			}
 		}
 	}
 
@@ -257,13 +265,18 @@ std::chrono::microseconds Actor::timeUntilNextTimeOfInterest() const {
 }
 
 void Actor::applyAura(const Aura* aura, Actor* source, int count) {
-	for (auto& kv : _auras) {
-		if (kv.second.aura->providesImmunity(aura)) {
-			return;
+	for (auto& akv : _auras) {
+		for (auto& kv : akv.second.applications) {
+			if (kv.second.aura->providesImmunity(aura)) {
+				return;
+			}
 		}
 	}
 	
-	auto& application = _auras[_appliedAuraKey(aura->identifier(), source)];
+	auto& appliedAura = _auras[aura->identifierHash()];
+	appliedAura.isSharedBetweenSources = aura->isSharedBetweenSources();
+
+	auto& application = appliedAura.applications[appliedAura.isSharedBetweenSources ? 0 : source->identifierHash()];
 
 	application.aura = aura;
 	application.source = source;
@@ -274,24 +287,30 @@ void Actor::applyAura(const Aura* aura, Actor* source, int count) {
 	application.tickCriticalHitChance = source->_configuration->model->tickCriticalHitChance(source);
 
 	if (application.count < aura->maximumCount()) {
-		application.count = std::min(aura->maximumCount(), application.count + count);
-		_integrateAuraApplicationCountChange(aura, application.count);
+		auto newCount = std::min(aura->maximumCount(), application.count + count);
+		_integrateAuraApplicationCountChange(aura, application.count, newCount);
+		application.count = newCount;
 	}
 
 	_updateStats();
 }
 
 int Actor::dispelAura(const std::string& identifier, const Actor* source, int count) {
-	auto it = _auras.find(_appliedAuraKey(identifier, source));
-	if (it == _auras.end()) { return 0; }
+	auto ait = _auras.find(FNV1AHash(identifier));
+	if (ait == _auras.end()) { return 0; }
+
+	auto it = ait->second.applications.find(ait->second.isSharedBetweenSources ? 0 : source->identifierHash());
+	if (it == ait->second.applications.end()) { return 0; }
 
 	auto dispelled = std::min(it->second.count, count);
 
-	it->second.count = it->second.count - dispelled;
-	_integrateAuraApplicationCountChange(it->second.aura, it->second.count);
+	auto newCount = it->second.count - dispelled;
+	_integrateAuraApplicationCountChange(it->second.aura, it->second.count, newCount);
+	it->second.count = newCount;
+
 	if (!it->second.count) {
 		auto application = std::move(it->second);
-		_auras.erase(it);
+		ait->second.applications.erase(it);
 		_updateStats();
 		
 		application.aura->afterEffect(this, application.source, dispelled);
@@ -301,67 +320,90 @@ int Actor::dispelAura(const std::string& identifier, const Actor* source, int co
 }
 
 void Actor::extendAura(const std::string& identifier, const Actor* source, const std::chrono::microseconds& extension) {
-	auto it = _auras.find(_appliedAuraKey(identifier, source));
-	if (it == _auras.end()) { return; }
+	auto ait = _auras.find(FNV1AHash(identifier));
+	if (ait == _auras.end()) { return; }
+
+	auto it = ait->second.applications.find(ait->second.isSharedBetweenSources ? 0 : source->identifierHash());
+	if (it == ait->second.applications.end()) { return; }
 
 	it->second.duration = it->second.duration - (_time - it->second.time) + extension;
 	it->second.time = _time;
 }
 
 int Actor::auraCount(const std::string& identifier, const Actor* source) const {
-	auto it = _auras.find(_appliedAuraKey(identifier, source));
-	if (it == _auras.end()) { return 0; }
+	auto ait = _auras.find(FNV1AHash(identifier));
+	if (ait == _auras.end()) { return 0; }
+
+	auto it = ait->second.applications.find(ait->second.isSharedBetweenSources ? 0 : source->identifierHash());
+	if (it == ait->second.applications.end()) { return 0; }
+
 	return it->second.count;
 }
 
 std::chrono::microseconds Actor::auraTimeRemaining(const std::string& identifier, const Actor* source) const {
-	auto it = _auras.find(_appliedAuraKey(identifier, source));
-	if (it == _auras.end()) { return 0_us; }
+	auto ait = _auras.find(FNV1AHash(identifier));
+	if (ait == _auras.end()) { return 0_us; }
+
+	auto it = ait->second.applications.find(ait->second.isSharedBetweenSources ? 0 : source->identifierHash());
+	if (it == ait->second.applications.end()) { return 0_us; }
+
 	return (it->second.duration - (_time - it->second.time));
 }
 
 double Actor::damageMultiplier() const {
 	double ret = 1.0;
-	for (auto& kv : _auras) {
-		ret *= (1.0 + kv.second.aura->increasedDamage() * kv.second.count);
+	for (auto& akv : _auras) {
+		for (auto& kv : akv.second.applications) {
+			ret *= (1.0 + kv.second.aura->increasedDamage() * kv.second.count);
+		}
 	}
 	return ret;
 }
 
 double Actor::autoAttackSpeedMultiplier() const {
 	double ret = 1.0;
-	for (auto& kv : _auras) {
-		ret *= (1.0 + kv.second.aura->increasedAutoAttackSpeed() * kv.second.count);
+	for (auto& akv : _auras) {
+		for (auto& kv : akv.second.applications) {
+			ret *= (1.0 + kv.second.aura->increasedAutoAttackSpeed() * kv.second.count);
+		}
 	}
 	return ret;
 }
 
 void Actor::transformIncomingDamage(Damage* damage) const {
-	for (auto& kv : _auras) {
-		kv.second.aura->transformIncomingDamage(damage);
+	for (auto& akv : _auras) {
+		for (auto& kv : akv.second.applications) {
+			kv.second.aura->transformIncomingDamage(damage);
+		}
 	}
 }
 
 double Actor::additionalCriticalHitChance() const {
 	double ret = 0.0;
-	for (auto& kv : _auras) {
-		ret += kv.second.aura->additionalCriticalHitChance() * kv.second.count;
+	for (auto& akv : _auras) {
+		for (auto& kv : akv.second.applications) {
+			ret += kv.second.aura->additionalCriticalHitChance() * kv.second.count;
+		}
 	}
 	return ret;
 }
 
 int Actor::strikesPerAutoAttack() const {
 	int ret = 1;
-	for (auto& kv : _auras) {
-		ret += kv.second.aura->additionalStrikesPerAutoAttack() * kv.second.count;
+	for (auto& akv : _auras) {
+		for (auto& kv : akv.second.applications) {
+			ret += kv.second.aura->additionalStrikesPerAutoAttack() * kv.second.count;
+		}
 	}
 	return ret;
 }
 
 double Actor::globalCooldownMultiplier() const {
 	double ret = 1.0;
-	for (auto& kv : _auras) {
-		ret *= (1.0 - kv.second.aura->reducedGlobalCooldown() * kv.second.count);
+	for (auto& akv : _auras) {
+		for (auto& kv : akv.second.applications) {
+			ret *= (1.0 - kv.second.aura->reducedGlobalCooldown() * kv.second.count);
+		}
 	}
 	return ret;
 }
@@ -402,25 +444,18 @@ void Actor::triggerAnimationLock() {
 	_animationLockEndTime = _time + 1_s;
 }
 
-uint64_t Actor::_appliedAuraKey(const std::string& auraIdentifier, const Actor* source) const {
-	uint64_t h1 = 14695981039346656037ull;
-	for (auto& c : auraIdentifier) {
-		h1 = (h1 ^ c) * 1099511628211ull;
-	}
-
-	uint64_t h2 = source->identifierHash();
-
-	return ((h1 << 32) | (h1 >> 32)) ^ h2;
-}
-
-void Actor::_integrateAuraApplicationCountChange(const Aura* aura, int count) {
+void Actor::_integrateAuraApplicationCountChange(const Aura* aura, int before, int after) {
 	if (_configuration->keepsHistory && !aura->isHidden()) {
 		auto& samples = _simulationStats.auraSamples[aura->identifier()];
-		samples.emplace_back(_time, count);
+		auto lastSampleCount = samples.empty() ? 0 : samples.back().second;
+		auto newSampleCount = lastSampleCount + (after - before);
+		if (newSampleCount != lastSampleCount) {
+			samples.emplace_back(_time, newSampleCount);
+		}
 	}
 }
 
-Damage Actor::_generateTickDamage(const Actor::AppliedAura& application) const {
+Damage Actor::_generateTickDamage(const Actor::AuraApplication& application) const {
 	Damage ret;
 
 	std::uniform_real_distribution<double> distribution(0.0, 1.0);
@@ -443,9 +478,11 @@ Damage Actor::_generateTickDamage(const Actor::AppliedAura& application) const {
 
 void Actor::_updateStats() {
 	_stats = _baseStats;
-	for (auto& kv : _auras) {
-		for (int i = 0; i < kv.second.count; ++i) {
-			_stats *= kv.second.aura->statsMultiplier();
+	for (auto& akv : _auras) {
+		for (auto& kv : akv.second.applications) {
+			for (int i = 0; i < kv.second.count; ++i) {
+				_stats *= kv.second.aura->statsMultiplier();
+			}
 		}
 	}
 }

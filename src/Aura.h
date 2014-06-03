@@ -1,5 +1,7 @@
 #pragma once
 
+#include "common.h"
+
 #include <chrono>
 #include <string>
 
@@ -8,12 +10,14 @@ struct Damage;
 
 class Aura {
 	public:
-		Aura(const char* identifier) : _identifier(identifier) {}
+		Aura(const char* identifier) : _identifier(identifier), _identifierHash(FNV1AHash(identifier)) {}
 		virtual ~Aura() = default;
 	
+		uint64_t identifierHash() const { return _identifierHash; }
 		virtual const std::string& identifier() const { return _identifier; }
 
 		virtual bool isHidden() const { return false; }
+		virtual bool isSharedBetweenSources() const { return !tickDamage(); }
 	
 		virtual std::chrono::microseconds duration() const = 0;
 		
@@ -56,4 +60,5 @@ class Aura {
 
 	private:
 		const std::string _identifier;
+		const uint64_t _identifierHash = 0;
 };

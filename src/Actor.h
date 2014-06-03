@@ -166,17 +166,6 @@ class Actor {
 			
 		int maximumMP() const;
 
-		struct AppliedAura {
-			const Aura* aura = nullptr;
-			Actor* source = nullptr;
-			int count = 0;
-			std::chrono::microseconds time = 0_us;
-			std::chrono::microseconds duration = 0_us;
-			double baseTickDamage = 0.0;
-			double tickCriticalHitChance = 0.0;
-			Stats providedStats;
-		};
-
 	private:
 		const Configuration* const _configuration = nullptr;
 		const uint64_t _identifierHash = 0;
@@ -217,14 +206,29 @@ class Actor {
 
 		std::unordered_map<std::string, Cooldown> _cooldowns;
 
-		uint64_t _appliedAuraKey(const std::string& auraIdentifier, const Actor* source) const;
+		struct AuraApplication {
+			const Aura* aura = nullptr;
+			Actor* source = nullptr;
+			int count = 0;
+			std::chrono::microseconds time = 0_us;
+			std::chrono::microseconds duration = 0_us;
+			double baseTickDamage = 0.0;
+			double tickCriticalHitChance = 0.0;
+			Stats providedStats;
+		};
+
+		struct AppliedAura {
+			bool isSharedBetweenSources = false;
+			std::map<uint64_t, AuraApplication> applications;
+		};
+
 		std::map<uint64_t, AppliedAura> _auras;
 
 		SimulationStats _simulationStats;
 		std::unordered_map<std::string, EffectSimulationStats> _effectSimulationStats;
 		
-		void _integrateAuraApplicationCountChange(const Aura* aura, int count);
-		Damage _generateTickDamage(const AppliedAura& application) const;
+		void _integrateAuraApplicationCountChange(const Aura* aura, int before, int after);
+		Damage _generateTickDamage(const AuraApplication& application) const;
 		
 		std::unordered_set<Actor*> _allies;
 
