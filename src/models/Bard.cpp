@@ -258,7 +258,7 @@ Bard::Bard() : Base("bard") {
 				_sourceAuras.push_back(new Buff());
 			}
 			virtual bool isOffGlobalCooldown() const override { return true; }
-			virtual std::chrono::microseconds cooldown() const override { return 180_s; }
+			virtual std::chrono::microseconds cooldown() const override { return 90_s; }
 		};
 		
 		_registerAction<Skill>();
