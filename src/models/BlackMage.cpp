@@ -341,6 +341,24 @@ BlackMage::BlackMage() : Base("black-mage") {
 	
 		_registerAction<Spell>();
 	}
+	
+	{
+		struct Skill : Action {
+			struct Buff : Aura {
+				Buff() : Aura("swiftcast") {}
+				virtual std::chrono::microseconds duration() const override { return 10_s; }
+				// implementation in Actor
+			};
+			
+			Skill() : Action("swiftcast") {
+				_sourceAuras.push_back(new Buff());
+			}
+			virtual bool isOffGlobalCooldown() const override { return true; }
+			virtual std::chrono::microseconds cooldown() const override { return 60_s; }
+		};
+		
+		_registerAction<Skill>();
+	}
 }
 
 int BlackMage::maximumMP(const Actor* actor) const {
