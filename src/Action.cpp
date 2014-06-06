@@ -56,7 +56,7 @@ bool Action::resolve(Actor* source, Actor* target) const {
 		target->applyAura(aura, source);
 	}
 	
-	resolution(source, target);
+	resolution(source, target, damage.isCritical);
 
 	source->integrateDamageStats(damage, identifier().c_str());
 

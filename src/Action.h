@@ -50,6 +50,6 @@ class Action {
 		virtual int damage() const { return 0; }
 		virtual int mpCost() const { return 0; }
 		virtual std::chrono::microseconds castTime() const { return 0_us; }
-		virtual void resolution(Actor* source, Actor* target) const {}
+		virtual void resolution(Actor* source, Actor* target, bool isCritical) const {}
 		virtual bool requirements(const Actor* source) const { return true; }
 };

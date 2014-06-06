@@ -53,7 +53,7 @@ BlackMage::BlackMage() : Base("black-mage") {
 				_targetAuras.push_back(new DoT());
 			}
 			virtual int damage() const override { return 30 + 12 / 3 * 40; }
-			virtual void resolution(Actor* source, Actor* target) const override {
+			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
 				source->dispelAura("thundercloud", source);
 			}
 		};
@@ -98,7 +98,7 @@ BlackMage::BlackMage() : Base("black-mage") {
 				_targetAuras.push_back(new DoT());
 			}
 			virtual int damage() const override { return 50 + 15 / 3 * 40; }
-			virtual void resolution(Actor* source, Actor* target) const override {
+			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
 				source->dispelAura("thundercloud", source);
 			}
 		};
@@ -143,7 +143,7 @@ BlackMage::BlackMage() : Base("black-mage") {
 				_targetAuras.push_back(new DoT());
 			}
 			virtual int damage() const override { return 60 + 18 / 3 * 40; }
-			virtual void resolution(Actor* source, Actor* target) const override {
+			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
 				source->dispelAura("thundercloud", source);
 			}
 		};
@@ -191,7 +191,7 @@ BlackMage::BlackMage() : Base("black-mage") {
 			virtual std::chrono::microseconds castTime(const Actor* source) const override {
 				return (source->auraCount("astral-fire", source) == 3) ? 1250_ms : 2500_ms;
 			}
-			virtual void resolution(Actor* source, Actor* target) const override {
+			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
 				if (!source->dispelAura("astral-fire", source, 3)) {
 					source->applyAura(&umbralIce, source);
 				}
@@ -229,7 +229,7 @@ BlackMage::BlackMage() : Base("black-mage") {
 			virtual std::chrono::microseconds castTime(const Actor* source) const override {
 				return (source->auraCount("umbral-ice", source) == 3) ? 1250_ms : 2500_ms;
 			}
-			virtual void resolution(Actor* source, Actor* target) const override {
+			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
 				if (!source->dispelAura("umbral-ice", source, 3)) {
 					source->applyAura(&astralFire, source);
 				}
@@ -246,7 +246,7 @@ BlackMage::BlackMage() : Base("black-mage") {
 		struct FirestarterSpell : Action {
 			FirestarterSpell() : Action("fire-iii-firestarter") {}
 			virtual int damage(const Actor* source, const Actor* target) const override { return FireSpellDamage(source, 220); }
-			virtual void resolution(Actor* source, Actor* target) const override {
+			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
 				source->dispelAura("possible-firestarter", source);
 				source->dispelAura("firestarter", source);
 				source->dispelAura("umbral-ice", source, 3);
@@ -264,7 +264,7 @@ BlackMage::BlackMage() : Base("black-mage") {
 			virtual std::chrono::microseconds castTime(const Actor* source) const override {
 				return (source->auraCount("umbral-ice", source) == 3) ? 1750_ms : 3500_ms;
 			}
-			virtual void resolution(Actor* source, Actor* target) const override {
+			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
 				source->dispelAura("umbral-ice", source, 3);
 				source->applyAura(&astralFire, source, 3);
 			}
@@ -286,7 +286,7 @@ BlackMage::BlackMage() : Base("black-mage") {
 			virtual std::chrono::microseconds castTime(const Actor* source) const override {
 				return (source->auraCount("astral-fire", source) == 3) ? 1750_ms : 3500_ms;
 			}
-			virtual void resolution(Actor* source, Actor* target) const override {
+			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
 				source->dispelAura("astral-fire", source, 3);
 				source->applyAura(&umbralIce, source, 3);
 			}
@@ -300,7 +300,7 @@ BlackMage::BlackMage() : Base("black-mage") {
 		struct Spell : Action {
 			Spell() : Action("transpose") {}
 			virtual std::chrono::microseconds cooldown() const override { return 12_s; }
-			virtual void resolution(Actor* source, Actor* target) const override {
+			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
 				if (source->dispelAura("astral-fire", source, 3)) {
 					source->applyAura(&umbralIce, source);
 				} else if (source->dispelAura("umbral-ice", source, 3)) {
@@ -318,7 +318,7 @@ BlackMage::BlackMage() : Base("black-mage") {
 		struct Spell : Action {
 			Spell() : Action("convert") {}
 			virtual std::chrono::microseconds cooldown() const override { return 180_s; }
-			virtual void resolution(Actor* source, Actor* target) const override {
+			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
 				source->setMP(source->mp() + source->maximumMP() * 0.30);
 			}
 		};
@@ -332,7 +332,7 @@ BlackMage::BlackMage() : Base("black-mage") {
 			virtual int damage(const Actor* source, const Actor* target) const override { return FireSpellDamage(source, 260); }
 			virtual int mpCost(const Actor* source) const override { return source->mp(); }
 			virtual std::chrono::microseconds castTime() const override { return 4_s; }
-			virtual void resolution(Actor* source, Actor* target) const override {
+			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
 				source->dispelAura("umbral-ice", source, 3);
 				source->applyAura(&astralFire, source, 3);
 			}

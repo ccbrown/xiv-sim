@@ -85,7 +85,7 @@ Dragoon::Dragoon() : Base("dragoon") {
 			}
 			virtual int damage() const override { return 100; }
 			virtual int tpCost() const override { return 80; }
-			virtual void resolution(Actor* source, Actor* target) const override {
+			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
 				source->dispelAura("life-surge", source);
 			}
 		};
@@ -98,7 +98,7 @@ Dragoon::Dragoon() : Base("dragoon") {
 			Skill() : Action("true-thrust") {}
 			virtual int damage() const override { return 150; }
 			virtual int tpCost() const override { return 70; }
-			virtual void resolution(Actor* source, Actor* target) const override {
+			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
 				source->dispelAura("life-surge", source);
 			}
 		};
@@ -114,7 +114,7 @@ Dragoon::Dragoon() : Base("dragoon") {
 			virtual bool requirements(const Actor* source) const override {
 				return source->comboAction() && source->comboAction()->identifier() == "true-thrust";
 			}
-			virtual void resolution(Actor* source, Actor* target) const override {
+			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
 				source->dispelAura("life-surge", source);
 			}
 		};
@@ -130,7 +130,7 @@ Dragoon::Dragoon() : Base("dragoon") {
 			virtual bool requirements(const Actor* source) const override {
 				return source->comboAction() && source->comboAction()->identifier() == "vorpal-thrust-combo";
 			}
-			virtual void resolution(Actor* source, Actor* target) const override {
+			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
 				source->dispelAura("life-surge", source);
 			}
 		};
@@ -143,7 +143,7 @@ Dragoon::Dragoon() : Base("dragoon") {
 			Skill() : Action("impulse-drive-rear") {}
 			virtual int damage() const override { return 180; }
 			virtual int tpCost() const override { return 70; }
-			virtual void resolution(Actor* source, Actor* target) const override {
+			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
 				source->dispelAura("life-surge", source);
 			}
 		};
@@ -171,7 +171,7 @@ Dragoon::Dragoon() : Base("dragoon") {
 			virtual bool requirements(const Actor* source) const override {
 				return source->comboAction() && source->comboAction()->identifier() == "impulse-drive-rear";
 			}
-			virtual void resolution(Actor* source, Actor* target) const override {
+			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
 				source->dispelAura("life-surge", source);
 			}
 		};
@@ -195,7 +195,7 @@ Dragoon::Dragoon() : Base("dragoon") {
 			virtual bool requirements(const Actor* source) const override {
 				return source->comboAction() && source->comboAction()->identifier() == "disembowel-combo";
 			}
-			virtual void resolution(Actor* source, Actor* target) const override {
+			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
 				source->dispelAura("life-surge", source);
 			}
 		};
@@ -216,7 +216,7 @@ Dragoon::Dragoon() : Base("dragoon") {
 			}
 			virtual int damage() const override { return 170; }
 			virtual int tpCost() const override { return 70; }
-			virtual void resolution(Actor* source, Actor* target) const override {
+			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
 				source->dispelAura("life-surge", source);
 			}
 		};
@@ -237,7 +237,7 @@ Dragoon::Dragoon() : Base("dragoon") {
 			}
 			virtual int damage() const override { return 170; }
 			virtual int tpCost() const override { return 90; }
-			virtual void resolution(Actor* source, Actor* target) const override {
+			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
 				source->dispelAura("life-surge", source);
 			}
 		};
@@ -252,7 +252,7 @@ Dragoon::Dragoon() : Base("dragoon") {
 				return source->auraCount("power-surge", source) ? 300 : 200;
 			}
 			virtual std::chrono::microseconds cooldown() const override { return 40_s; }
-			virtual void resolution(Actor* source, Actor* target) const override {
+			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
 				source->dispelAura("life-surge", source);
 				source->dispelAura("power-surge", source);
 			}
@@ -284,7 +284,7 @@ Dragoon::Dragoon() : Base("dragoon") {
 			Skill() : Action("dragonfire-dive") {}
 			virtual int damage() const override { return 250; }
 			virtual std::chrono::microseconds cooldown() const override { return 180_s; }
-			virtual void resolution(Actor* source, Actor* target) const override {
+			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
 				source->dispelAura("life-surge", source);
 			}
 			virtual bool isOffGlobalCooldown() const override { return true; }
@@ -299,7 +299,7 @@ Dragoon::Dragoon() : Base("dragoon") {
 			virtual int damage() const override { return 130; }
 			virtual std::chrono::microseconds cooldown() const override { return 20_s; }
 			virtual bool isOffGlobalCooldown() const override { return true; }
-			virtual void resolution(Actor* source, Actor* target) const override {
+			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
 				source->dispelAura("life-surge", source);
 			}
 		};
@@ -313,7 +313,7 @@ Dragoon::Dragoon() : Base("dragoon") {
 			virtual int damage() const override { return 170; }
 			virtual std::chrono::microseconds cooldown() const override { return 90_s; }
 			virtual bool isOffGlobalCooldown() const override { return true; }
-			virtual void resolution(Actor* source, Actor* target) const override {
+			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
 				source->dispelAura("life-surge", source);
 			}
 		};

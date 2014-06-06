@@ -170,7 +170,7 @@ Summoner::Summoner() : Base("summoner") {
 		struct Spell : Action {
 			Spell() : Action("fester") {}
 			virtual std::chrono::microseconds cooldown() const override { return 10_s; }
-			virtual void resolution(Actor* source, Actor* target) const override {
+			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
 				source->dispelAura("aetherflow", source);
 			}
 			virtual int damage(const Actor* source, const Actor* target) const override {
@@ -196,7 +196,7 @@ Summoner::Summoner() : Base("summoner") {
 			Spell() : Action("rouse") {}
 			virtual bool isOffGlobalCooldown() const override { return true; }
 			virtual std::chrono::microseconds cooldown() const override { return 60_s; }
-			virtual void resolution(Actor* source, Actor* target) const override {
+			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
 				source->pet()->applyAura(&buff, source);
 			}
 		};
@@ -218,7 +218,7 @@ Summoner::Summoner() : Base("summoner") {
 			Spell() : Action("spur") {}
 			virtual bool isOffGlobalCooldown() const override { return true; }
 			virtual std::chrono::microseconds cooldown() const override { return 120_s; }
-			virtual void resolution(Actor* source, Actor* target) const override {
+			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
 				source->pet()->applyAura(&buff, source);
 			}
 		};

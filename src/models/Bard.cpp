@@ -52,7 +52,7 @@ Bard::Bard() : Base("bard") {
 			Skill() : Action("armys-paeon") {
 				_sourceAuras.push_back(new SelfBuff());
 			}
-			virtual void resolution(Actor* source, Actor* target) const override {
+			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
 				for (auto ally : source->allies()) {
 					ally->applyAura(&allyBuff, source);
 				}
@@ -99,7 +99,7 @@ Bard::Bard() : Base("bard") {
 			virtual double criticalHitChance(const Actor* source, double base) const {
 				return source->auraCount("heavier-shot", source) ? 1.0 : base;
 			}
-			virtual void resolution(Actor* source, Actor* target) const override {
+			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
 				source->dispelAura("heavier-shot", source);
 			}
 		};
@@ -235,7 +235,7 @@ Bard::Bard() : Base("bard") {
 			Skill() : Action("heavy-shot") {}
 			virtual int damage() const override { return 150; }
 			virtual int tpCost() const override { return 60; }
-			virtual void resolution(Actor* source, Actor* target) const override {
+			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
 				std::uniform_real_distribution<double> distribution(0.0, 1.0);				
 				if (distribution(source->rng()) < 0.2) {
 					source->applyAura(&heavierShot, source);
