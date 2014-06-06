@@ -48,6 +48,8 @@ bool Action::resolve(Actor* source, Actor* target) const {
 		damage = target->acceptDamage(source->generateDamage(this, target));
 	}
 
+	resolution(source, target, damage.isCritical);
+
 	for (auto& aura : sourceAuras()) {
 		source->applyAura(aura, source);
 	}
@@ -55,8 +57,6 @@ bool Action::resolve(Actor* source, Actor* target) const {
 	for (auto& aura : targetAuras()) {
 		target->applyAura(aura, source);
 	}
-	
-	resolution(source, target, damage.isCritical);
 
 	source->integrateDamageStats(damage, identifier().c_str());
 
