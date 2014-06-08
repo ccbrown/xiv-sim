@@ -3,6 +3,8 @@
 #include "../Action.h"
 #include "../Actor.h"
 
+#include <math.h>
+
 namespace models {
 
 Summoner::Summoner() : Base("summoner") {
@@ -232,7 +234,7 @@ void Summoner::prepareForBattle(Actor* actor) const {
 }
 
 int Summoner::maximumMP(const Actor* actor) const {
-	return 3012 + (actor->stats().piety - 214) * 7.25;
+	return round(3012 + (actor->stats().piety - 214) * 7.25);
 }
 
 DamageType Summoner::_defaultDamageType() const {

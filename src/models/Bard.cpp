@@ -4,6 +4,8 @@
 #include "../Actor.h"
 #include "../Aura.h"
 
+#include <math.h>
+
 namespace models {
 
 Bard::Bard() : Base("bard") {
@@ -313,7 +315,7 @@ Bard::Bard() : Base("bard") {
 }
 
 int Bard::maximumMP(const Actor* actor) const {
-	return 3012 + (actor->stats().piety - 214) * 7.25;
+	return round(1965 + (actor->stats().piety - 171) * 5.3);
 }
 
 DamageType Bard::_defaultDamageType() const {

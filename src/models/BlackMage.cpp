@@ -5,6 +5,7 @@
 #include "../Aura.h"
 
 #include <random>
+#include <math.h>
 
 namespace models {
 
@@ -362,8 +363,7 @@ BlackMage::BlackMage() : Base("black-mage") {
 }
 
 int BlackMage::maximumMP(const Actor* actor) const {
-	// TODO: double check this. was copied / pasted from summoner and it's extremely important that this is accurate
-	return 3012 + (actor->stats().piety - 214) * 7.25;
+	return round(3637 + (actor->stats().piety - 240) * 8.225);
 }
 
 DamageType BlackMage::_defaultDamageType() const {
