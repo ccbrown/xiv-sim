@@ -54,9 +54,7 @@ void Simulation::run() {
 	}
 }
 
-void Simulation::_advanceTime(std::chrono::microseconds time) {	
-	if (_time == time) { return; }
-
+void Simulation::_advanceTime(std::chrono::microseconds time) {
 	_time = time;
 	for (auto& subject : _subjects) {
 		subject->advanceTime(_time);

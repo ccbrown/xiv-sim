@@ -130,8 +130,6 @@ Damage Actor::acceptDamage(const Damage& incoming) const {
 }
 
 void Actor::advanceTime(const std::chrono::microseconds& time) {
-	assert(time >= _time);
-
 	if (_configuration->keepsHistory) {
 		if (_simulationStats.tpSamples.empty() || _simulationStats.tpSamples.back().second != _tp) {
 			_simulationStats.tpSamples.emplace_back(_time, _tp);
