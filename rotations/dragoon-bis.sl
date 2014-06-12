@@ -10,7 +10,7 @@ if (GlobalCooldownRemaining(self) > 0.5) {
 		use "blood-for-blood";
 	
 	if (IsReady(self, "power-surge") and AuraTimeRemaining(self, "blood-for-blood", self) > 3.0)
-                use "power-surge";
+		use "power-surge";
 		
 	if (IsReady(self, "life-surge") and IsReady(self, "full-thrust-combo") and AuraTimeRemaining(self, "blood-for-blood", self) > 1.0)
 		use "life-surge";
