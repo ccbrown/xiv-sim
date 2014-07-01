@@ -46,6 +46,11 @@ Bard::Bard() : Base("bard") {
 							ally->dispelAura("armys-paeon", source);
 						}
 					}
+					if (newSource) {
+						source->applyAura(&allyBuff, newSource);
+					} else {
+						source->dispelAura("armys-paeon", source);
+					}
 				}
 				
 				AllyBuff allyBuff;
@@ -53,6 +58,7 @@ Bard::Bard() : Base("bard") {
 
 			Skill() : Action("armys-paeon") {
 				_sourceAuras.push_back(new SelfBuff());
+				_sourceAuras.push_back(new AllyBuff());
 			}
 			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
 				for (auto ally : source->allies()) {
