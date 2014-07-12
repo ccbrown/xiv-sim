@@ -36,7 +36,7 @@ Summoner::Summoner() : Base("summoner") {
 			Spell() : Action("bio-ii") {
 				_targetAuras.push_back(new DoT());
 			}
-			virtual int mpCost() const override { return 186; }
+			virtual int mpCost() const override { return 159; }
 		};
 	
 		_registerAction<Spell>();

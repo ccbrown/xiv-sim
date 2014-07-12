@@ -6,6 +6,7 @@
 #include "../models/BlackMage.h"
 #include "../models/Dragoon.h"
 #include "../models/Garuda.h"
+#include "../models/Ifrit.h"
 #include "../models/Monk.h"
 #include "../models/Summoner.h"
 
@@ -123,6 +124,9 @@ bool ActorConfigurationParser::parse(const char* str, size_t length) {
 						if (value == "garuda") {
 							_petModel.reset(new models::Garuda());
 							_petRotation.reset(new PetRotation(_petModel->action("wind-blade")));
+						} else if (value == "ifrit") {
+							_petModel.reset(new models::Ifrit());
+							_petRotation.reset(new PetRotation(_petModel->action("burning-strike")));
 						} else {
 							printf("Unknown pet.\n");
 							return false;

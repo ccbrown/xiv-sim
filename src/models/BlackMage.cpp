@@ -187,7 +187,7 @@ BlackMage::BlackMage() : Base("black-mage") {
 	{
 		struct Spell : Action {
 			Spell() : Action("blizzard") {}
-			virtual int damage(const Actor* source, const Actor* target) const override { return IceSpellDamage(source, 150); }
+			virtual int damage(const Actor* source, const Actor* target) const override { return IceSpellDamage(source, 170); }
 			virtual int mpCost(const Actor* source) const override { return IceSpellManaCost(source, 106); }
 			virtual std::chrono::microseconds castTime(const Actor* source) const override {
 				return (source->auraCount("astral-fire", source) == 3) ? 1250_ms : 2500_ms;
@@ -225,7 +225,7 @@ BlackMage::BlackMage() : Base("black-mage") {
 
 		struct Spell : Action {
 			Spell() : Action("fire") {}
-			virtual int damage(const Actor* source, const Actor* target) const override { return FireSpellDamage(source, 150); }
+			virtual int damage(const Actor* source, const Actor* target) const override { return FireSpellDamage(source, 170); }
 			virtual int mpCost(const Actor* source) const override { return FireSpellManaCost(source, 319); }
 			virtual std::chrono::microseconds castTime(const Actor* source) const override {
 				return (source->auraCount("umbral-ice", source) == 3) ? 1250_ms : 2500_ms;
@@ -246,7 +246,7 @@ BlackMage::BlackMage() : Base("black-mage") {
 	{
 		struct FirestarterSpell : Action {
 			FirestarterSpell() : Action("fire-iii-firestarter") {}
-			virtual int damage(const Actor* source, const Actor* target) const override { return FireSpellDamage(source, 220); }
+			virtual int damage(const Actor* source, const Actor* target) const override { return FireSpellDamage(source, 240); }
 			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
 				source->dispelAura("possible-firestarter", source);
 				source->dispelAura("firestarter", source);
@@ -260,7 +260,7 @@ BlackMage::BlackMage() : Base("black-mage") {
 	
 		struct Spell : Action {
 			Spell() : Action("fire-iii") {}
-			virtual int damage(const Actor* source, const Actor* target) const override { return FireSpellDamage(source, 220); }
+			virtual int damage(const Actor* source, const Actor* target) const override { return FireSpellDamage(source, 240); }
 			virtual int mpCost(const Actor* source) const override { return FireSpellManaCost(source, 532); }
 			virtual std::chrono::microseconds castTime(const Actor* source) const override {
 				return (source->auraCount("umbral-ice", source) == 3) ? 1750_ms : 3500_ms;
@@ -282,7 +282,7 @@ BlackMage::BlackMage() : Base("black-mage") {
 	{
 		struct Spell : Action {
 			Spell() : Action("blizzard-iii") {}
-			virtual int damage(const Actor* source, const Actor* target) const override { return IceSpellDamage(source, 220); }
+			virtual int damage(const Actor* source, const Actor* target) const override { return IceSpellDamage(source, 240); }
 			virtual int mpCost(const Actor* source) const override { return IceSpellManaCost(source, 319); }
 			virtual std::chrono::microseconds castTime(const Actor* source) const override {
 				return (source->auraCount("astral-fire", source) == 3) ? 1750_ms : 3500_ms;
