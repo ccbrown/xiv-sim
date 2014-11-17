@@ -283,7 +283,7 @@ Dragoon::Dragoon() : Base("dragoon") {
 		struct Skill : Action {
 			Skill() : Action("dragonfire-dive") {}
 			virtual int damage() const override { return 250; }
-			virtual std::chrono::microseconds cooldown() const override { return 180_s; }
+			virtual std::chrono::microseconds cooldown() const override { return 120_s; }
 			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
 				source->dispelAura("life-surge", source);
 			}
@@ -311,7 +311,7 @@ Dragoon::Dragoon() : Base("dragoon") {
 		struct Skill : Action {
 			Skill() : Action("spineshatter-dive") {}
 			virtual int damage() const override { return 170; }
-			virtual std::chrono::microseconds cooldown() const override { return 90_s; }
+			virtual std::chrono::microseconds cooldown() const override { return 60_s; }
 			virtual bool isOffGlobalCooldown() const override { return true; }
 			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
 				source->dispelAura("life-surge", source);
