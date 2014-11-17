@@ -103,12 +103,12 @@ Bard::Bard() : Base("bard") {
 				_sourceAuras.push_back(new Buff());
 			}
 			virtual int damage() const override { return 140; }
-			virtual int tpCost() const override { return 60; }
+			virtual int tpCost() const override { return 70; }
 			virtual double criticalHitChance(const Actor* source, double base) const {
-				return source->auraCount("heavier-shot", source) ? 1.0 : base;
+				return source->auraCount("straighter-shot", source) ? 1.0 : base;
 			}
 			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
-				source->dispelAura("heavier-shot", source);
+				source->dispelAura("straighter-shot", source);
 			}
 		};
 	
@@ -236,9 +236,9 @@ Bard::Bard() : Base("bard") {
 	{
 		struct Skill : Action {
 			struct Buff : Aura {
-				Buff() : Aura("heavier-shot") {}
+				Buff() : Aura("straighter-shot") {}
 				virtual std::chrono::microseconds duration() const override { return 10_s; }
-			} heavierShot;
+			} straighterShot;
 
 			Skill() : Action("heavy-shot") {}
 			virtual int damage() const override { return 150; }
@@ -246,7 +246,7 @@ Bard::Bard() : Base("bard") {
 			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
 				std::uniform_real_distribution<double> distribution(0.0, 1.0);				
 				if (distribution(source->rng()) < 0.2) {
-					source->applyAura(&heavierShot, source);
+					source->applyAura(&straighterShot, source);
 				}
 			}
 		};
