@@ -8,6 +8,7 @@
 #include "../models/Garuda.h"
 #include "../models/Ifrit.h"
 #include "../models/Monk.h"
+#include "../models/Ninja.h"
 #include "../models/Summoner.h"
 
 #include <cctype>
@@ -109,6 +110,8 @@ bool ActorConfigurationParser::parse(const char* str, size_t length) {
 							_model.reset(new models::Monk());
 						} else if (value == "dragoon") {
 							_model.reset(new models::Dragoon());
+						} else if (value == "ninja") {
+							_model.reset(new models::Ninja());
 						} else if (value == "black-mage") {
 							_model.reset(new models::BlackMage());
 						} else if (value == "bard") {
