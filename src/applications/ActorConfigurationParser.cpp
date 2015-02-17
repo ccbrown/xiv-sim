@@ -10,6 +10,7 @@
 #include "../models/Monk.h"
 #include "../models/Ninja.h"
 #include "../models/Summoner.h"
+#include "../models/Warrior.h"
 
 #include <cctype>
 #include <cstring>
@@ -118,6 +119,8 @@ bool ActorConfigurationParser::parse(const char* str, size_t length) {
 							_model.reset(new models::Bard());
 						} else if (value == "summoner") {
 							_model.reset(new models::Summoner());
+						} else if (value == "warrior") {
+							_model.reset(new models::Warrior());
 						} else {
 							printf("Unknown model.\n");
 							return false;
