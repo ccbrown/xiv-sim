@@ -170,6 +170,25 @@ Summoner::Summoner() : Base("summoner") {
 		_registerAction<Spell>();
 	}
 
+	{
+		struct Spell : Action {
+			Spell() : Action("energy-drain") {}
+			virtual int damage() const override { return 150; }
+			virtual bool isOffGlobalCooldown() const override { return true; }
+			virtual std::chrono::microseconds cooldown() const override { return 3_s; }
+			// 266 at level 50
+			virtual int mpRestoration(const Actor* subject) const override { return 266; }
+			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
+				source->dispelAura("aetherflow", source);
+			}
+			virtual bool requirements(const Actor* source) const override {
+				return source->auraCount("aetherflow", source);
+			}
+		};
+
+		_registerAction<Spell>();
+	}
+
 	{		
 		struct Spell : Action {
 			Spell() : Action("fester") {}
