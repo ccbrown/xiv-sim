@@ -30,12 +30,13 @@ Summoner::Summoner() : Base("summoner") {
 			struct DoT : Aura {
 				DoT() : Aura("bio-ii-dot") {}
 				virtual std::chrono::microseconds duration() const override { return 30_s; }
-				virtual int tickDamage() const override { return 30; }
+				virtual int tickDamage() const override { return 35; }
 			};
 			
 			Spell() : Action("bio-ii") {
 				_targetAuras.push_back(new DoT());
 			}
+			virtual std::chrono::microseconds castTime() const override { return 2500_ms; }
 			virtual int mpCost() const override { return 159; }
 		};
 	
@@ -54,6 +55,7 @@ Summoner::Summoner() : Base("summoner") {
 				_targetAuras.push_back(new DoT());
 			}
 			virtual int damage() const override { return 20; }
+			virtual std::chrono::microseconds castTime() const override { return 2500_ms; }
 			virtual int mpCost() const override { return 133; }
 		};
 	
@@ -197,7 +199,7 @@ Summoner::Summoner() : Base("summoner") {
 
 			Spell() : Action("rouse") {}
 			virtual bool isOffGlobalCooldown() const override { return true; }
-			virtual std::chrono::microseconds cooldown() const override { return 60_s; }
+			virtual std::chrono::microseconds cooldown() const override { return 90_s; }
 			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
 				source->pet()->applyAura(&buff, source);
 			}
