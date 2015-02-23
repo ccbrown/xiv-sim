@@ -33,7 +33,15 @@ Ifrit::Ifrit() : Base("ifrit") {
 
 	{
 		struct Spell : Action {
-			Spell() : Action("inferno") {}
+			struct DoT : Aura {
+				DoT() : Aura("inferno-dot") {}
+				virtual std::chrono::microseconds duration() const override { return 15_s; }
+				virtual int tickDamage() const override { return 20; }
+			};
+
+			Spell() : Action("inferno") {
+				_targetAuras.push_back(new DoT());
+			}
 			virtual int damage() const override { return 200; }
 			virtual std::chrono::microseconds cooldown() const override { return 300_s; }
 			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
