@@ -55,11 +55,15 @@ void Actor::act(Actor* target) {
 	if (!action->isUsable(this)) { return; }
 
 	// TODO: get this out of here
-	bool swift = dispelAura("swiftcast", this);
+	bool swift = auraCount("swiftcast", this);
 
 	if (!swift && action->castTime(this).count()) {
 		_beginCast(action, target);
 	} else {
+		if (swift && action->castTime(this).count()) {
+			// Only actions with a cast time dispel Swiftcast
+			dispelAura("swiftcast", this);
+		}
 		_executeAction(action, target);
 	}
 }
