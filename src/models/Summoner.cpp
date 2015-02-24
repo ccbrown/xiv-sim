@@ -85,7 +85,7 @@ Summoner::Summoner() : Base("summoner") {
 			Spell() : Action("ruin") {}
 			virtual int damage() const override { return 80; }
 			virtual std::chrono::microseconds castTime() const override { return 2500_ms; }
-			virtual int mpCost() const override { return 79; }
+			virtual int mpCost() const override { return 53; }
 		};
 	
 		_registerAction<Spell>();
@@ -95,7 +95,7 @@ Summoner::Summoner() : Base("summoner") {
 		struct Spell : Action {
 			Spell() : Action("ruin-ii") {}
 			virtual int damage() const override { return 80; }
-			virtual int mpCost() const override { return 133; }
+			virtual int mpCost() const override { return 106; }
 		};
 	
 		_registerAction<Spell>();
