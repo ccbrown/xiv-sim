@@ -326,7 +326,7 @@ Warrior::Warrior() : Base("warrior") {
 }
 
 void Warrior::prepareForBattle(Actor* actor) const {
-	actor->applyAura(&defiance, actor);
+	//actor->applyAura(&defiance, actor);
 }
 int Warrior::maximumMP(const Actor* actor) const {
 	return 0;
