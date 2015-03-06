@@ -6,7 +6,7 @@ if (GlobalCooldownRemaining(self) > 0.5) {
 		use "internal-release";
 		
 	if (GlobalCooldown(self) < 2.4) {
-		if (IsReady(self, "blood-for-blood") and (IsReady(self, "chaos-thrust-combo") or IsReady(self, "full-thrust-combo")))
+		if (IsReady(self, "blood-for-blood") and (IsReady(self, "chaos-thrust-rear-combo") or IsReady(self, "full-thrust-combo")))
 			use "blood-for-blood";
 	} else {
 		if (IsReady(self, "blood-for-blood") and !(IsReady(self, "full-thrust-combo") and AuraTimeRemaining(target, "chaos-thrust-dot", self) < 15.0))
@@ -34,8 +34,8 @@ if (GlobalCooldownRemaining(self) > 0.5) {
 		use "dragonfire-dive";
 }
 
-if (IsReady(self, "chaos-thrust-combo"))
-	use "chaos-thrust-combo";
+if (IsReady(self, "chaos-thrust-rear-combo"))
+	use "chaos-thrust-rear-combo";
 	
 if (IsReady(self, "disembowel-combo"))
 	use "disembowel-combo";
