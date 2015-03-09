@@ -56,6 +56,26 @@ Ninja::Ninja() : Base("ninja") {
 
 	{
 		struct Skill : Action {
+			Skill() : Action("kiss-of-the-wasp") {
+				_sourceAuras.push_back(new KissDamageBuff());
+			}
+		};
+
+		_registerAction<Skill>();
+	}
+
+	{
+		struct Skill : Action {
+			Skill() : Action("kiss-of-the-viper") {
+				_sourceAuras.push_back(new KissDamageBuff());
+			}
+		};
+
+		_registerAction<Skill>();
+	}
+
+	{
+		struct Skill : Action {
 			Skill() : Action("spinning-edge") {}
 			virtual int damage() const override { return 150; }
 			virtual int tpCost() const override { return 60; }
@@ -82,8 +102,66 @@ Ninja::Ninja() : Base("ninja") {
 
 	{
 		struct Skill : Action {
-			Skill() : Action("kiss-of-the-wasp") {
-				_sourceAuras.push_back(new KissOfTheWasp());
+			Skill() : Action("aeolian-edge-combo") {}
+			virtual int damage() const override { return 320; }
+			virtual int tpCost() const override { return 60; }
+			virtual bool requirements(const Actor* source) const override {
+				return source->comboAction() && source->comboAction()->identifier() == "gust-slash-combo";
+			}
+			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
+				source->dispelAura("gust-slash-combo", source);
+			}
+		};
+
+		_registerAction<Skill>();
+	}
+
+	{
+		struct Skill : Action {
+			struct Debuff : Aura {
+				Debuff() : Aura("dancing-edge") {}
+				virtual std::chrono::microseconds duration() const override { return 20_s; }
+				virtual void transformIncomingDamage(Damage* damage) const override {
+					if (damage->type == DamageTypeSlashing) {
+						damage->amount *= 1.0 / 0.9;
+					}
+				}
+			};
+
+			Skill() : Action("dancing-edge-combo") {
+				_targetAuras.push_back(new Debuff());
+			}
+			virtual int damage() const override { return 260; }
+			virtual int tpCost() const override { return 50; }
+			virtual bool requirements(const Actor* source) const override {
+				return source->comboAction() && source->comboAction()->identifier() == "gust-slash-combo";
+			}
+			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
+				source->dispelAura("gust-slash-combo", source);
+			}
+		};
+
+		_registerAction<Skill>();
+	}
+
+	{
+		struct DoT : Aura {
+			DoT() : Aura("shadow-fang-dot") {}
+			virtual std::chrono::microseconds duration() const override { return 18_s; }
+			virtual int tickDamage() const override { return 40; }
+		};
+
+		struct Skill : Action {
+			Skill() : Action("shadow-fang-combo") {
+				_targetAuras.push_back(new DoT());
+			}
+			virtual int damage() const override { return 200; }
+			virtual int tpCost() const override { return 70; }
+			virtual bool requirements(const Actor* source) const override {
+				return source->comboAction() && source->comboAction()->identifier() == "spinning-edge";
+			}
+			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
+				source->dispelAura("spinning-edge", source);
 			}
 		};
 
@@ -121,89 +199,10 @@ Ninja::Ninja() : Base("ninja") {
 
 	{
 		struct Skill : Action {
-			Skill() : Action("hide") {}
-			virtual bool isOffGlobalCooldown() const override { return true; }
-			virtual std::chrono::microseconds cooldown() const override { return 20_s; }
-			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
-				source->dispelAura("spinning-edge", source);
-				source->dispelAura("gust-slash-combo", source);
-			}
-		};
-
-		_registerAction<Skill>();
-	}
-
-	{
-		struct Skill : Action {
-			Skill() : Action("sneak-attack") { }
-			virtual int damage() const override { return 500; }
-			virtual bool isOffGlobalCooldown() const override { return true; }
-			virtual std::chrono::microseconds cooldown() const override { return 60_s; }
-		};
-
-		_registerAction<Skill>();
-	}
-
-	{
-		struct Skill : Action {
-			Skill() : Action("aeolian-edge-combo") {}
-			virtual int damage() const override { return 320; }
-			virtual int tpCost() const override { return 60; }
-			virtual bool requirements(const Actor* source) const override {
-				return source->comboAction() && source->comboAction()->identifier() == "gust-slash-combo";
-			}
-			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
-				source->dispelAura("gust-slash-combo", source);
-			}
-		};
-
-		_registerAction<Skill>();
-	}
-
-	{
-		struct Skill : Action {
-			Skill() : Action("kiss-of-the-viper") {
-				_sourceAuras.push_back(new KissOfTheViper());
-			}
-		};
-
-		_registerAction<Skill>();
-	}
-
-	{
-		struct Skill : Action {
 			Skill() : Action("jugulate") {}
 			virtual int damage() const override { return 80; }
-			virtual std::chrono::microseconds cooldown() const override { return 30_s; }
 			virtual bool isOffGlobalCooldown() const override { return true; }
-		};
-
-		_registerAction<Skill>();
-	}
-
-	{
-		struct Skill : Action {
-			struct Debuff : Aura {
-				Debuff() : Aura("dancing-edge") {}
-				virtual std::chrono::microseconds duration() const override { return 20_s; }
-				virtual void transformIncomingDamage(Damage* damage) const override {
-					if (damage->type == DamageTypeSlashing) {
-						damage->amount *= 1.0 / 0.9;
-					}
-				}
-			};
-
-			Skill() : Action("dancing-edge-combo") {
-				_targetAuras.push_back(new Debuff());
-			}
-			virtual int damage() const override { return 260; }
-			virtual int tpCost() const override { return 50; }
-			virtual bool requirements(const Actor* source) const override {
-				return source->comboAction() && source->comboAction()->identifier() == "gust-slash-combo";
-			}
-			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
-				source->dispelAura("gust-slash-combo", source);
-			}
+			virtual std::chrono::microseconds cooldown() const override { return 30_s; }
 		};
 
 		_registerAction<Skill>();
@@ -214,30 +213,6 @@ Ninja::Ninja() : Base("ninja") {
 			Skill() : Action("death-blossom") {}
 			virtual int damage() const override { return 100; }
 			virtual int tpCost() const override { return 120; }
-		};
-
-		_registerAction<Skill>();
-	}
-
-	{
-		struct DoT : Aura {
-			DoT() : Aura("shadow-fang-dot") {}
-			virtual std::chrono::microseconds duration() const override { return 18_s; }
-			virtual int tickDamage() const override { return 40; }
-		};
-
-		struct Skill : Action {
-			Skill() : Action("shadow-fang-combo") {
-				_targetAuras.push_back(new DoT());
-			}
-			virtual int damage() const override { return 200; }
-			virtual int tpCost() const override { return 70; }
-			virtual bool requirements(const Actor* source) const override {
-				return source->comboAction() && source->comboAction()->identifier() == "spinning-edge";
-			}
-			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
-				source->dispelAura("spinning-edge", source);
-			}
 		};
 
 		_registerAction<Skill>();
@@ -259,6 +234,23 @@ Ninja::Ninja() : Base("ninja") {
 			virtual int damage() const override { return 400; }
 			virtual bool isOffGlobalCooldown() const override { return true; }
 			virtual std::chrono::microseconds cooldown() const override { return 60_s; }
+			virtual bool requirements(const Actor* source) const override {
+				return source->auraCount("hide-buff", source);
+			}
+		};
+
+		_registerAction<Skill>();
+	}
+
+	{
+		struct Skill : Action {
+			Skill() : Action("sneak-attack") { }
+			virtual int damage() const override { return 500; }
+			virtual bool isOffGlobalCooldown() const override { return true; }
+			virtual std::chrono::microseconds cooldown() const override { return 60_s; }
+			virtual bool requirements(const Actor* source) const override {
+				return source->auraCount("hide-buff", source);
+			}
 		};
 
 		_registerAction<Skill>();
@@ -269,119 +261,14 @@ Ninja::Ninja() : Base("ninja") {
 		virtual std::chrono::microseconds duration() const override { return 20_s; }
 	};
 
-	{
-		struct Skill : Action {
-			Skill() : Action("katon") {}
-			virtual int damage() const override { return 180; }
-			virtual std::chrono::microseconds castTime() const override { return 1500_ms; }
-			virtual bool requirements(const Actor* source) const override {
-				return !source->auraCount("ninjutsu", source);
-			}
-			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
-				source->applyAura(&ninjutsu, source);
-			}
-			Ninjutsu ninjutsu;
-		};
-
-		_registerAction<Skill>();
-	}
-
-	{
-		struct Skill : Action {
-			Skill() : Action("raiton") {}
-			virtual int damage() const override { return 360; }
-			virtual std::chrono::microseconds castTime() const override { return 1500_ms; }
-			virtual bool requirements(const Actor* source) const override {
-				return !source->auraCount("ninjutsu", source);
-			}
-			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
-				source->applyAura(&ninjutsu, source);
-			}
-			Ninjutsu ninjutsu;
-		};
-
-		_registerAction<Skill>();
-	}
-
-	{
-		struct Skill : Action {
-			Skill() : Action("hyoton") {}
-			virtual int damage() const override { return 140; }
-			virtual std::chrono::microseconds castTime() const override { return 1500_ms; }
-			virtual bool requirements(const Actor* source) const override {
-				return !source->auraCount("ninjutsu", source);
-			}
-			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
-				source->applyAura(&ninjutsu, source);
-			}
-			Ninjutsu ninjutsu;
-		};
-
-		_registerAction<Skill>();
-	}
-
-	{
-		struct Skill : Action {
-			Skill() : Action("huton") {}
-			virtual std::chrono::microseconds castTime() const override { return 1500_ms; }
-			virtual bool requirements(const Actor* source) const override {
-				return !source->auraCount("ninjutsu", source);
-			}
-			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
-				source->applyAura(&ninjutsu, source);
-				source->applyAura(&skillSpeedUp, source);
-			}
-			Ninjutsu ninjutsu;
-			SkillSpeedUp skillSpeedUp;
-		};
-
-		_registerAction<Skill>();
-	}
-
-	{
-		struct DoT : Aura {
-			DoT() : Aura("doton-dot") {}
-			virtual std::chrono::microseconds duration() const override { return 24_s; }
-			virtual int tickDamage() const override { return 30; }
-		};
-
-		struct Skill : Action {
-			Skill() : Action("doton") {
-				_targetAuras.push_back(new DoT());
-			}
-			virtual std::chrono::microseconds castTime() const override { return 1500_ms; }
-			virtual bool requirements(const Actor* source) const override {
-				return !source->auraCount("ninjutsu", source);
-			}
-			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
-				source->applyAura(&ninjutsu, source);
-			}
-			Ninjutsu ninjutsu;
-		};
-
-		_registerAction<Skill>();
-	}
-
-	{
-		struct Skill : Action {
-			Skill() : Action("suiton") {}
-			virtual int damage() const override { return 180; }
-			virtual std::chrono::microseconds castTime() const override { return 1500_ms; }
-			virtual bool requirements(const Actor* source) const override {
-				return !source->auraCount("ninjutsu", source);
-			}
-			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
-				source->applyAura(&ninjutsu, source);
-			}
-			Ninjutsu ninjutsu;
-		};
-
-		_registerAction<Skill>();
-	}
-
 	struct Kassatsu : Aura {
 		Kassatsu() : Aura("kassatsu-buff") {}
 		virtual std::chrono::microseconds duration() const override { return 15_s; }
+	};
+
+	struct Hide : Aura {
+		Hide() : Aura("hide-buff") {}
+		virtual std::chrono::microseconds duration() const override { return 20_s; }
 	};
 
 	{
@@ -400,12 +287,67 @@ Ninja::Ninja() : Base("ninja") {
 
 	{
 		struct Skill : Action {
+			Skill() : Action("huton") {}
+			virtual bool isOffGlobalCooldown() const override { return true; }
+			virtual bool requirements(const Actor* source) const override {
+				return !source->auraCount("ninjutsu", source);
+			}
+			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
+				source->applyAura(&ninjutsu, source);
+				source->applyAura(&skillSpeedUp, source);
+				source->dispelAura("kassatsu-buff", source);
+			}
+			Ninjutsu ninjutsu;
+			SkillSpeedUp skillSpeedUp;
+		};
+
+		_registerAction<Skill>();
+	}
+
+	{
+		struct Skill : Action {
+			Skill() : Action("katon") {}
+			virtual int damage() const override { return 180; }
+			virtual bool isOffGlobalCooldown() const override { return true; }
+			virtual bool requirements(const Actor* source) const override {
+				return !source->auraCount("ninjutsu", source);
+			}
+			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
+				source->applyAura(&ninjutsu, source);
+				source->dispelAura("kassatsu-buff", source);
+			}
+			Ninjutsu ninjutsu;
+		};
+
+		_registerAction<Skill>();
+	}
+
+	{
+		struct Skill : Action {
 			Skill() : Action("katon-crit") {}
 			virtual int damage() const override { return 180; }
 			virtual double criticalHitChance(const Actor* source, double base) const override { return 1.0; }
-			virtual std::chrono::microseconds castTime() const override { return 1500_ms; }
+			virtual bool isOffGlobalCooldown() const override { return true; }
 			virtual bool requirements(const Actor* source) const override {
 				return source->auraCount("kassatsu-buff", source);
+			}
+			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
+				source->applyAura(&ninjutsu, source);
+				source->dispelAura("kassatsu-buff", source);
+			}
+			Ninjutsu ninjutsu;
+		};
+
+		_registerAction<Skill>();
+	}
+
+	{
+		struct Skill : Action {
+			Skill() : Action("raiton") {}
+			virtual int damage() const override { return 360; }
+			virtual bool isOffGlobalCooldown() const override { return true; }
+			virtual bool requirements(const Actor* source) const override {
+				return !source->auraCount("ninjutsu", source);
 			}
 			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
 				source->applyAura(&ninjutsu, source);
@@ -422,9 +364,27 @@ Ninja::Ninja() : Base("ninja") {
 			Skill() : Action("raiton-crit") {}
 			virtual int damage() const override { return 360; }
 			virtual double criticalHitChance(const Actor* source, double base) const override { return 1.0; }
-			virtual std::chrono::microseconds castTime() const override { return 1500_ms; }
+			virtual bool isOffGlobalCooldown() const override { return true; }
 			virtual bool requirements(const Actor* source) const override {
 				return source->auraCount("kassatsu-buff", source);
+			}
+			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
+				source->applyAura(&ninjutsu, source);
+				source->dispelAura("kassatsu-buff", source);
+			}
+			Ninjutsu ninjutsu;
+		};
+
+		_registerAction<Skill>();
+	}
+
+	{
+		struct Skill : Action {
+			Skill() : Action("hyoton") {}
+			virtual int damage() const override { return 140; }
+			virtual bool isOffGlobalCooldown() const override { return true; }
+			virtual bool requirements(const Actor* source) const override {
+				return !source->auraCount("ninjutsu", source);
 			}
 			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
 				source->applyAura(&ninjutsu, source);
@@ -441,7 +401,7 @@ Ninja::Ninja() : Base("ninja") {
 			Skill() : Action("hyoton-crit") {}
 			virtual int damage() const override { return 140; }
 			virtual double criticalHitChance(const Actor* source, double base) const override { return 1.0; }
-			virtual std::chrono::microseconds castTime() const override { return 1500_ms; }
+			virtual bool isOffGlobalCooldown() const override { return true; }
 			virtual bool requirements(const Actor* source) const override {
 				return source->auraCount("kassatsu-buff", source);
 			}
@@ -456,19 +416,25 @@ Ninja::Ninja() : Base("ninja") {
 	}
 
 	{
+		struct DoT : Aura {
+			DoT() : Aura("doton-dot") {}
+			virtual std::chrono::microseconds duration() const override { return 24_s; }
+			virtual int tickDamage() const override { return 30; }
+		};
+
 		struct Skill : Action {
-			Skill() : Action("huton-crit") {}
-			virtual std::chrono::microseconds castTime() const override { return 1500_ms; }
+			Skill() : Action("doton") {
+				_targetAuras.push_back(new DoT());
+			}
+			virtual bool isOffGlobalCooldown() const override { return true; }
 			virtual bool requirements(const Actor* source) const override {
-				return source->auraCount("kassatsu-buff", source);
+				return !source->auraCount("ninjutsu", source);
 			}
 			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
 				source->applyAura(&ninjutsu, source);
-				source->applyAura(&skillSpeedUp, source);
 				source->dispelAura("kassatsu-buff", source);
 			}
 			Ninjutsu ninjutsu;
-			SkillSpeedUp skillSpeedUp;
 		};
 
 		_registerAction<Skill>();
@@ -486,7 +452,7 @@ Ninja::Ninja() : Base("ninja") {
 				_targetAuras.push_back(new DoT());
 			}
 			virtual double criticalHitChance(const Actor* source, double base) const override { return 1.0; }
-			virtual std::chrono::microseconds castTime() const override { return 1500_ms; }
+			virtual bool isOffGlobalCooldown() const override { return true; }
 			virtual bool requirements(const Actor* source) const override {
 				return source->auraCount("kassatsu-buff", source);
 			}
@@ -502,18 +468,40 @@ Ninja::Ninja() : Base("ninja") {
 
 	{
 		struct Skill : Action {
+			Skill() : Action("suiton") {}
+			virtual int damage() const override { return 180; }
+			virtual bool isOffGlobalCooldown() const override { return true; }
+			virtual bool requirements(const Actor* source) const override {
+				return !source->auraCount("ninjutsu", source);
+			}
+			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
+				source->applyAura(&ninjutsu, source);
+				source->applyAura(&hide, source);
+				source->dispelAura("kassatsu-buff", source);
+			}
+			Ninjutsu ninjutsu;
+			Hide hide;
+		};
+
+		_registerAction<Skill>();
+	}
+
+	{
+		struct Skill : Action {
 			Skill() : Action("suiton-crit") {}
 			virtual int damage() const override { return 180; }
 			virtual double criticalHitChance(const Actor* source, double base) const override { return 1.0; }
-			virtual std::chrono::microseconds castTime() const override { return 1500_ms; }
+			virtual bool isOffGlobalCooldown() const override { return true; }
 			virtual bool requirements(const Actor* source) const override {
 				return source->auraCount("kassatsu-buff", source);
 			}
 			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
 				source->applyAura(&ninjutsu, source);
+				source->applyAura(&hide, source);
 				source->dispelAura("kassatsu-buff", source);
 			}
 			Ninjutsu ninjutsu;
+			Hide hide;
 		};
 
 		_registerAction<Skill>();
@@ -522,6 +510,7 @@ Ninja::Ninja() : Base("ninja") {
 
 void Ninja::prepareForBattle(Actor* actor) const {
 	actor->applyAura(&skillSpeedUp, actor);
+	actor->applyAura(&kissDamageBuff, actor);
 }
 int Ninja::maximumMP(const Actor* actor) const {
 	return 0;

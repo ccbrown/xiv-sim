@@ -28,19 +28,12 @@ class Ninja : public Base {
 		};
 		SkillSpeedUp skillSpeedUp;
 
-		struct KissOfTheWasp : Aura {
-			KissOfTheWasp() : Aura("kiss-of-the-wasp") {}
+		struct KissDamageBuff : Aura {
+			KissDamageBuff() : Aura("kiss-damage-buff") {}
 			virtual std::chrono::microseconds duration() const override { return std::chrono::microseconds::max(); }
-			virtual double increasedDamage() const override { return 0.2; }
+			virtual double increasedDamage() const override { return 0.20; }
 		};
-		KissOfTheWasp kissOfTheWasp;
-
-		struct KissOfTheViper : Aura {
-			KissOfTheViper() : Aura("kiss-of-the-viper") {}
-			virtual std::chrono::microseconds duration() const override { return std::chrono::microseconds::max(); }
-			virtual double increasedDamage() const override { return 0.2; }
-		};
-		KissOfTheViper kissOfTheViper;
+		KissDamageBuff kissDamageBuff;
 };
 
 }
