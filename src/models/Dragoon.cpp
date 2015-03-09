@@ -37,7 +37,7 @@ Dragoon::Dragoon() : Base("dragoon") {
 				_sourceAuras.push_back(new Buff());
 			}
 			virtual bool isOffGlobalCooldown() const override { return true; }
-			virtual std::chrono::microseconds cooldown() const override { return 60_s; }
+			virtual std::chrono::microseconds cooldown() const override { return 90_s; }
 		};
 		
 		_registerAction<Skill>();
@@ -125,7 +125,7 @@ Dragoon::Dragoon() : Base("dragoon") {
 	{
 		struct Skill : Action {
 			Skill() : Action("full-thrust-combo") {}
-			virtual int damage() const override { return 300; }
+			virtual int damage() const override { return 360; }
 			virtual int tpCost() const override { return 60; }
 			virtual bool requirements(const Actor* source) const override {
 				return source->comboAction() && source->comboAction()->identifier() == "vorpal-thrust-combo";
@@ -184,13 +184,13 @@ Dragoon::Dragoon() : Base("dragoon") {
 			struct DoT : Aura {
 				DoT() : Aura("chaos-thrust-dot") {}
 				virtual std::chrono::microseconds duration() const override { return 30_s; }
-				virtual int tickDamage() const override { return 30; }
+				virtual int tickDamage() const override { return 35; }
 			};
 			
-			Skill() : Action("chaos-thrust-combo") {
+			Skill() : Action("chaos-thrust-rear-combo") {
 				_targetAuras.push_back(new DoT());
 			}
-			virtual int damage() const override { return 200; }
+			virtual int damage() const override { return 250; }
 			virtual int tpCost() const override { return 60; }
 			virtual bool requirements(const Actor* source) const override {
 				return source->comboAction() && source->comboAction()->identifier() == "disembowel-combo";
@@ -229,7 +229,7 @@ Dragoon::Dragoon() : Base("dragoon") {
 			struct DoT : Aura {
 				DoT() : Aura("phlebotomize-dot") {}
 				virtual std::chrono::microseconds duration() const override { return 18_s; }
-				virtual int tickDamage() const override { return 25; }
+				virtual int tickDamage() const override { return 30; }
 			};
 			
 			Skill() : Action("phlebotomize") {
@@ -251,7 +251,7 @@ Dragoon::Dragoon() : Base("dragoon") {
 			virtual int damage(const Actor* source, const Actor* target) const override {
 				return source->auraCount("power-surge", source) ? 300 : 200;
 			}
-			virtual std::chrono::microseconds cooldown() const override { return 40_s; }
+			virtual std::chrono::microseconds cooldown() const override { return 30_s; }
 			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
 				source->dispelAura("life-surge", source);
 				source->dispelAura("power-surge", source);
@@ -297,7 +297,7 @@ Dragoon::Dragoon() : Base("dragoon") {
 		struct Skill : Action {
 			Skill() : Action("leg-sweep") {}
 			virtual int damage() const override { return 130; }
-			virtual std::chrono::microseconds cooldown() const override { return 20_s; }
+			virtual std::chrono::microseconds cooldown() const override { return 30_s; }
 			virtual bool isOffGlobalCooldown() const override { return true; }
 			virtual void resolution(Actor* source, Actor* target, bool isCritical) const override {
 				source->dispelAura("life-surge", source);
