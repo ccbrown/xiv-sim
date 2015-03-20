@@ -162,6 +162,7 @@ class Actor {
 		void setTP(int tp) { _tp = std::max(std::min(tp, 1000), 0); }
 
 		int mp() const { return _mp; }
+		int percentmp() const { return floor((100.0 * _mp / maximumMP()) + 0.5); }
 		void setMP(int mp) { _mp = std::max(std::min(mp, maximumMP()), 0); }
 			
 		int maximumMP() const;
