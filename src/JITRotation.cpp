@@ -24,6 +24,7 @@ bool JITRotation::initializeWithFile(const char* filename) {
 		"Actor* Pet(Actor* owner);\n"
 		"uint64 TP(const Actor* actor);\n"
 		"uint64 MP(const Actor* actor);\n"
+		"uint64 MaximumMP(const Actor* actor);\n"
 		"double GlobalCooldown(const Actor* actor);\n"
 		"double Time(const Actor* actor);\n"
 		"void RemoveAura(Actor* actor, uint64 identifier, const Actor* source);\n"
@@ -132,6 +133,7 @@ bool JITRotation::initializeWithFile(const char* filename) {
 	engine->addGlobalMapping(module->getFunction("^Pet"), (void*)&JITRotation::ActorPet);
 	engine->addGlobalMapping(module->getFunction("^TP"), (void*)&JITRotation::ActorTP);
 	engine->addGlobalMapping(module->getFunction("^MP"), (void*)&JITRotation::ActorMP);
+	engine->addGlobalMapping(module->getFunction("^MaximumMP"), (void*)&JITRotation::ActorMaximumMP);
 	engine->addGlobalMapping(module->getFunction("^GlobalCooldown"), (void*)&JITRotation::ActorGlobalCooldown);
 	engine->addGlobalMapping(module->getFunction("^Time"), (void*)&JITRotation::ActorTime);
 	engine->addGlobalMapping(module->getFunction("^RemoveAura"), (void*)&JITRotation::ActorRemoveAura);
@@ -175,6 +177,10 @@ uint64_t JITRotation::ActorTP(const Actor* actor) {
 
 uint64_t JITRotation::ActorMP(const Actor* actor) {
 	return actor->mp();
+}
+
+uint64_t JITRotation::ActorMaximumMP(const Actor* actor) {
+	return actor->maximumMP();
 }
 
 double JITRotation::ActorGlobalCooldown(const Actor* actor) {
