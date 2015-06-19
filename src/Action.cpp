@@ -37,7 +37,7 @@ bool Action::resolve(Actor* source, Actor* target) const {
 		source->triggerGlobalCooldown();
 	}
 	
-	source->triggerAnimationLock();
+	source->triggerAnimationLock(animationLock());
 
 	source->setTP(source->tp() - tpCost() + tpRestoration());
 	source->setMP(source->mp() - mpCost(source) + mpRestoration(source));

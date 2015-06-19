@@ -156,7 +156,7 @@ class Actor {
 		const Action* currentCast(std::chrono::microseconds* remaining = nullptr, Actor** target = nullptr) const;
 
 		void triggerGlobalCooldown();
-		void triggerAnimationLock();
+		void triggerAnimationLock(std::chrono::microseconds duration);
 
 		int tp() const { return _tp; }
 		void setTP(int tp) { _tp = std::max(std::min(tp, 1000), 0); }

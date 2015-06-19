@@ -442,8 +442,8 @@ void Actor::triggerGlobalCooldown() {
 	_globalCooldownStartTime = _time;
 }
 
-void Actor::triggerAnimationLock() {
-	_animationLockEndTime = _time + 1_s;
+void Actor::triggerAnimationLock(std::chrono::microseconds duration) {
+	_animationLockEndTime = _time + duration;
 }
 
 void Actor::_integrateAuraApplicationCountChange(const Aura* aura, int before, int after) {
