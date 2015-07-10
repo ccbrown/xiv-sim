@@ -27,9 +27,14 @@ class Base : public Model {
 
 		virtual std::chrono::microseconds autoAttackInterval(const Actor* actor) const override;
 
-		virtual double baseTickDamage(const Actor* source, const Aura* aura) const override;
+		virtual double tickDamage(const Actor* source, const Aura* aura) const override;
 		virtual double tickCriticalHitChance(const Actor* source) const override;
+		virtual double tickCriticalHitMultiplier(const Actor* source) const override;
+
 		virtual std::chrono::microseconds castTime(const Action* action, const Actor* actor) const override;
+
+		double baseCriticalHitChance(const Actor* actor) const;
+		double baseCriticalHitMultiplier(const Actor* actor) const;
 
 	protected:
 		std::unordered_map<FNV1AHash, Action*> _actions;

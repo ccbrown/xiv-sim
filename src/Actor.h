@@ -212,8 +212,9 @@ class Actor {
 			int count = 0;
 			std::chrono::microseconds time = 0_us;
 			std::chrono::microseconds duration = 0_us;
-			double baseTickDamage = 0.0;
+			double tickDamage = 0.0;
 			double tickCriticalHitChance = 0.0;
+			double tickCriticalHitMultiplier = 0.0;
 			Stats providedStats;
 		};
 

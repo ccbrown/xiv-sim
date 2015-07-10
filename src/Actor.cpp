@@ -285,8 +285,9 @@ void Actor::applyAura(const Aura* aura, Actor* source, int count) {
 	application.time = _time;
 	application.duration = aura->duration();
 	
-	application.baseTickDamage = source->_configuration->model->baseTickDamage(source, aura);
+	application.tickDamage = source->_configuration->model->tickDamage(source, aura);
 	application.tickCriticalHitChance = source->_configuration->model->tickCriticalHitChance(source);
+	application.tickCriticalHitMultiplier = source->_configuration->model->tickCriticalHitMultiplier(source);
 
 	if (application.count < aura->maximumCount()) {
 		auto newCount = std::min(aura->maximumCount(), application.count + count);
@@ -464,13 +465,13 @@ Damage Actor::_generateTickDamage(const Actor::AuraApplication& application) con
 
 	ret.isCritical = (distribution(*_rng) < application.tickCriticalHitChance);
 
-	double amount = application.baseTickDamage;
+	double amount = application.tickDamage;
 
 	// TODO: this sway is a complete guess off the top of my head and should be researched
 	amount *= 1.0 + (0.5 - distribution(*_rng)) * 0.1;
 
 	if (ret.isCritical) {
-		amount *= 1.5;
+		amount *= application.tickCriticalHitMultiplier;
 	}
 	
 	ret.amount = amount;
