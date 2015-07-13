@@ -30,13 +30,22 @@ if (GlobalCooldownRemaining(self) > 1.0) {
 		use "blunt-arrow";
 }
 
+if (AuraTimeRemaining(self, "straight-shot", self) < 2.0)
+	use "straight-shot";
+
+if (AuraCount(target, "windbite-dot", self) and AuraTimeRemaining(target, "windbite-dot", self) < 4.5 and AuraTimeRemaining(self, "straight-shot", self) < 4.5)
+	use "straight-shot";
+
+if (AuraCount(target, "venomous-bite-dot", self) and AuraTimeRemaining(target, "venomous-bite-dot", self) < 4.5 and AuraTimeRemaining(self, "straight-shot", self) < 4.5)
+	use "straight-shot";
+
 if (AuraTimeRemaining(target, "windbite-dot", self) < 2.0)
 	use "windbite";
 
 if (AuraTimeRemaining(target, "venomous-bite-dot", self) < 2.0)
 	use "venomous-bite";
 
-if (AuraTimeRemaining(self, "straight-shot", self) < 2.5)
+if (AuraCount(target, "straighter-shot", self))
 	use "straight-shot";
 
 use "heavy-shot";
